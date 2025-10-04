@@ -1,0 +1,13 @@
+package models
+
+import (
+	"time"
+)
+
+type CoordinatorInfo struct {
+	CoordinatorEmail string    `json:"coordinator_email" firestore:"coordinator_email"`
+	CoordinatorName  string    `json:"coordinator_name" firestore:"coordinator_name"`
+	CoordinatorPhone string    `json:"coordinator_phone" firestore:"coordinator_phone"`
+	Department       string    `json:"department" firestore:"department"`
+	CreatedAt        time.Time `json:"created_at" firestore:"created_at"`
+}

@@ -1,0 +1,146 @@
+{
+    "admins": {
+      "POST /admins": {
+        "admin_id": "A001",
+        "admin_prefix": "นพ.",
+        "admin_academic_position": "อ.",
+        "admin_first_name": "Krit",
+        "admin_last_name": "Suwan",
+        "admin_department": "Radiology",
+        "admin_phone_number": "0812345678",
+        "admin_email": "krit@example.com",
+        "case_id": "C001",
+        "created_at": "2025-10-03T10:00:00Z"
+      }
+    },
+  
+    "researchers": {
+      "POST /researchers": {
+        "researcher_id": "R001",
+        "admin_id": "A001",
+        "researcher_prefix": "พญ.",
+        "researcher_academic_position": "ผศ.",
+        "researcher_first_name": "Siri",
+        "researcher_last_name": "Chan",
+        "researcher_department": "Neurology",
+        "researcher_phone_number": "0811112222",
+        "researcher_email": "siri@example.com",
+        "created_at": "2025-10-03T10:10:00Z"
+      }
+    },
+  
+    "cases": {
+      "POST /cases": {
+        "case_id": "C001",
+        "researcher_id": "R001",
+        "coordinator_email": "coor@example.com",
+        "trl_score": "TRL5",
+        "status": true,
+        "is_urgent": false,
+        "urgent_reason": "",
+        "urgent_feedback": "",
+        "case_title": "AI Medical Imaging System",
+        "case_type": "TRL software",
+        "case_description": "AI system for automatic detection of tumors",
+        "case_keywords": "AI, Imaging, Tumor",
+        "created_at": "2025-10-03T10:15:00Z"
+      }
+    },
+  
+    "coordinators": {
+      "POST /coordinators": {
+        "coordinator_first_name": "John",
+        "coordinator_last_name": "Doe",
+        "coordinator_phone_number": "0899999999",
+        "coordinator_email": "coor@example.com"
+      }
+    },
+  
+    "intellectual_property": {
+      "POST /ips": {
+        "case_id": "C001",
+        "ip_types": "Patent",
+        "ip_protection_status": "In process",
+        "ip_request_number": "IP-2025-001"
+      }
+    },
+  
+    "supporters": {
+      "POST /supporters": {
+        "case_id": "C001",
+        "support_research": true,
+        "support_vdc": false,
+        "support_SiEIC": false,
+        "need_protect_intellectual_property": true,
+        "need_co_developers": true,
+        "need_activities": false,
+        "need_test": false,
+        "need_capital": true,
+        "need_partners": false,
+        "need_guidelines": false,
+        "need_certification": false,
+        "need_account": false,
+        "need": "Funding support for prototype",
+        "additional_documents": "proposal.pdf"
+      }
+    },
+  
+    "assessments": {
+      "POST /assessments": {
+        "case_id": "C001",
+        "trl_level_result": 5
+      }
+    },
+  
+    "trl_part1": {
+      "POST /trl_part1": {
+        "id": "P1-001",
+        "assessment_id": "C001",
+        "rq1_answer": true,
+        "rq2_answer": false,
+        "rq3_answer": true,
+        "rq4_answer": true,
+        "rq5_answer": false,
+        "rq6_answer": true,
+        "rq7_answer": false
+      }
+    },
+  
+    "trl_part2": {
+      "POST /trl_part2": {
+        "id": "P2-001",
+        "assessment_id": "C001",
+        "cq1_answer": "ผ่านการตรวจสอบทางทฤษฎี",
+        "cq2_answer": "ยังไม่มีการทดสอบในห้องทดลอง",
+        "cq3_answer": "อยู่ในระหว่างเตรียมการทดสอบ",
+        "cq4_answer": "ไม่มีข้อมูลเพิ่มเติม",
+        "cq5_answer": "",
+        "cq6_answer": "",
+        "cq7_answer": "",
+        "cq8_answer": "",
+        "cq9_answer": ""
+      }
+    },
+  
+    "appointments": {
+      "POST /appointments": {
+        "id": "AP001",
+        "case_id": "C001",
+        "date": "2025-10-10T09:00:00Z",
+        "status": "pending",
+        "location": "Meeting Room A",
+        "summary": "Discuss progress",
+        "note": "Bring updated prototype"
+      }
+    },
+  
+    "trl_questions_optional": {
+      "POST /trl_questions": {
+        "assessment_id": "C001",
+        "question_code": "RQ1",
+        "answer_type": "bool",
+        "answer_value": "true"
+      }
+    }
+  }
+  
