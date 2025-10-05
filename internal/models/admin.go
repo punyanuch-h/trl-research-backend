@@ -15,5 +15,6 @@ type AdminInfo struct {
     AdminEmail            string    `json:"admin_email" firestore:"admin_email"`
     CaseID                string    `json:"case_id" firestore:"case_id"`
     CreatedAt             time.Time `json:"created_at" firestore:"created_at"`
+    UpdatedAt             time.Time `json:"updated_at" firestore:"updated_at"`
 }
 

@@ -18,4 +18,5 @@ type CaseInfo struct {
 	CaseDescription  string    `json:"case_description" firestore:"case_description"`
 	CaseKeywords     string    `json:"case_keywords" firestore:"case_keywords"`
 	CreatedAt        time.Time `json:"created_at" firestore:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at" firestore:"updated_at"`
 }

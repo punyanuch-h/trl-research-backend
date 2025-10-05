@@ -15,4 +15,5 @@ type ResearcherInfo struct {
 	ResearcherPhoneNumber      string    `json:"researcher_phone_number" firestore:"researcher_phone_number"`
 	ResearcherEmail            string    `json:"researcher_email" firestore:"researcher_email"`
 	CreatedAt                  time.Time `json:"created_at" firestore:"created_at"`
+	UpdatedAt                  time.Time `json:"updated_at" firestore:"updated_at"`
 }

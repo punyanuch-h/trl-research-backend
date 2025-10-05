@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	database.InitFirebase("serviceAccountKey.json")
+	// on cloud
+	// database.InitFirebase("serviceAccountKey.json")
+	// local
+	database.InitFirebase("localServiceAccountKey.json")
 	defer database.CloseFirebase()
 
 	// Setup router

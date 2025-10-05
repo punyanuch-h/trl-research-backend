@@ -1,110 +1,92 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
+	"net/http"
+	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
+	"trl-research-backend/internal/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
+	r.SetTrustedProxies([]string{"127.0.0.1"})
 
-	// ---------------- Root test endpoint ----------------
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "TRL Research Backend is running 🚀",
-		})
+	// 🔹 Initialize repository
+	adminRepo := repository.NewAdminRepo(database.FirestoreClient)
+	researcherRepo := repository.NewResearcherRepo(database.FirestoreClient)
+	coordinatorRepo := repository.NewCoordinatorRepo(database.FirestoreClient)
+	supporterRepo := repository.NewSupporterRepo(database.FirestoreClient)
+
+	appointmentRepo := repository.NewAppointmentRepo(database.FirestoreClient)
+	caseRepo := repository.NewCaseRepo(database.FirestoreClient)
+	ipRepo := repository.NewIntellectualPropertyRepo(database.FirestoreClient)
+	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.FirestoreClient)
+
+	// 🔹 Initialize handler
+	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
+	researcherHandler := &handlers.ResearcherHandler{Repo: researcherRepo}
+	coordinatorHandler := &handlers.CoordinatorHandler{Repo: coordinatorRepo}
+	supporterHandler := &handlers.SupporterHandler{Repo: supporterRepo}
+
+	appointmentHandler := &handlers.AppointmentHandler{Repo: appointmentRepo}
+	caseHandler := &handlers.CaseHandler{Repo: caseRepo}
+	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo}
+	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo}
+
+	// Health Check
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "OK"})
 	})
 
-	// ---------------- Admin ----------------
-	admin := r.Group("/admins")
-	{
-		admin.POST("/", handlers.CreateAdmin)
-		admin.GET("/:id", handlers.GetAdmin)
-		admin.DELETE("/:id", handlers.DeleteAdmin)
-	}
+	// Admin
+	r.GET("/admins", adminHandler.GetAllAdmins)
+	r.GET("/admin/:id", adminHandler.GetAdminByID)
+	r.POST("/admin", adminHandler.CreateAdmin)
+	r.PATCH("/admin/:id", adminHandler.UpdateAdminByID)
 
-	// ---------------- Researcher ----------------
-	researcher := r.Group("/researchers")
-	{
-		researcher.POST("/", handlers.CreateOrUpdateResearcher)
-		researcher.GET("/:id", handlers.GetResearcher)
-		researcher.DELETE("/:id", handlers.DeleteResearcher)
-	}
+	// Researcher
+	r.GET("/researchers", researcherHandler.GetResearcherAll)
+	r.GET("/researcher/:id", researcherHandler.GetResearcherByID)
+	r.POST("/researcher", researcherHandler.CreateResearcher)
+	r.PATCH("/researcher/:id", researcherHandler.UpdateResearcherByID)
 
-	// ---------------- Case ----------------
-	caseGroup := r.Group("/cases")
-	{
-		caseGroup.POST("/", handlers.CreateOrUpdateCase)
-		caseGroup.GET("/:id", handlers.GetCase)
-		caseGroup.DELETE("/:id", handlers.DeleteCase)
-	}
+	// Coordinator
+	r.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
+	r.GET("/coordinator/:id", coordinatorHandler.GetCoordinatorByEmail)
+	r.POST("/coordinator", coordinatorHandler.CreateCoordinator)
+	r.PATCH("/coordinator/:id", coordinatorHandler.UpdateCoordinatorByEmail)
 
-	// ---------------- Coordinator ----------------
-	coordinator := r.Group("/coordinators")
-	{
-		coordinator.POST("/", handlers.CreateOrUpdateCoordinator)
-		coordinator.GET("/:email", handlers.GetCoordinator)
-		coordinator.DELETE("/:email", handlers.DeleteCoordinator)
-	}
+	// Supporter
+	r.GET("/supporters", supporterHandler.GetSupporterAll)
+	r.GET("/supporter/:id", supporterHandler.GetSupporterByID)
+	r.POST("/supporter", supporterHandler.CreateSupporter)
+	r.PATCH("/supporter/:id", supporterHandler.UpdateSupporterByID)
 
-	// ---------------- Intellectual Property ----------------
-	ip := r.Group("/ips")
-	{
-		ip.POST("/", handlers.CreateOrUpdateIP)
-		ip.GET("/:id", handlers.GetIP)
-		ip.DELETE("/:id", handlers.DeleteIP)
-	}
+	// Appointment
+	r.GET("/appointments", appointmentHandler.GetAppointmentAll)
+	r.GET("/appointment/:id", appointmentHandler.GetAppointmentByID)
+	r.POST("/appointment", appointmentHandler.CreateAppointment)
+	r.PATCH("/appintment/:id", appointmentHandler.UpdateAppointmentByID)
 
-	// ---------------- Supporter ----------------
-	supporter := r.Group("/supporters")
-	{
-		supporter.POST("/", handlers.CreateOrUpdateSupporter)
-		supporter.GET("/:case_id", handlers.GetSupporter)
-		supporter.DELETE("/:case_id", handlers.DeleteSupporter)
-	}
+	// Case
+	r.GET("/cases", caseHandler.GetCaseAll)
+	r.GET("/case/:id", caseHandler.GetCaseByID)
+	r.POST("/case", caseHandler.CreateCase)
+	r.PATCH("/case/:id", caseHandler.UpdateCaseByID)
 
-	// ---------------- Assessment TRL ----------------
-	trl := r.Group("/assessments")
-	{
-		trl.POST("/", handlers.CreateOrUpdateTrl)
-		trl.GET("/:case_id", handlers.GetTrl)
-		trl.DELETE("/:case_id", handlers.DeleteTrl)
-	}
+	// Intellectual Property
+	r.GET("/ips", ipHandler.GetIPAll)
+	r.GET("/ip/:id", ipHandler.GetIPByID)
+	r.POST("/ip", ipHandler.CreateIP)
+	r.PATCH("/ip/:id", ipHandler.UpdateIPByID)
 
-	// ---------------- Assessment TRL Part 1 ----------------
-	trl1 := r.Group("/trl_part1")
-	{
-		trl1.POST("/", handlers.CreateOrUpdateTrlPart1)
-		trl1.GET("/:id", handlers.GetTrlPart1)
-		trl1.DELETE("/:id", handlers.DeleteTrlPart1)
-	}
-
-	// ---------------- Assessment TRL Part 2 ----------------
-	trl2 := r.Group("/trl_part2")
-	{
-		trl2.POST("/", handlers.CreateOrUpdateTrlPart2)
-		trl2.GET("/:id", handlers.GetTrlPart2)
-		trl2.DELETE("/:id", handlers.DeleteTrlPart2)
-	}
-
-	// ---------------- Appointment ----------------
-	appointment := r.Group("/appointments")
-	{
-		appointment.POST("/", handlers.CreateOrUpdateAppointment)
-		appointment.GET("/:id", handlers.GetAppointment)
-		appointment.DELETE("/:id", handlers.DeleteAppointment)
-	}
-
-	// ---------------- TRL Question (รวม part1+part2) ----------------
-	/*
-	trlq := r.Group("/trl_questions")
-	{
-		trlq.POST("/", handlers.CreateOrUpdateTrlQuestion)
-		trlq.GET("/:assessment_id/:question_code", handlers.GetTrlQuestion)
-		trlq.GET("/:assessment_id", handlers.GetTrlQuestionsByAssessment)
-		trlq.DELETE("/:assessment_id/:question_code", handlers.DeleteTrlQuestion)
-	}
-	*/
+	// Assessment TRL
+	r.GET("/assessment_trl", assessmentTrlHandler.GetAssessmentTrlAll)
+	r.GET("/assessment_trl/:id", assessmentTrlHandler.GetAssessmentTrlByID)
+	r.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)
+	r.PATCH("/assessment_trl/:id", assessmentTrlHandler.UpdateAssessmentTrlByID)
 
 	return r
 }
