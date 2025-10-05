@@ -2,45 +2,67 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
 )
 
-var researcherRepo = &repository.ResearcherRepo{}
+type ResearcherHandler struct {
+	Repo *repository.ResearcherRepo
+}
 
-func CreateOrUpdateResearcher(c *gin.Context) {
+// 🟢 GET /researchers
+func (h *ResearcherHandler) GetResearcherAll(c *gin.Context) {
+	researchers, err := h.Repo.GetResearcherAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, researchers)
+}
+
+// 🟢 GET /researcher/:id
+func (h *ResearcherHandler) GetResearcherByID(c *gin.Context) {
+	id := c.Param("id")
+	researcher, err := h.Repo.GetResearcherByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Researcher not found"})
+		return
+	}
+	c.JSON(http.StatusOK, researcher)
+}
+
+// 🟢 POST /researcher
+func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 	var req models.ResearcherInfo
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	req.CreatedAt = time.Now()
 
-	if err := researcherRepo.CreateOrUpdate(&req); err != nil {
+	if err := h.Repo.CreateResearcher(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, req)
 }
 
-func GetResearcher(c *gin.Context) {
+// 🟢 PATCH /researcher/:id
+func (h *ResearcherHandler) UpdateResearcherByID(c *gin.Context) {
 	id := c.Param("id")
-	res, err := researcherRepo.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+	var updateData map[string]interface{}
+
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, res)
-}
 
-func DeleteResearcher(c *gin.Context) {
-	id := c.Param("id")
-	if err := researcherRepo.Delete(id); err != nil {
+	if err := h.Repo.UpdateResearcherByID(id, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": id})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Researcher updated successfully"})
 }

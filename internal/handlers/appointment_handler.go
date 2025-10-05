@@ -8,36 +8,61 @@ import (
 	"trl-research-backend/internal/repository"
 )
 
-var appointmentRepo = &repository.AppointmentRepo{}
+type AppointmentHandler struct {
+	Repo *repository.AppointmentRepo
+}
 
-func CreateOrUpdateAppointment(c *gin.Context) {
+// 🟢 GET /appointments
+func (h *AppointmentHandler) GetAppointmentAll(c *gin.Context) {
+	appointments, err := h.Repo.GetAppointmentAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, appointments)
+}
+
+// 🟢 GET /appointment/:id
+func (h *AppointmentHandler) GetAppointmentByID(c *gin.Context) {
+	id := c.Param("id")
+	ap, err := h.Repo.GetAppointmentByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+	c.JSON(http.StatusOK, ap)
+}
+
+// 🟢 POST /appointment
+func (h *AppointmentHandler) CreateAppointment(c *gin.Context) {
 	var req models.Appointment
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := appointmentRepo.CreateOrUpdate(&req); err != nil {
+
+	if err := h.Repo.CreateAppointment(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, req)
 }
 
-func GetAppointment(c *gin.Context) {
+// 🟢 PATCH /appointment/:id
+func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 	id := c.Param("id")
-	res, err := appointmentRepo.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+	var updateData map[string]interface{}
+
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, res)
-}
 
-func DeleteAppointment(c *gin.Context) {
-	id := c.Param("id")
-	if err := appointmentRepo.Delete(id); err != nil {
+	if err := h.Repo.UpdateAppointmentByID(id, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": id})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Appointment updated successfully"})
 }

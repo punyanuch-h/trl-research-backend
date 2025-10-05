@@ -1,32 +1,88 @@
 package repository
 
 import (
-	"trl-research-backend/internal/database"
+	"context"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"cloud.google.com/go/firestore"
 	"trl-research-backend/internal/models"
 )
 
-type AdminRepo struct{}
-
-func (r *AdminRepo) CreateOrUpdate(data *models.AdminInfo) error {
-	_, err := database.FirestoreClient.Collection("admin_info").
-		Doc(data.AdminID).
-		Set(database.Ctx, data)
-	return err
+type AdminRepo struct {
+	Client *firestore.Client
 }
 
-func (r *AdminRepo) GetByID(id string) (*models.AdminInfo, error) {
-	doc, err := database.FirestoreClient.Collection("admin_info").
-		Doc(id).Get(database.Ctx)
+func NewAdminRepo(client *firestore.Client) *AdminRepo {
+	return &AdminRepo{Client: client}
+}
+
+// 🟢 Get all admins
+func (r *AdminRepo) GetAdminAll() ([]models.AdminInfo, error) {
+	ctx := context.Background()
+	docs, err := r.Client.Collection("admins").Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
-	var obj models.AdminInfo
-	_ = doc.DataTo(&obj)
-	return &obj, nil
+
+	var admins []models.AdminInfo
+	for _, doc := range docs {
+		var admin models.AdminInfo
+		doc.DataTo(&admin)
+		admins = append(admins, admin)
+	}
+	return admins, nil
 }
 
-func (r *AdminRepo) DeleteAdmin(id string) error {
-	_, err := database.FirestoreClient.Collection("admin_info").
-		Doc(id).Delete(database.Ctx)
+// 🟢 Get admin by ID
+func (r *AdminRepo) GetAdminByID(adminID string) (*models.AdminInfo, error) {
+	ctx := context.Background()
+	doc, err := r.Client.Collection("admins").Doc(adminID).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var admin models.AdminInfo
+	doc.DataTo(&admin)
+	return &admin, nil
+}
+
+// 🟢 Create admin (auto-generate AdminID)
+func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
+	ctx := context.Background()
+
+	// find last ID to generate next
+	docs, err := r.Client.Collection("admins").OrderBy("admin_id", firestore.Desc).Limit(1).Documents(ctx).GetAll()
+	nextID := "SI-00001"
+	if err == nil && len(docs) > 0 {
+		lastID := docs[0].Data()["admin_id"].(string)
+		numStr := strings.TrimPrefix(lastID, "SI-")
+		if n, err := strconv.Atoi(numStr); err == nil {
+			nextID = fmt.Sprintf("SI-%05d", n+1)
+		}
+	}
+
+	// assign values
+	admin.AdminID = nextID
+	now := time.Now()
+	admin.CreatedAt = now
+	admin.UpdatedAt = now
+
+	// save to Firestore
+	_, err = r.Client.Collection("admins").Doc(admin.AdminID).Set(ctx, admin)
 	return err
 }
+
+// 🟢 Update admin by ID
+func (r *AdminRepo) UpdateAdminByID(adminID string, data map[string]interface{}) error {
+	ctx := context.Background()
+
+	// add update timestamp
+	data["updated_at"] = time.Now()
+
+	_, err := r.Client.Collection("admins").Doc(adminID).Set(ctx, data, firestore.MergeAll)
+	return err
+}
+
