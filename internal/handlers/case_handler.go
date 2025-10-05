@@ -2,45 +2,67 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
 )
 
-var caseRepo = &repository.CaseRepo{}
+type CaseHandler struct {
+	Repo *repository.CaseRepo
+}
 
-func CreateOrUpdateCase(c *gin.Context) {
+// 🟢 GET /cases
+func (h *CaseHandler) GetCaseAll(c *gin.Context) {
+	cases, err := h.Repo.GetCaseAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, cases)
+}
+
+// 🟢 GET /case/:id
+func (h *CaseHandler) GetCaseByID(c *gin.Context) {
+	id := c.Param("id")
+	cs, err := h.Repo.GetCaseByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Case not found"})
+		return
+	}
+	c.JSON(http.StatusOK, cs)
+}
+
+// 🟢 POST /case
+func (h *CaseHandler) CreateCase(c *gin.Context) {
 	var req models.CaseInfo
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	req.CreatedAt = time.Now()
 
-	if err := caseRepo.CreateOrUpdate(&req); err != nil {
+	if err := h.Repo.CreateCase(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, req)
 }
 
-func GetCase(c *gin.Context) {
+// 🟢 PATCH /case/:id
+func (h *CaseHandler) UpdateCaseByID(c *gin.Context) {
 	id := c.Param("id")
-	res, err := caseRepo.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+	var updateData map[string]interface{}
+
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, res)
-}
 
-func DeleteCase(c *gin.Context) {
-	id := c.Param("id")
-	if err := caseRepo.Delete(id); err != nil {
+	if err := h.Repo.UpdateCaseByID(id, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": id})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Case updated successfully"})
 }

@@ -8,36 +8,61 @@ import (
 	"trl-research-backend/internal/repository"
 )
 
-var ipRepo = &repository.IntellectualPropertyRepo{}
+type IntellectualPropertyHandler struct {
+	Repo *repository.IntellectualPropertyRepo
+}
 
-func CreateOrUpdateIP(c *gin.Context) {
+// 🟢 GET /ips
+func (h *IntellectualPropertyHandler) GetIPAll(c *gin.Context) {
+	ips, err := h.Repo.GetIPAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, ips)
+}
+
+// 🟢 GET /ip/:id
+func (h *IntellectualPropertyHandler) GetIPByID(c *gin.Context) {
+	id := c.Param("id")
+	ip, err := h.Repo.GetIPByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Intellectual Property not found"})
+		return
+	}
+	c.JSON(http.StatusOK, ip)
+}
+
+// 🟢 POST /ip
+func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 	var req models.IntellectualProperty
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := ipRepo.CreateOrUpdate(&req); err != nil {
+
+	if err := h.Repo.CreateIP(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, req)
 }
 
-func GetIP(c *gin.Context) {
+// 🟢 PATCH /ip/:id
+func (h *IntellectualPropertyHandler) UpdateIPByID(c *gin.Context) {
 	id := c.Param("id")
-	res, err := ipRepo.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+	var updateData map[string]interface{}
+
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, res)
-}
 
-func DeleteIP(c *gin.Context) {
-	id := c.Param("id")
-	if err := ipRepo.Delete(id); err != nil {
+	if err := h.Repo.UpdateIPByID(id, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": id})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Intellectual Property updated successfully"})
 }

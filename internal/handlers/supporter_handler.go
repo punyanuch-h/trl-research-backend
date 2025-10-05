@@ -8,36 +8,61 @@ import (
 	"trl-research-backend/internal/repository"
 )
 
-var supporterRepo = &repository.SupporterRepo{}
+type SupporterHandler struct {
+	Repo *repository.SupporterRepo
+}
 
-func CreateOrUpdateSupporter(c *gin.Context) {
+// 🟢 GET /supporters
+func (h *SupporterHandler) GetSupporterAll(c *gin.Context) {
+	supporters, err := h.Repo.GetSupporterAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, supporters)
+}
+
+// 🟢 GET /supporter/:id
+func (h *SupporterHandler) GetSupporterByID(c *gin.Context) {
+	id := c.Param("id")
+	supporter, err := h.Repo.GetSupporterByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Supporter not found"})
+		return
+	}
+	c.JSON(http.StatusOK, supporter)
+}
+
+// 🟢 POST /supporter
+func (h *SupporterHandler) CreateSupporter(c *gin.Context) {
 	var req models.Supporter
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := supporterRepo.CreateOrUpdate(&req); err != nil {
+
+	if err := h.Repo.CreateSupporter(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, req)
 }
 
-func GetSupporter(c *gin.Context) {
-	caseID := c.Param("case_id")
-	res, err := supporterRepo.GetByCaseID(caseID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+// 🟢 PATCH /supporter/:id
+func (h *SupporterHandler) UpdateSupporterByID(c *gin.Context) {
+	id := c.Param("id")
+	var updateData map[string]interface{}
+
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, res)
-}
 
-func DeleteSupporter(c *gin.Context) {
-	caseID := c.Param("case_id")
-	if err := supporterRepo.Delete(caseID); err != nil {
+	if err := h.Repo.UpdateSupporterByID(id, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": caseID})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Supporter updated successfully"})
 }

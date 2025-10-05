@@ -11,4 +11,5 @@ type IntellectualProperty struct {
 	IPProtectionStatus string    `json:"ip_protection_status" firestore:"ip_protection_status"`
 	IPRequestNumber    string    `json:"ip_request_number" firestore:"ip_request_number"`
 	CreatedAt          time.Time `json:"created_at" firestore:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at" firestore:"updated_at"`
 }
