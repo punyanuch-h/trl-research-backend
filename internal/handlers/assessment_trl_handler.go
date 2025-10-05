@@ -8,36 +8,61 @@ import (
 	"trl-research-backend/internal/repository"
 )
 
-var trlRepo = &repository.AssessmentTrlRepo{}
+type AssessmentTrlHandler struct {
+	Repo *repository.AssessmentTrlRepo
+}
 
-func CreateOrUpdateTrl(c *gin.Context) {
-	var req models.AssessmentTRL
+// 🟢 GET /assessments
+func (h *AssessmentTrlHandler) GetAssessmentTrlAll(c *gin.Context) {
+	assessments, err := h.Repo.GetAssessmentTrlAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, assessments)
+}
+
+// 🟢 GET /assessment/:id
+func (h *AssessmentTrlHandler) GetAssessmentTrlByID(c *gin.Context) {
+	id := c.Param("id")
+	a, err := h.Repo.GetAssessmentTrlByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assessment TRL not found"})
+		return
+	}
+	c.JSON(http.StatusOK, a)
+}
+
+// 🟢 POST /assessment
+func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
+	var req models.AssessmentTrl
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := trlRepo.CreateOrUpdate(&req); err != nil {
+
+	if err := h.Repo.CreateAssessmentTrl(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, req)
 }
 
-func GetTrl(c *gin.Context) {
-	caseID := c.Param("case_id")
-	res, err := trlRepo.GetByCaseID(caseID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+// 🟢 PATCH /assessment/:id
+func (h *AssessmentTrlHandler) UpdateAssessmentTrlByID(c *gin.Context) {
+	id := c.Param("id")
+	var updateData map[string]interface{}
+
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, res)
-}
 
-func DeleteTrl(c *gin.Context) {
-	caseID := c.Param("case_id")
-	if err := trlRepo.Delete(caseID); err != nil {
+	if err := h.Repo.UpdateAssessmentTrlByID(id, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": caseID})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Assessment TRL updated successfully"})
 }

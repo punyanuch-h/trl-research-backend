@@ -19,6 +19,7 @@ func SetupRouter() *gin.Engine {
 	appointmentRepo := repository.NewAppointmentRepo(database.FirestoreClient)
 	caseRepo := repository.NewCaseRepo(database.FirestoreClient)
 	ipRepo := repository.NewIntellectualPropertyRepo(database.FirestoreClient)
+	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.FirestoreClient)
 
 	// 🔹 Initialize handler
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
@@ -29,6 +30,7 @@ func SetupRouter() *gin.Engine {
 	appointmentHandler := &handlers.AppointmentHandler{Repo: appointmentRepo}
 	caseHandler := &handlers.CaseHandler{Repo: caseRepo}
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo}
+	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo}
 
 	// Admin
 	r.GET("/admins", adminHandler.GetAllAdmins)
@@ -71,6 +73,12 @@ func SetupRouter() *gin.Engine {
 	r.GET("/ip/:id", ipHandler.GetIPByID)
 	r.POST("/ip", ipHandler.CreateIP)
 	r.PATCH("/ip/:id", ipHandler.UpdateIPByID)
+
+	// Assessment TRL
+	r.GET("/assessment_trl", assessmentTrlHandler.GetAssessmentTrlAll)
+	r.GET("/assessment_trl/:id", assessmentTrlHandler.GetAssessmentTrlByID)
+	r.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)
+	r.PATCH("/assessment_trl/:id", assessmentTrlHandler.UpdateAssessmentTrlByID)
 
 	return r
 }
