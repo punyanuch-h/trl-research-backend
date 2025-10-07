@@ -35,7 +35,7 @@
     COPY serviceAccountKey.json .
     
     # Expose port
-    EXPOSE 8080
+    EXPOSE 3000
     
     # Run server
     CMD ["./server"]

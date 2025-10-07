@@ -2,18 +2,30 @@ package router
 
 import (
 	"net/http"
+	"time"
 
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
 	auth "trl-research-backend/internal/auth"
 	"trl-research-backend/internal/repository"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"127.0.0.1"})
+
+	// CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:8080"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Repos
 	adminRepo := repository.NewAdminRepo(database.FirestoreClient)
