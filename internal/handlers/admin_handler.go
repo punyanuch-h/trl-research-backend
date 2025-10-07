@@ -49,20 +49,30 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, req)
 }
 
-// 🟢 PATCH /admin/:id
-func (h *AdminHandler) UpdateAdminByID(c *gin.Context) {
-	id := c.Param("id")
-	var updateData map[string]interface{}
-
-	if err := c.ShouldBindJSON(&updateData); err != nil {
+// update password
+func (h *AdminHandler) UpdatePassword(c *gin.Context) {
+	var req models.AdminInfo
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+}
 
-	if err := h.Repo.UpdateAdminByID(id, updateData); err != nil {
+// Login
+func (h *AdminHandler) Login(c *gin.Context) {
+	var req models.AdminInfo
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+}
+
+// delete admin
+func (h *AdminHandler) DeleteAdmin(c *gin.Context) {
+	email := c.Param("email")
+	if err := h.Repo.DeleteAdmin(email); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Admin updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Admin deleted successfully"})
 }

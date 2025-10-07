@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"trl-research-backend/internal/models"
+
+	"cloud.google.com/go/firestore"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminRepo struct {
@@ -39,7 +41,26 @@ func (r *AdminRepo) GetAdminAll() ([]models.AdminInfo, error) {
 // 🟢 Get admin by ID
 func (r *AdminRepo) GetAdminByID(adminID string) (*models.AdminInfo, error) {
 	ctx := context.Background()
-	doc, err := r.Client.Collection("admins").Doc(adminID).Get(ctx)
+
+	// Query by admin_id field instead of document ID
+	docs, err := r.Client.Collection("admins").Where("admin_id", "==", adminID).Limit(1).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("admin not found")
+	}
+
+	var admin models.AdminInfo
+	docs[0].DataTo(&admin)
+	return &admin, nil
+}
+
+// 🟢 Get admin by email
+func (r *AdminRepo) GetAdminByEmail(email string) (*models.AdminInfo, error) {
+	ctx := context.Background()
+	doc, err := r.Client.Collection("admins").Doc(email).Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -68,21 +89,48 @@ func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
 	admin.AdminID = nextID
 	now := time.Now()
 	admin.CreatedAt = now
-	admin.UpdatedAt = now
 
-	// save to Firestore
-	_, err = r.Client.Collection("admins").Doc(admin.AdminID).Set(ctx, admin)
+	// save to Firestore using email as document ID
+	_, err = r.Client.Collection("admins").Doc(admin.AdminEmail).Set(ctx, admin)
 	return err
 }
 
-// 🟢 Update admin by ID
-func (r *AdminRepo) UpdateAdminByID(adminID string, data map[string]interface{}) error {
+// 🟢 Login with password verification
+func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, error) {
 	ctx := context.Background()
 
-	// add update timestamp
-	data["updated_at"] = time.Now()
+	// Query by email field instead of using email as document ID
+	docs, err := r.Client.Collection("admins").Where("admin_email", "==", email).Limit(1).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
 
-	_, err := r.Client.Collection("admins").Doc(adminID).Set(ctx, data, firestore.MergeAll)
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("admin not found")
+	}
+
+	var admin models.AdminInfo
+	docs[0].DataTo(&admin)
+
+	// Verify password
+	err = bcrypt.CompareHashAndPassword([]byte(admin.AdminPassword), []byte(password))
+	if err != nil {
+		return nil, fmt.Errorf("invalid password")
+	}
+
+	return &admin, nil
+}
+
+// 🟢 Update password
+func (r *AdminRepo) UpdatePasswordByEmail(email string, password string) error {
+	ctx := context.Background()
+	_, err := r.Client.Collection("admins").Doc(email).Set(ctx, map[string]interface{}{"admin_password": password}, firestore.MergeAll)
 	return err
 }
 
+// 🟢 Delete admin
+func (r *AdminRepo) DeleteAdmin(email string) error {
+	ctx := context.Background()
+	_, err := r.Client.Collection("admins").Doc(email).Delete(ctx)
+	return err
+}

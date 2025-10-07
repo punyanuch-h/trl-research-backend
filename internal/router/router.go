@@ -2,8 +2,10 @@ package router
 
 import (
 	"net/http"
+
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
+	auth "trl-research-backend/internal/auth"
 	"trl-research-backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -13,80 +15,92 @@ func SetupRouter() *gin.Engine {
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"127.0.0.1"})
 
-	// 🔹 Initialize repository
+	// Repos
 	adminRepo := repository.NewAdminRepo(database.FirestoreClient)
 	researcherRepo := repository.NewResearcherRepo(database.FirestoreClient)
 	coordinatorRepo := repository.NewCoordinatorRepo(database.FirestoreClient)
 	supporterRepo := repository.NewSupporterRepo(database.FirestoreClient)
-
 	appointmentRepo := repository.NewAppointmentRepo(database.FirestoreClient)
 	caseRepo := repository.NewCaseRepo(database.FirestoreClient)
 	ipRepo := repository.NewIntellectualPropertyRepo(database.FirestoreClient)
 	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.FirestoreClient)
 
-	// 🔹 Initialize handler
+	// CRUD Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
 	researcherHandler := &handlers.ResearcherHandler{Repo: researcherRepo}
 	coordinatorHandler := &handlers.CoordinatorHandler{Repo: coordinatorRepo}
 	supporterHandler := &handlers.SupporterHandler{Repo: supporterRepo}
-
 	appointmentHandler := &handlers.AppointmentHandler{Repo: appointmentRepo}
 	caseHandler := &handlers.CaseHandler{Repo: caseRepo}
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo}
 	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo}
 
-	// Health Check
+	// Auth Handlers (Gin version)
+	loginHandler := &auth.LoginHandler{AdminRepo: *adminRepo}
+	forgotHandler := &auth.ForgotHandler{AdminRepo: *adminRepo}
+	resetHandler := &auth.ResetHandler{AdminRepo: *adminRepo}
+
+	// Health
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "OK"})
 	})
 
-	// Admin
-	r.GET("/admins", adminHandler.GetAllAdmins)
-	r.GET("/admin/:id", adminHandler.GetAdminByID)
+	// Public Auth
+	r.POST("/auth/login", loginHandler.Login)
+	r.POST("/auth/forgot-password", forgotHandler.ForgotPassword)
+	r.POST("/auth/reset-password", resetHandler.ResetPassword)
 	r.POST("/admin", adminHandler.CreateAdmin)
-	r.PATCH("/admin/:id", adminHandler.UpdateAdminByID)
 
-	// Researcher
-	r.GET("/researchers", researcherHandler.GetResearcherAll)
-	r.GET("/researcher/:id", researcherHandler.GetResearcherByID)
-	r.POST("/researcher", researcherHandler.CreateResearcher)
-	r.PATCH("/researcher/:id", researcherHandler.UpdateResearcherByID)
+	// Protected
+	api := r.Group("/trl")
+	// api.Use(auth.AuthMiddleware())
+	{
+		// Admin
+		api.GET("/admins", adminHandler.GetAllAdmins)
+		api.GET("/admin/:id", adminHandler.GetAdminByID)
 
-	// Coordinator
-	r.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
-	r.GET("/coordinator/:id", coordinatorHandler.GetCoordinatorByEmail)
-	r.POST("/coordinator", coordinatorHandler.CreateCoordinator)
-	r.PATCH("/coordinator/:id", coordinatorHandler.UpdateCoordinatorByEmail)
+		// Researcher
+		api.GET("/researchers", researcherHandler.GetResearcherAll)
+		api.GET("/researcher/:id", researcherHandler.GetResearcherByID)
+		api.POST("/researcher", researcherHandler.CreateResearcher)
+		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherByID)
 
-	// Supporter
-	r.GET("/supporters", supporterHandler.GetSupporterAll)
-	r.GET("/supporter/:id", supporterHandler.GetSupporterByID)
-	r.POST("/supporter", supporterHandler.CreateSupporter)
-	r.PATCH("/supporter/:id", supporterHandler.UpdateSupporterByID)
+		// Coordinator
+		api.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
+		api.GET("/coordinator/:id", coordinatorHandler.GetCoordinatorByEmail)
+		api.POST("/coordinator", coordinatorHandler.CreateCoordinator)
+		api.PATCH("/coordinator/:id", coordinatorHandler.UpdateCoordinatorByEmail)
 
-	// Appointment
-	r.GET("/appointments", appointmentHandler.GetAppointmentAll)
-	r.GET("/appointment/:id", appointmentHandler.GetAppointmentByID)
-	r.POST("/appointment", appointmentHandler.CreateAppointment)
-	r.PATCH("/appintment/:id", appointmentHandler.UpdateAppointmentByID)
+		// Supporter
+		api.GET("/supporters", supporterHandler.GetSupporterAll)
+		api.GET("/supporter/:id", supporterHandler.GetSupporterByID)
+		api.POST("/supporter", supporterHandler.CreateSupporter)
+		api.PATCH("/supporter/:id", supporterHandler.UpdateSupporterByID)
 
-	// Case
-	r.GET("/cases", caseHandler.GetCaseAll)
-	r.GET("/case/:id", caseHandler.GetCaseByID)
-	r.POST("/case", caseHandler.CreateCase)
-	r.PATCH("/case/:id", caseHandler.UpdateCaseByID)
+		// Appointment
+		api.GET("/appointments", appointmentHandler.GetAppointmentAll)
+		api.GET("/appointment/:id", appointmentHandler.GetAppointmentByID)
+		api.POST("/appointment", appointmentHandler.CreateAppointment)
+		api.PATCH("/appointment/:id", appointmentHandler.UpdateAppointmentByID)
 
-	// Intellectual Property
-	r.GET("/ips", ipHandler.GetIPAll)
-	r.GET("/ip/:id", ipHandler.GetIPByID)
-	r.POST("/ip", ipHandler.CreateIP)
-	r.PATCH("/ip/:id", ipHandler.UpdateIPByID)
+		// Case
+		api.GET("/cases", caseHandler.GetCaseAll)
+		api.GET("/case/:id", caseHandler.GetCaseByID)
+		api.POST("/case", caseHandler.CreateCase)
+		api.PATCH("/case/:id", caseHandler.UpdateCaseByID)
 
-	// Assessment TRL
-	r.GET("/assessment_trl", assessmentTrlHandler.GetAssessmentTrlAll)
-	r.GET("/assessment_trl/:id", assessmentTrlHandler.GetAssessmentTrlByID)
-	r.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)
-	r.PATCH("/assessment_trl/:id", assessmentTrlHandler.UpdateAssessmentTrlByID)
+		// IP
+		api.GET("/ips", ipHandler.GetIPAll)
+		api.GET("/ip/:id", ipHandler.GetIPByID)
+		api.POST("/ip", ipHandler.CreateIP)
+		api.PATCH("/ip/:id", ipHandler.UpdateIPByID)
+
+		// Assessment TRL
+		api.GET("/assessment_trl", assessmentTrlHandler.GetAssessmentTrlAll)
+		api.GET("/assessment_trl/:id", assessmentTrlHandler.GetAssessmentTrlByID)
+		api.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)
+		api.PATCH("/assessment_trl/:id", assessmentTrlHandler.UpdateAssessmentTrlByID)
+	}
 
 	return r
 }
