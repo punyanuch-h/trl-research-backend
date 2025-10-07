@@ -5,8 +5,11 @@ go 1.24.3
 require (
 	cloud.google.com/go/firestore v1.18.0
 	firebase.google.com/go/v4 v4.18.0
+	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/joho/godotenv v1.5.1
+	golang.org/x/crypto v0.42.0
 	google.golang.org/api v0.251.0
 )
 
@@ -74,7 +77,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	golang.org/x/arch v0.21.0 // indirect
-	golang.org/x/crypto v0.42.0 // indirect
 	golang.org/x/mod v0.28.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/oauth2 v0.31.0 // indirect
