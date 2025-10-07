@@ -56,6 +56,17 @@ func main() {
 			AdminPassword:         "password123", // Will be hashed
 			CaseID:                "",
 		},
+		{
+			AdminPrefix:           "Dr.",
+			AdminAcademicPosition: "Associate Professor",
+			AdminFirstName:        "Pair",
+			AdminLastName:         "Brown",
+			AdminDepartment:       "Software Engineering",
+			AdminPhoneNumber:      "+66-83-456-7890",
+			AdminEmail:            "Pair@gmail.com",
+			AdminPassword:         "password123", // Will be hashed
+			CaseID:                "",
+		},
 	}
 
 	// Seed admins
