@@ -100,7 +100,7 @@ func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, err
 	ctx := context.Background()
 
 	// Query by email field instead of using email as document ID
-	docs, err := r.Client.Collection("admins").Where("admin_email", "==", email).Limit(1).Documents(ctx).GetAll()
+	docs, err := r.Client.Collection("admin_info").Where("admin_email", "==", email).Limit(1).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}

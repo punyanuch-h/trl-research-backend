@@ -21,7 +21,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
         tokenString := strings.TrimPrefix(header, "Bearer ")
 
-        kp, err := utils.NewFileKeyProvider()
+        kp, err := utils.NewEnvKeyProvider()
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "key provider error"})
             c.Abort()

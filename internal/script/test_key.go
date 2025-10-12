@@ -9,7 +9,7 @@ func main() {
 	fmt.Println("🔑 Testing KeyProvider...")
 
 	// Test key provider initialization
-	kp, err := utils.NewFileKeyProvider()
+	kp, err := utils.NewEnvKeyProvider()
 	if err != nil {
 		fmt.Printf("❌ KeyProvider initialization failed: %v\n", err)
 		return

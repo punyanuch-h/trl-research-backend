@@ -10,10 +10,37 @@ import (
 	"trl-research-backend/internal/models"
 
 	"cloud.google.com/go/firestore"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type ResearcherRepo struct {
 	Client *firestore.Client
+}
+
+// 🟢 Login with password verification
+func (r *ResearcherRepo) Login(email string, password string) (*models.ResearcherInfo, error) {
+	ctx := context.Background()
+
+	// Query by email field instead of using email as document ID
+	docs, err := r.Client.Collection("researchers").Where("researcher_email", "==", email).Limit(1).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("researcher not found")
+	}
+
+	var researcher models.ResearcherInfo
+	docs[0].DataTo(&researcher)
+
+	// Verify password
+	err = bcrypt.CompareHashAndPassword([]byte(researcher.ResearcherPassword), []byte(password))
+	if err != nil {
+		return nil, fmt.Errorf("invalid password")
+	}
+
+	return &researcher, nil
 }
 
 func NewResearcherRepo(client *firestore.Client) *ResearcherRepo {

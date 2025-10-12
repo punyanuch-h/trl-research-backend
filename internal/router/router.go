@@ -14,12 +14,13 @@ import (
 )
 
 func SetupRouter() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode) // ปิด debug log ของ Gin
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"127.0.0.1"})
 
-	// CORS
+	// ✅ CORS config
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080"},
+		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -27,7 +28,7 @@ func SetupRouter() *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Repos
+	// ✅ Firestore repositories
 	adminRepo := repository.NewAdminRepo(database.FirestoreClient)
 	researcherRepo := repository.NewResearcherRepo(database.FirestoreClient)
 	coordinatorRepo := repository.NewCoordinatorRepo(database.FirestoreClient)
@@ -37,7 +38,7 @@ func SetupRouter() *gin.Engine {
 	ipRepo := repository.NewIntellectualPropertyRepo(database.FirestoreClient)
 	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.FirestoreClient)
 
-	// CRUD Handlers
+	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
 	researcherHandler := &handlers.ResearcherHandler{Repo: researcherRepo}
 	coordinatorHandler := &handlers.CoordinatorHandler{Repo: coordinatorRepo}
@@ -47,67 +48,62 @@ func SetupRouter() *gin.Engine {
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo}
 	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo}
 
-	// Auth Handlers (Gin version)
-	loginHandler := &auth.LoginHandler{AdminRepo: *adminRepo}
+	// ✅ Auth Handlers
+	loginHandler := &auth.LoginHandler{
+		AdminRepo:      adminRepo,
+		ResearcherRepo: researcherRepo,
+	}
 	forgotHandler := &auth.ForgotHandler{AdminRepo: *adminRepo}
 	resetHandler := &auth.ResetHandler{AdminRepo: *adminRepo}
 
-	// Health
+	// ✅ Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "OK"})
 	})
 
-	// Public Auth
+	// ✅ Public Auth
 	r.POST("/auth/login", loginHandler.Login)
 	r.POST("/auth/forgot-password", forgotHandler.ForgotPassword)
 	r.POST("/auth/reset-password", resetHandler.ResetPassword)
 	r.POST("/admin", adminHandler.CreateAdmin)
 
-	// Protected
+	// ✅ Protected APIs
 	api := r.Group("/trl")
-	// api.Use(auth.AuthMiddleware())
+	// api.Use(auth.AuthMiddleware()) // uncomment later when JWT ready
 	{
-		// Admin
 		api.GET("/admins", adminHandler.GetAllAdmins)
 		api.GET("/admin/:id", adminHandler.GetAdminByID)
 
-		// Researcher
 		api.GET("/researchers", researcherHandler.GetResearcherAll)
 		api.GET("/researcher/:id", researcherHandler.GetResearcherByID)
 		api.POST("/researcher", researcherHandler.CreateResearcher)
 		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherByID)
 
-		// Coordinator
 		api.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
 		api.GET("/coordinator/:id", coordinatorHandler.GetCoordinatorByEmail)
 		api.POST("/coordinator", coordinatorHandler.CreateCoordinator)
 		api.PATCH("/coordinator/:id", coordinatorHandler.UpdateCoordinatorByEmail)
 
-		// Supporter
 		api.GET("/supporters", supporterHandler.GetSupporterAll)
 		api.GET("/supporter/:id", supporterHandler.GetSupporterByID)
 		api.POST("/supporter", supporterHandler.CreateSupporter)
 		api.PATCH("/supporter/:id", supporterHandler.UpdateSupporterByID)
 
-		// Appointment
 		api.GET("/appointments", appointmentHandler.GetAppointmentAll)
 		api.GET("/appointment/:id", appointmentHandler.GetAppointmentByID)
 		api.POST("/appointment", appointmentHandler.CreateAppointment)
 		api.PATCH("/appointment/:id", appointmentHandler.UpdateAppointmentByID)
 
-		// Case
 		api.GET("/cases", caseHandler.GetCaseAll)
 		api.GET("/case/:id", caseHandler.GetCaseByID)
 		api.POST("/case", caseHandler.CreateCase)
 		api.PATCH("/case/:id", caseHandler.UpdateCaseByID)
 
-		// IP
 		api.GET("/ips", ipHandler.GetIPAll)
 		api.GET("/ip/:id", ipHandler.GetIPByID)
 		api.POST("/ip", ipHandler.CreateIP)
 		api.PATCH("/ip/:id", ipHandler.UpdateIPByID)
 
-		// Assessment TRL
 		api.GET("/assessment_trl", assessmentTrlHandler.GetAssessmentTrlAll)
 		api.GET("/assessment_trl/:id", assessmentTrlHandler.GetAssessmentTrlByID)
 		api.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)

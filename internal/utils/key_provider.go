@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -15,26 +16,37 @@ type KeyProvider struct {
 	publicKeys  map[string]*rsa.PublicKey
 }
 
-// NewFileKeyProvider โหลด key จาก .pem files และตรวจสอบความถูกต้อง
-func NewFileKeyProvider() (*KeyProvider, error) {
-	// Read private key from file
-	privKeyData, err := os.ReadFile("private_key_v1.pem")
-	if err != nil {
-		return nil, fmt.Errorf("failed to read private key file: %v", err)
+// NewEnvKeyProvider โหลด key จาก Environment Variables (ไม่ใช้ไฟล์)
+func NewEnvKeyProvider() (*KeyProvider, error) {
+	// อ่านค่าจาก environment variables
+	privKeyB64 := os.Getenv("PRIVATE_KEY_V1_B64")
+	pubKeyB64 := os.Getenv("PUBLIC_KEY_V1_B64")
+
+	if privKeyB64 == "" {
+		return nil, errors.New("missing PRIVATE_KEY_V1_B64 in environment")
+	}
+	if pubKeyB64 == "" {
+		return nil, errors.New("missing PUBLIC_KEY_V1_B64 in environment")
 	}
 
-	// Read public key from file
-	pubKeyData, err := os.ReadFile("public_key_v1.pem")
+	// Decode จาก Base64
+	privKeyBytes, err := base64.StdEncoding.DecodeString(privKeyB64)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read public key file: %v", err)
+		return nil, fmt.Errorf("failed to decode private key base64: %v", err)
 	}
 
-	privKey, err := parseStrictPrivateKey(privKeyData)
+	pubKeyBytes, err := base64.StdEncoding.DecodeString(pubKeyB64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode public key base64: %v", err)
+	}
+
+	// แปลงเป็น object key จริง
+	privKey, err := parseStrictPrivateKey(privKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("invalid private key: %v", err)
 	}
 
-	pubKey, err := parseStrictPublicKey(pubKeyData)
+	pubKey, err := parseStrictPublicKey(pubKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("invalid public key: %v", err)
 	}
@@ -45,21 +57,19 @@ func NewFileKeyProvider() (*KeyProvider, error) {
 	}, nil
 }
 
-// parseStrictPrivateKey รองรับเฉพาะ PKCS#8 (RSA) เท่านั้น
+// parseStrictPrivateKey รองรับเฉพาะ PKCS#8 (RSA)
 func parseStrictPrivateKey(pemBytes []byte) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode(pemBytes)
 	if block == nil {
-		return nil, errors.New("cannot decode PEM block")
+		return nil, errors.New("cannot decode PEM block (private key)")
 	}
 	if block.Type != "PRIVATE KEY" {
 		return nil, fmt.Errorf("unexpected PEM type: %s (expected PRIVATE KEY for PKCS#8)", block.Type)
 	}
-
 	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse PKCS#8: %v", err)
 	}
-
 	priv, ok := key.(*rsa.PrivateKey)
 	if !ok {
 		return nil, errors.New("private key is not RSA")
@@ -67,21 +77,19 @@ func parseStrictPrivateKey(pemBytes []byte) (*rsa.PrivateKey, error) {
 	return priv, nil
 }
 
-// parseStrictPublicKey รองรับเฉพาะ PKIX (RSA) เท่านั้น
+// parseStrictPublicKey รองรับเฉพาะ PKIX (RSA)
 func parseStrictPublicKey(pemBytes []byte) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode(pemBytes)
 	if block == nil {
-		return nil, errors.New("cannot decode PEM block")
+		return nil, errors.New("cannot decode PEM block (public key)")
 	}
 	if block.Type != "PUBLIC KEY" {
 		return nil, fmt.Errorf("unexpected PEM type: %s (expected PUBLIC KEY for PKIX)", block.Type)
 	}
-
 	pubAny, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse PKIX public key: %v", err)
 	}
-
 	pub, ok := pubAny.(*rsa.PublicKey)
 	if !ok {
 		return nil, errors.New("public key is not RSA")

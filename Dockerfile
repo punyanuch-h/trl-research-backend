@@ -32,10 +32,10 @@
     COPY --from=builder /app/server .
     
     # Copy Firebase service account key
-    COPY serviceAccountKey.json .
+    COPY trl-research-service-account.json .
     
     # Expose port
-    EXPOSE 3000
+    EXPOSE 8080
     
     # Run server
     CMD ["./server"]

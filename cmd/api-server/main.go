@@ -5,15 +5,19 @@ import (
 	"log"
 	"os"
 
+	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/router"
 )
 
 func main() {
+	// Load environment variables from .env file
+	config.LoadConfig()
+
 	// on cloud
 	// database.InitFirebase("serviceAccountKey.json")
 	// local
-	database.InitFirebase("localServiceAccountKey.json")
+	database.InitFirebase("trl-research-service-account.json")
 	defer database.CloseFirebase()
 
 	// Setup router
@@ -22,7 +26,7 @@ func main() {
 	// Run server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3000"
+		port = "8080"
 	}
 	addr := fmt.Sprintf(":%s", port)
 
