@@ -49,6 +49,19 @@ func (r *AssessmentTrlRepo) GetAssessmentTrlByID(id string) (*models.AssessmentT
 	return &a, nil
 }
 
+// 🟢 GetAssessmentTrlByCaseID
+func (r *AssessmentTrlRepo) GetAssessmentTrlByCaseID(caseID string) (*models.AssessmentTrl, error) {
+	ctx := context.Background()
+	doc, err := r.Client.Collection("assessment_trl").Where("case_id", "==", caseID).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var a models.AssessmentTrl
+	doc[0].DataTo(&a)
+	return &a, nil
+}
+
 // 🟢 CreateAssessmentTrl - auto generate ID AS-00001
 func (r *AssessmentTrlRepo) CreateAssessmentTrl(a *models.AssessmentTrl) error {
 	ctx := context.Background()

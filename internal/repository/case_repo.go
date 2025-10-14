@@ -21,11 +21,16 @@ func NewCaseRepo(client *firestore.Client) *CaseRepo {
 
 // 🟢 GetCaseAll - fetch all cases
 func (r *CaseRepo) GetCaseAll() ([]models.CaseInfo, error) {
+	fmt.Println("GetCaseAll from repo")
+	fmt.Println("r", r)
 	ctx := context.Background()
+	fmt.Println("ctx", ctx)
 	docs, err := r.Client.Collection("cases").Documents(ctx).GetAll()
 	if err != nil {
+		fmt.Println("err", err)
 		return nil, err
 	}
+	fmt.Println(docs)
 
 	var cases []models.CaseInfo
 	for _, doc := range docs {
@@ -33,6 +38,7 @@ func (r *CaseRepo) GetCaseAll() ([]models.CaseInfo, error) {
 		doc.DataTo(&cs)
 		cases = append(cases, cs)
 	}
+	fmt.Println(cases)
 	return cases, nil
 }
 

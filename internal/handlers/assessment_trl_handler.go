@@ -33,6 +33,17 @@ func (h *AssessmentTrlHandler) GetAssessmentTrlByID(c *gin.Context) {
 	c.JSON(http.StatusOK, a)
 }
 
+// 🟢 GET /assessment/case/:id
+func (h *AssessmentTrlHandler) GetAssessmentTrlByCaseID(c *gin.Context) {
+	id := c.Param("id")
+	a, err := h.Repo.GetAssessmentTrlByCaseID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assessment TRL not found"})
+		return
+	}
+	c.JSON(http.StatusOK, a)
+}
+
 // 🟢 POST /assessment
 func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 	var req models.AssessmentTrl

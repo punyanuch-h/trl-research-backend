@@ -12,4 +12,6 @@ type CoordinatorInfo struct {
 	Department       string    `json:"department" firestore:"department"`
 	CreatedAt        time.Time `json:"created_at" firestore:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at" firestore:"updated_at"`
+
+	CaseID           string    `json:"case_id" firestore:"case_id"`
 }

@@ -33,6 +33,17 @@ func (h *IntellectualPropertyHandler) GetIPByID(c *gin.Context) {
 	c.JSON(http.StatusOK, ip)
 }
 
+// 🟢 GET /ip/case/:id
+func (h *IntellectualPropertyHandler) GetIPByCaseID(c *gin.Context) {
+	id := c.Param("id")
+	ip, err := h.Repo.GetIPByCaseID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Intellectual Property not found"})
+		return
+	}
+	c.JSON(http.StatusOK, ip)
+}
+
 // 🟢 POST /ip
 func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 	var req models.IntellectualProperty

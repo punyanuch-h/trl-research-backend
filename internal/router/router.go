@@ -76,21 +76,25 @@ func SetupRouter() *gin.Engine {
 
 		api.GET("/researchers", researcherHandler.GetResearcherAll)
 		api.GET("/researcher/:id", researcherHandler.GetResearcherByID)
+		api.GET("/researcher/case/:id", researcherHandler.GetResearcherByCaseID)
 		api.POST("/researcher", researcherHandler.CreateResearcher)
 		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherByID)
 
 		api.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
 		api.GET("/coordinator/:id", coordinatorHandler.GetCoordinatorByEmail)
+		api.GET("/coordinator/case/:id", coordinatorHandler.GetCoordinatorByCaseID)
 		api.POST("/coordinator", coordinatorHandler.CreateCoordinator)
 		api.PATCH("/coordinator/:id", coordinatorHandler.UpdateCoordinatorByEmail)
 
 		api.GET("/supporters", supporterHandler.GetSupporterAll)
 		api.GET("/supporter/:id", supporterHandler.GetSupporterByID)
+		api.GET("/supporter/case/:id", supporterHandler.GetSupporterByCaseID)
 		api.POST("/supporter", supporterHandler.CreateSupporter)
 		api.PATCH("/supporter/:id", supporterHandler.UpdateSupporterByID)
 
 		api.GET("/appointments", appointmentHandler.GetAppointmentAll)
 		api.GET("/appointment/:id", appointmentHandler.GetAppointmentByID)
+		api.GET("/appointment/case/:id", appointmentHandler.GetAppointmentByCaseID)
 		api.POST("/appointment", appointmentHandler.CreateAppointment)
 		api.PATCH("/appointment/:id", appointmentHandler.UpdateAppointmentByID)
 
@@ -101,11 +105,13 @@ func SetupRouter() *gin.Engine {
 
 		api.GET("/ips", ipHandler.GetIPAll)
 		api.GET("/ip/:id", ipHandler.GetIPByID)
+		api.GET("/ip/case/:id", ipHandler.GetIPByCaseID)
 		api.POST("/ip", ipHandler.CreateIP)
 		api.PATCH("/ip/:id", ipHandler.UpdateIPByID)
 
 		api.GET("/assessment_trl", assessmentTrlHandler.GetAssessmentTrlAll)
 		api.GET("/assessment_trl/:id", assessmentTrlHandler.GetAssessmentTrlByID)
+		api.GET("/assessment_trl/case/:id", assessmentTrlHandler.GetAssessmentTrlByCaseID)
 		api.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)
 		api.PATCH("/assessment_trl/:id", assessmentTrlHandler.UpdateAssessmentTrlByID)
 	}

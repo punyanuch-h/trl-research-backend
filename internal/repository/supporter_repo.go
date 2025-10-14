@@ -49,6 +49,19 @@ func (r *SupporterRepo) GetSupporterByID(supporterID string) (*models.Supporter,
 	return &supporter, nil
 }
 
+// 🟢 GetSupporterByCaseID
+func (r *SupporterRepo) GetSupporterByCaseID(caseID string) (*models.Supporter, error) {
+	ctx := context.Background()
+	doc, err := r.Client.Collection("supporters").Where("case_id", "==", caseID).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var supporter models.Supporter
+	doc[0].DataTo(&supporter)
+	return &supporter, nil
+}
+
 // 🟢 CreateSupporter - auto-generate ID SP-00001
 func (r *SupporterRepo) CreateSupporter(supporter *models.Supporter) error {
 	ctx := context.Background()

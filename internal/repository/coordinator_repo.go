@@ -46,6 +46,19 @@ func (r *CoordinatorRepo) GetCoordinatorByEmail(email string) (*models.Coordinat
 	return &coordinator, nil
 }
 
+// 🟢 GetCoordinatorByCaseID
+func (r *CoordinatorRepo) GetCoordinatorByCaseID(caseID string) (*models.CoordinatorInfo, error) {
+	ctx := context.Background()
+	doc, err := r.Client.Collection("coordinators").Where("case_id", "==", caseID).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var coordinator models.CoordinatorInfo
+	doc[0].DataTo(&coordinator)
+	return &coordinator, nil
+}
+
 // 🟢 CreateCoordinator
 func (r *CoordinatorRepo) CreateCoordinator(coordinator *models.CoordinatorInfo) error {
 	ctx := context.Background()

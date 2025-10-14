@@ -33,6 +33,17 @@ func (h *AppointmentHandler) GetAppointmentByID(c *gin.Context) {
 	c.JSON(http.StatusOK, ap)
 }
 
+// 🟢 GET /appointment/case/:id
+func (h *AppointmentHandler) GetAppointmentByCaseID(c *gin.Context) {
+	id := c.Param("id")
+	ap, err := h.Repo.GetAppointmentByCaseID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointment not found"})
+		return
+	}
+	c.JSON(http.StatusOK, ap)
+}
+
 // 🟢 POST /appointment
 func (h *AppointmentHandler) CreateAppointment(c *gin.Context) {
 	var req models.Appointment

@@ -77,6 +77,19 @@ func (r *ResearcherRepo) GetResearcherByID(researcherID string) (*models.Researc
 	return &researcher, nil
 }
 
+// 🟢 GetResearcherByCaseID
+func (r *ResearcherRepo) GetResearcherByCaseID(caseID string) (*models.ResearcherInfo, error) {
+	ctx := context.Background()
+	doc, err := r.Client.Collection("researchers").Where("case_id", "==", caseID).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var researcher models.ResearcherInfo
+	doc[0].DataTo(&researcher)
+	return &researcher, nil
+}
+
 // 🟢 CreateResearcher - auto-generate ResearcherID and create new record
 func (r *ResearcherRepo) CreateResearcher(researcher *models.ResearcherInfo) error {
 	ctx := context.Background()

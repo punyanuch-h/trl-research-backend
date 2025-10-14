@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CaseHandler struct {
@@ -14,8 +16,12 @@ type CaseHandler struct {
 
 // 🟢 GET /cases
 func (h *CaseHandler) GetCaseAll(c *gin.Context) {
+	fmt.Println("GetCaseAll from handler")
+	fmt.Println("h", h)
 	cases, err := h.Repo.GetCaseAll()
+	fmt.Println("cases", cases)
 	if err != nil {
+		fmt.Println("err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

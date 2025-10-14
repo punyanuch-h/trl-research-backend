@@ -37,6 +37,17 @@ func (h *ResearcherHandler) GetResearcherByID(c *gin.Context) {
 	c.JSON(http.StatusOK, researcher)
 }
 
+// 🟢 GET /researcher/case/:id
+func (h *ResearcherHandler) GetResearcherByCaseID(c *gin.Context) {
+	id := c.Param("id")
+	researcher, err := h.Repo.GetResearcherByCaseID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Researcher not found"})
+		return
+	}
+	c.JSON(http.StatusOK, researcher)
+}
+
 // 🟢 POST /researcher
 func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 	var req models.ResearcherInfo

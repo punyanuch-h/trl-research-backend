@@ -49,6 +49,19 @@ func (r *IntellectualPropertyRepo) GetIPByID(ipID string) (*models.IntellectualP
 	return &ip, nil
 }
 
+// 🟢 GetIPByCaseID
+func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.IntellectualProperty, error) {
+	ctx := context.Background()
+	doc, err := r.Client.Collection("intellectual_properties").Where("case_id", "==", caseID).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var ip models.IntellectualProperty
+	doc[0].DataTo(&ip)
+	return &ip, nil
+}
+
 // 🟢 CreateIP - auto generate ID IP-00001
 func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperty) error {
 	ctx := context.Background()

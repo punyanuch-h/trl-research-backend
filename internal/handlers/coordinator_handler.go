@@ -33,6 +33,17 @@ func (h *CoordinatorHandler) GetCoordinatorByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, coordinator)
 }
 
+// 🟢 GET /coordinator/case/:id
+func (h *CoordinatorHandler) GetCoordinatorByCaseID(c *gin.Context) {
+	id := c.Param("id")
+	coordinator, err := h.Repo.GetCoordinatorByCaseID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Coordinator not found"})
+		return
+	}
+	c.JSON(http.StatusOK, coordinator)
+}
+
 // 🟢 POST /coordinator
 func (h *CoordinatorHandler) CreateCoordinator(c *gin.Context) {
 	var req models.CoordinatorInfo

@@ -33,6 +33,17 @@ func (h *SupporterHandler) GetSupporterByID(c *gin.Context) {
 	c.JSON(http.StatusOK, supporter)
 }
 
+// 🟢 GET /supporter/case/:id
+func (h *SupporterHandler) GetSupporterByCaseID(c *gin.Context) {
+	id := c.Param("id")
+	supporter, err := h.Repo.GetSupporterByCaseID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Supporter not found"})
+		return
+	}
+	c.JSON(http.StatusOK, supporter)
+}
+
 // 🟢 POST /supporter
 func (h *SupporterHandler) CreateSupporter(c *gin.Context) {
 	var req models.Supporter
