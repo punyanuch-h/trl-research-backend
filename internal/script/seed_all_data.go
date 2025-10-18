@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/models"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 	// =============================
 	admins := []models.AdminInfo{
 		{
+			AdminID:               "A-00001",
 			AdminPrefix:           "Dr.",
 			AdminAcademicPosition: "Assistant Professor",
 			AdminFirstName:        "Ann",
@@ -35,6 +37,7 @@ func main() {
 			AdminPhoneNumber:      "+66-81-234-5678",
 			AdminEmail:            "admin@example.com",
 			AdminPassword:         "password123",
+			CaseID:                "CS-00001",
 		},
 	}
 
@@ -58,6 +61,7 @@ func main() {
 	// =============================
 	researchers := []models.ResearcherInfo{
 		{
+			ResearcherID:               "RS-00001",
 			AdminID:                    "A-00001",
 			ResearcherPrefix:           "Dr.",
 			ResearcherAcademicPosition: "Research Fellow",
@@ -88,153 +92,186 @@ func main() {
 	// =============================
 	// 3️⃣ Coordinators
 	// =============================
-	coordinators := []map[string]interface{}{
+	coordinators := []models.CoordinatorInfo{
 		{
-			"coordinator_id":    "C-0001",
-			"coordinator_email": "coordinator1@university.edu",
-			"coordinator_name":  "Dr. Michael Chen",
-			"coordinator_phone": "+66-91-111-1111",
-			"department":        "Research Development",
-			"created_at":        time.Now(),
-			"updated_at":        time.Now(),
+			CoordinatorID:    "C-00001",
+			CoordinatorEmail: "coordinator1@university.edu",
+			CoordinatorName:  "Dr. Michael Chen",
+			CoordinatorPhone: "+66-91-111-1111",
+			Department:       "Research Development",
+			CaseID:           "CS-00001",
 		},
 	}
 
 	for _, c := range coordinators {
-		docRef := client.Collection("coordinators").Doc(c["coordinator_email"].(string))
+		c.CreatedAt = time.Now()
+		c.UpdatedAt = time.Now()
+		docRef := client.Collection("coordinators").Doc(c.CoordinatorEmail)
 		_, err := docRef.Set(ctx, c)
 		if err != nil {
 			log.Printf("❌ Failed to seed coordinator %v\n", err)
 		} else {
-			fmt.Printf("✅ Coordinator seeded: %s\n", c["coordinator_email"])
+			fmt.Printf("✅ Coordinator seeded: %s\n", c.CoordinatorEmail)
 		}
 	}
 
 	// =============================
 	// 4️⃣ Cases
 	// =============================
-	cases := []map[string]interface{}{
+	cases := []models.CaseInfo{
 		{
-			"case_id":          "CS-0001",
-			"researcher_id":    "RS-0001",
-			"case_title":       "AI-powered Diagnosis",
-			"case_type":        "Software",
-			"case_description": "Developing ML models for early disease detection.",
-			"status":           true,
-			"created_at":       time.Now(),
-			"updated_at":       time.Now(),
+			CaseID:           "CS-00001",
+			CoordinatorEmail: "coordinator1@university.edu",
+			TrlScore:         "3",
+			TrlSuggestion:    "Focus on prototype development",
+			Status:           true,
+			IsUrgent:         false,
+			UrgentReason:     "",
+			UrgentFeedback:   "",
+			CaseTitle:        "AI-powered Diagnosis",
+			CaseType:         "Software",
+			CaseDescription:  "Developing ML models for early disease detection.",
+			CaseKeywords:     "AI, Machine Learning, Medical Diagnosis",
+			ResearcherID:     "RS-00001",
 		},
 	}
 
 	for _, c := range cases {
-		docRef := client.Collection("cases").Doc(c["case_id"].(string))
+		c.CreatedAt = time.Now()
+		c.UpdatedAt = time.Now()
+		docRef := client.Collection("cases").Doc(c.CaseID)
 		_, err := docRef.Set(ctx, c)
 		if err != nil {
 			log.Printf("❌ Failed to seed case %v\n", err)
 		} else {
-			fmt.Printf("✅ Case seeded: %s\n", c["case_id"])
+			fmt.Printf("✅ Case seeded: %s\n", c.CaseID)
 		}
 	}
 
 	// =============================
 	// 5️⃣ Appointments
 	// =============================
-	appointments := []map[string]interface{}{
+	appointments := []models.Appointment{
 		{
-			"appointment_id": "AP-0001",
-			"case_id":        "CS-0001",
-			"date":           time.Now().AddDate(0, 0, 7),
-			"status":         "Scheduled",
-			"location":       "Conference Room A",
-			"note":           "Discuss initial progress",
-			"summary":        "Introductory meeting with researcher",
-			"created_at":     time.Now(),
-			"updated_at":     time.Now(),
+			AppointmentID: "AP-00001",
+			CaseID:        "CS-00001",
+			Date:          time.Now().AddDate(0, 0, 7),
+			Status:        "Scheduled",
+			Location:      "Conference Room A",
+			Note:          "Discuss initial progress",
+			Summary:       "Introductory meeting with researcher",
 		},
 	}
 
 	for _, a := range appointments {
-		docRef := client.Collection("appointments").Doc(a["appointment_id"].(string))
+		a.CreatedAt = time.Now()
+		a.UpdatedAt = time.Now()
+		docRef := client.Collection("appointments").Doc(a.AppointmentID)
 		_, err := docRef.Set(ctx, a)
 		if err != nil {
 			log.Printf("❌ Failed to seed appointment %v\n", err)
 		} else {
-			fmt.Printf("✅ Appointment seeded: %s\n", a["appointment_id"])
+			fmt.Printf("✅ Appointment seeded: %s\n", a.AppointmentID)
 		}
 	}
 
 	// =============================
 	// 6️⃣ Assessment TRL
 	// =============================
-	assessments := []map[string]interface{}{
+	assessments := []models.AssessmentTrl{
 		{
-			"case_id":          "CS-0001",
-			"trl_level_result": 3,
-			"rq1_answer":       true,
-			"rq2_answer":       false,
-			"rq3_answer":       true,
-			"created_at":       time.Now(),
-			"updated_at":       time.Now(),
+			ID:             "AT-00001",
+			CaseID:         "CS-00001",
+			TrlLevelResult: 3,
+			Rq1Answer:      true,
+			Rq2Answer:      false,
+			Rq3Answer:      true,
+			Rq4Answer:      false,
+			Rq5Answer:      true,
+			Rq6Answer:      false,
+			Rq7Answer:      true,
+			Cq1Answer:      []string{"Option A", "Option B"},
+			Cq2Answer:      []string{"Option C"},
+			Cq3Answer:      []string{"Option D", "Option E"},
+			Cq4Answer:      []string{"Option F"},
+			Cq5Answer:      []string{"Option G", "Option H"},
+			Cq6Answer:      []string{"Option I"},
+			Cq7Answer:      []string{"Option J", "Option K"},
+			Cq8Answer:      []string{"Option L"},
+			Cq9Answer:      []string{"Option M", "Option N"},
 		},
 	}
 
 	for _, a := range assessments {
-		docRef := client.Collection("assessment_trl").Doc(a["case_id"].(string))
+		a.CreatedAt = time.Now()
+		a.UpdatedAt = time.Now()
+		docRef := client.Collection("assessment_trl").Doc(a.ID)
 		_, err := docRef.Set(ctx, a)
 		if err != nil {
 			log.Printf("❌ Failed to seed assessment %v\n", err)
 		} else {
-			fmt.Printf("✅ Assessment TRL seeded for case: %s\n", a["case_id"])
+			fmt.Printf("✅ Assessment TRL seeded for case: %s\n", a.CaseID)
 		}
 	}
 
 	// =============================
 	// 7️⃣ Intellectual Property
 	// =============================
-	ips := []map[string]interface{}{
+	ips := []models.IntellectualProperty{
 		{
-			"case_id":              "CS-0001",
-			"ip_types":             "Patent",
-			"ip_protection_status": "Application Filed",
-			"ip_request_number":    "US2024001234A1",
-			"created_at":           time.Now(),
-			"updated_at":           time.Now(),
+			ID:                 "IP-00001",
+			CaseID:             "CS-00001",
+			IPTypes:            "Patent",
+			IPProtectionStatus: "Application Filed",
+			IPRequestNumber:    "US2024001234A1",
 		},
 	}
 
 	for _, ip := range ips {
-		docRef := client.Collection("intellectual_property").Doc(ip["case_id"].(string))
+		ip.CreatedAt = time.Now()
+		ip.UpdatedAt = time.Now()
+		docRef := client.Collection("intellectual_property").Doc(ip.ID)
 		_, err := docRef.Set(ctx, ip)
 		if err != nil {
 			log.Printf("❌ Failed to seed IP %v\n", err)
 		} else {
-			fmt.Printf("✅ Intellectual Property seeded for case: %s\n", ip["case_id"])
+			fmt.Printf("✅ Intellectual Property seeded for case: %s\n", ip.CaseID)
 		}
 	}
 
 	// =============================
 	// 8️⃣ Supporters
 	// =============================
-	supporters := []map[string]interface{}{
+	supporters := []models.Supporter{
 		{
-			"case_id":      "CS-0001",
-			"need_test":    true,
-			"need_funding": false,
-			"need_partners": true,
-			"need_guidelines": true,
-			"need_account": false,
-			"created_at":   time.Now(),
-			"updated_at":   time.Now(),
+			SupporterID:                     "SP-00001",
+			CaseID:                          "CS-00001",
+			SupportResearch:                 true,
+			SupportVDC:                      false,
+			SupportSiEIC:                    true,
+			NeedProtectIntellectualProperty: true,
+			NeedCoDevelopers:                false,
+			NeedActivities:                  true,
+			NeedTest:                        true,
+			NeedCapital:                     false,
+			NeedPartners:                    true,
+			NeedGuidelines:                  true,
+			NeedCertification:               false,
+			NeedAccount:                     false,
+			Need:                            "Additional funding and technical support",
+			AdditionalDocuments:             "Research proposal and preliminary results",
 		},
 	}
 
 	for _, s := range supporters {
-		docRef := client.Collection("supporters").Doc(s["case_id"].(string))
+		s.CreatedAt = time.Now()
+		s.UpdatedAt = time.Now()
+		docRef := client.Collection("supporters").Doc(s.SupporterID)
 		_, err := docRef.Set(ctx, s)
 		if err != nil {
 			log.Printf("❌ Failed to seed supporter %v\n", err)
 		} else {
-			fmt.Printf("✅ Supporter seeded for case: %s\n", s["case_id"])
+			fmt.Printf("✅ Supporter seeded for case: %s\n", s.CaseID)
 		}
 	}
 
