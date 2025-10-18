@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	auth "trl-research-backend/internal/auth"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
-	auth "trl-research-backend/internal/auth"
 	"trl-research-backend/internal/repository"
 
 	"github.com/gin-contrib/cors"
