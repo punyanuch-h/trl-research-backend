@@ -20,7 +20,7 @@ func SetupRouter() *gin.Engine {
 
 	// ✅ CORS config
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "https://punyanuch-h.github.io/trl-research-frontend"},
+		AllowOrigins:     []string{"http://localhost:3000", "https://punyanuch-h.github.io"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
