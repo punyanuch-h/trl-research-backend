@@ -102,6 +102,7 @@ func SetupRouter() *gin.Engine {
 		api.GET("/case/:id", caseHandler.GetCaseByID)
 		api.POST("/case", caseHandler.CreateCase)
 		api.PATCH("/case/:id", caseHandler.UpdateCaseByID)
+		api.PATCH("/case/update-status/:id", caseHandler.UpdateCaseStatusByID)
 
 		api.GET("/ips", ipHandler.GetIPAll)
 		api.GET("/ip/:id", ipHandler.GetIPByID)

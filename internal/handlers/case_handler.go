@@ -72,3 +72,16 @@ func (h *CaseHandler) UpdateCaseByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Case updated successfully"})
 }
+
+// 🟢 PATCH /case/update-status/:id
+func (h *CaseHandler) UpdateCaseStatusByID(c *gin.Context) {
+	id := c.Param("id")
+	status := c.Query("status")
+
+	if err := h.Repo.UpdateCaseStatusByID(id, status); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Case status updated successfully"})
+}

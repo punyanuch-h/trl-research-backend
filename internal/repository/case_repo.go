@@ -85,3 +85,10 @@ func (r *CaseRepo) UpdateCaseByID(caseID string, data map[string]interface{}) er
 	_, err := r.Client.Collection("cases").Doc(caseID).Set(ctx, data, firestore.MergeAll)
 	return err
 }
+
+// 🟢 UpdateCaseStatusByID
+func (r *CaseRepo) UpdateCaseStatusByID(caseID string, status string) error {
+	ctx := context.Background()
+	_, err := r.Client.Collection("cases").Doc(caseID).Set(ctx, map[string]interface{}{"status": status}, firestore.MergeAll)
+	return err
+}

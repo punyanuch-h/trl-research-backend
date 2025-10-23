@@ -74,7 +74,7 @@ func main() {
 		"cases",
 		"appointments",
 		"assessment_trl",
-		"intellectual_property",
+		"intellectual_properties",
 		"supporters",
 	}
 
@@ -446,7 +446,7 @@ func main() {
 			CreatedAt:          now,
 			UpdatedAt:          now,
 		}
-		docRef := client.Collection("intellectual_property").Doc(ip.ID)
+		docRef := client.Collection("intellectual_properties").Doc(ip.ID)
 		_, err := docRef.Set(ctx, ip)
 		if err != nil {
 			log.Printf("❌ Failed to seed IP %v\n", err)
