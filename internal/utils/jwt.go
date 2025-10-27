@@ -8,8 +8,8 @@ import (
 )
 
 type Claims struct {
-	ClientAdminID    string `json:"client_admin_id"`
-	ClientAdminEmail string `json:"client_admin_email"`
+	UserID    string `json:"user_id"`
+	UserEmail string `json:"user_email"`
 	Role             string `json:"role"`
 	ClientID         string `json:"client_id"`
 	ClientName       string `json:"client_name"`
@@ -17,12 +17,12 @@ type Claims struct {
 }
 
 // GenerateJWT
-func GenerateJWT(clientAdminID, clientAdminEmail, role, clientID, clientName, issuer, audience, kid string, ttl time.Duration, kp KeyProvider) (string, error) {
+func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid string, ttl time.Duration, kp KeyProvider) (string, error) {
 	now := time.Now()
 
 	claims := Claims{
-		ClientAdminID:    clientAdminID,
-		ClientAdminEmail: clientAdminEmail,
+		UserID:    userID,
+		UserEmail: userEmail,
 		Role:             role,
 		ClientID:         clientID,
 		ClientName:       clientName,

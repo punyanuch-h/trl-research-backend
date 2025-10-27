@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"net/http"
+	"os"
+	"strings"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+	"trl-research-backend/internal/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AdminHandler struct {
@@ -31,6 +35,38 @@ func (h *AdminHandler) GetAdminByID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, admin)
+}
+
+// 🟢 GET /admin/profile
+func (h *AdminHandler) GetAdminProfile(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+		return
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	// Validate and decode JWT
+	kp, err := utils.NewEnvKeyProvider()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Key provider error"})
+		return
+	}
+	claims, err := utils.ValidateJWT(tokenString, os.Getenv("JWT_ISSUER"), os.Getenv("JWT_AUDIENCE"), *kp)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	// Query from Firestore using user_id from claims
+	admin, err := h.Repo.GetAdminByID(claims.UserID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Admin not found"})
+		return
+	}
+
+	// Convert to response DTO
+	response := admin.ToResponse()
+	c.JSON(http.StatusOK, response)
 }
 
 // 🟢 POST /admin

@@ -2,6 +2,7 @@ package models
 
 import (
 	"time"
+	"trl-research-backend/internal/entity"
 )
 
 type AdminInfo struct {
@@ -17,4 +18,17 @@ type AdminInfo struct {
 	CaseID                string    `json:"case_id" firestore:"case_id"`
 	CreatedAt             time.Time `json:"created_at" firestore:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at" firestore:"updated_at"`
+}
+
+func (r *AdminInfo) ToResponse() entity.AdminResponse {
+	return entity.AdminResponse{
+		ID:               r.AdminID,
+		Prefix:           r.AdminPrefix,
+		AcademicPosition: r.AdminAcademicPosition,
+		FirstName:        r.AdminFirstName,
+		LastName:         r.AdminLastName,
+		Department:       r.AdminDepartment,
+		PhoneNumber:      r.AdminPhoneNumber,
+		Email:            r.AdminEmail,
+	}
 }

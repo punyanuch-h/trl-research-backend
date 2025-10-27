@@ -3,9 +3,12 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+	"trl-research-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -46,6 +49,40 @@ func (h *ResearcherHandler) GetResearcherByCaseID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, researcher)
+}
+
+// 🟢 GET /researcher/profile
+func (h *ResearcherHandler) GetResearcherProfile(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+		return
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	// Validate and decode JWT
+	kp, err := utils.NewEnvKeyProvider()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Key provider error"})
+		return
+	}
+	claims, err := utils.ValidateJWT(tokenString, os.Getenv("JWT_ISSUER"), os.Getenv("JWT_AUDIENCE"), *kp)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	log.Println("claims:", claims)
+	// Query from Firestore using user_id from claims
+	researcher, err := h.Repo.GetResearcherByID(claims.UserID)
+	if err != nil {
+		log.Println("Researcher not found:", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Researcher not found"})
+		return
+	}
+
+	// Convert to response DTO
+	response := researcher.ToResponse()
+	c.JSON(http.StatusOK, response)
 }
 
 // 🟢 POST /researcher

@@ -24,7 +24,7 @@ func NewAdminRepo(client *firestore.Client) *AdminRepo {
 // 🟢 Get all admins
 func (r *AdminRepo) GetAdminAll() ([]models.AdminInfo, error) {
 	ctx := context.Background()
-	docs, err := r.Client.Collection("admins").Documents(ctx).GetAll()
+	docs, err := r.Client.Collection("admin_info").Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (r *AdminRepo) GetAdminByID(adminID string) (*models.AdminInfo, error) {
 	ctx := context.Background()
 
 	// Query by admin_id field instead of document ID
-	docs, err := r.Client.Collection("admins").Where("admin_id", "==", adminID).Limit(1).Documents(ctx).GetAll()
+	docs, err := r.Client.Collection("admin_info").Where("admin_id", "==", adminID).Limit(1).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (r *AdminRepo) GetAdminByID(adminID string) (*models.AdminInfo, error) {
 // 🟢 Get admin by email
 func (r *AdminRepo) GetAdminByEmail(email string) (*models.AdminInfo, error) {
 	ctx := context.Background()
-	doc, err := r.Client.Collection("admins").Doc(email).Get(ctx)
+	doc, err := r.Client.Collection("admin_info").Doc(email).Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +75,13 @@ func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
 	ctx := context.Background()
 
 	// find last ID to generate next
-	docs, err := r.Client.Collection("admins").OrderBy("admin_id", firestore.Desc).Limit(1).Documents(ctx).GetAll()
-	nextID := "SI-00001"
+	docs, err := r.Client.Collection("admin_info").OrderBy("admin_id", firestore.Desc).Limit(1).Documents(ctx).GetAll()
+	nextID := "AD-00001"
 	if err == nil && len(docs) > 0 {
 		lastID := docs[0].Data()["admin_id"].(string)
 		numStr := strings.TrimPrefix(lastID, "SI-")
 		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("SI-%05d", n+1)
+			nextID = fmt.Sprintf("AD-%05d", n+1)
 		}
 	}
 
@@ -91,7 +91,7 @@ func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
 	admin.CreatedAt = now
 
 	// save to Firestore using email as document ID
-	_, err = r.Client.Collection("admins").Doc(admin.AdminEmail).Set(ctx, admin)
+	_, err = r.Client.Collection("admin_info").Doc(admin.AdminEmail).Set(ctx, admin)
 	return err
 }
 
@@ -124,13 +124,13 @@ func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, err
 // 🟢 Update password
 func (r *AdminRepo) UpdatePasswordByEmail(email string, password string) error {
 	ctx := context.Background()
-	_, err := r.Client.Collection("admins").Doc(email).Set(ctx, map[string]interface{}{"admin_password": password}, firestore.MergeAll)
+	_, err := r.Client.Collection("admin_info").Doc(email).Set(ctx, map[string]interface{}{"admin_password": password}, firestore.MergeAll)
 	return err
 }
 
 // 🟢 Delete admin
 func (r *AdminRepo) DeleteAdmin(email string) error {
 	ctx := context.Background()
-	_, err := r.Client.Collection("admins").Doc(email).Delete(ctx)
+	_, err := r.Client.Collection("admin_info").Doc(email).Delete(ctx)
 	return err
 }

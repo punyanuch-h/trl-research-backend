@@ -67,13 +67,17 @@ func (r *ResearcherRepo) GetResearcherAll() ([]models.ResearcherInfo, error) {
 // 🟢 GetResearcherByID - fetch one researcher by ID
 func (r *ResearcherRepo) GetResearcherByID(researcherID string) (*models.ResearcherInfo, error) {
 	ctx := context.Background()
-	doc, err := r.Client.Collection("researchers").Doc(researcherID).Get(ctx)
+	docs, err := r.Client.Collection("researchers").Where("researcher_id", "==", researcherID).Limit(1).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
 
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("researcher not found")
+	}
+
 	var researcher models.ResearcherInfo
-	doc.DataTo(&researcher)
+	docs[0].DataTo(&researcher)
 	return &researcher, nil
 }
 

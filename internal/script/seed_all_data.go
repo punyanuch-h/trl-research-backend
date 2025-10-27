@@ -92,11 +92,11 @@ func main() {
 	// 1️⃣ Admins
 	// =============================
 	admins := []models.AdminInfo{
-		{"A-00001", "Dr.", "Assistant Professor", "Ann", "Smith", "Computer Science", "+66-81-234-5678", "admin1@example.com", "password123", "CS-00001", now, now},
-		{"A-00002", "Prof.", "Professor", "John", "Doe", "Information Tech", "+66-82-234-5678", "admin2@example.com", "password123", "CS-00002", now, now},
-		{"A-00003", "Dr.", "Lecturer", "May", "Tan", "AI Research", "+66-83-234-5678", "admin3@example.com", "password123", "CS-00003", now, now},
-		{"A-00004", "Dr.", "Assistant Professor", "Nina", "Park", "Robotics", "+66-84-234-5678", "admin4@example.com", "password123", "CS-00004", now, now},
-		{"A-00005", "Prof.", "Dean", "Tom", "Lee", "Innovation", "+66-85-234-5678", "admin5@example.com", "password123", "CS-00005", now, now},
+		{"AD-00001", "Dr.", "Assistant Professor", "Ann", "Smith", "Computer Science", "+66-81-234-5678", "admin1@example.com", "password123", "CS-00001", now, now},
+		{"AD-00002", "Prof.", "Professor", "John", "Doe", "Information Tech", "+66-82-234-5678", "admin2@example.com", "password123", "CS-00002", now, now},
+		{"AD-00003", "Dr.", "Lecturer", "May", "Tan", "AI Research", "+66-83-234-5678", "admin3@example.com", "password123", "CS-00003", now, now},
+		{"AD-00004", "Dr.", "Assistant Professor", "Nina", "Park", "Robotics", "+66-84-234-5678", "admin4@example.com", "password123", "CS-00004", now, now},
+		{"AD-00005", "Prof.", "Dean", "Tom", "Lee", "Innovation", "+66-85-234-5678", "admin5@example.com", "password123", "CS-00005", now, now},
 	}
 
 	for _, admin := range admins {

@@ -63,7 +63,7 @@ func main() {
 		fmt.Printf("❌ JWT validation failed: %v\n", err)
 		return
 	}
-	fmt.Printf("✅ JWT validated successfully for: %s\n", claims.ClientAdminEmail)
+	fmt.Printf("✅ JWT validated successfully for: %s\n", claims.UserEmail)
 
 	fmt.Println("\n🎉 All key tests passed!")
 }
