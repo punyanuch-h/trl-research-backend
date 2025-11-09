@@ -28,6 +28,17 @@ func (h *CaseHandler) GetCaseAll(c *gin.Context) {
 	c.JSON(http.StatusOK, cases)
 }
 
+// 🟢 GET /case/researcher/:id - Get all cases for a researcher
+func (h *CaseHandler) GetCaseAllByResearcher_id(c *gin.Context) {
+	id := c.Param("id")
+	cases, err := h.Repo.GetCaseAllByResearcher_id(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, cases)
+}
+
 // 🟢 GET /case/:id
 func (h *CaseHandler) GetCaseByID(c *gin.Context) {
 	id := c.Param("id")

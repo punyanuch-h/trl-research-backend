@@ -101,6 +101,7 @@ func SetupRouter() *gin.Engine {
 		api.PATCH("/appointment/:id", appointmentHandler.UpdateAppointmentByID)
 
 		api.GET("/cases", caseHandler.GetCaseAll)
+		api.GET("/case/researcher/:id", caseHandler.GetCaseAllByResearcher_id)
 		api.GET("/case/:id", caseHandler.GetCaseByID)
 		api.POST("/case", caseHandler.CreateCase)
 		api.PATCH("/case/:id", caseHandler.UpdateCaseByID)

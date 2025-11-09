@@ -42,6 +42,23 @@ func (r *CaseRepo) GetCaseAll() ([]models.CaseInfo, error) {
 	return cases, nil
 }
 
+// 🟢 GetCaseAllByResearcher_id - fetch all cases for a researcher
+func (r *CaseRepo) GetCaseAllByResearcher_id(researcher_id string) ([]models.CaseInfo, error) {
+	ctx := context.Background()
+	docs, err := r.Client.Collection("cases").Where("researcher_id", "==", researcher_id).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var cases []models.CaseInfo
+	for _, doc := range docs {
+		var cs models.CaseInfo
+		doc.DataTo(&cs)
+		cases = append(cases, cs)
+	}
+	return cases, nil
+}
+
 // 🟢 GetCaseByID
 func (r *CaseRepo) GetCaseByID(caseID string) (*models.CaseInfo, error) {
 	ctx := context.Background()
