@@ -128,6 +128,35 @@ func (r *AdminRepo) UpdatePasswordByEmail(email string, password string) error {
 	return err
 }
 
+// 🟢 Update admin by ID
+func (r *AdminRepo) UpdateAdminByID(id string, data *models.AdminInfo) error {
+	ctx := context.Background()
+	// update data from request body to this admin
+	// Note: Documents are stored with email as document ID, not admin_id
+	// So we use data.AdminEmail (which should be set from existingAdmin)
+	data.UpdatedAt = time.Now()
+
+	// Convert struct to map for Firestore update (using MergeAll like other repos)
+	updateMap := map[string]interface{}{
+		"admin_id":                data.AdminID,
+		"admin_prefix":            data.AdminPrefix,
+		"admin_academic_position": data.AdminAcademicPosition,
+		"admin_first_name":        data.AdminFirstName,
+		"admin_last_name":         data.AdminLastName,
+		"admin_department":        data.AdminDepartment,
+		"admin_phone_number":      data.AdminPhoneNumber,
+		"admin_email":             data.AdminEmail,
+		"admin_password":          data.AdminPassword,
+		"case_id":                 data.CaseID,
+		"created_at":              data.CreatedAt,
+		"updated_at":              data.UpdatedAt,
+	}
+
+	docRef := r.Client.Collection("admin_info").Doc(data.AdminEmail)
+	_, err := docRef.Set(ctx, updateMap, firestore.MergeAll)
+	return err
+}
+
 // 🟢 Delete admin
 func (r *AdminRepo) DeleteAdmin(email string) error {
 	ctx := context.Background()
