@@ -8,12 +8,13 @@ import (
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
 	"trl-research-backend/internal/repository"
+	"trl-research-backend/internal/storage"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode) // ปิด debug log ของ Gin
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"127.0.0.1"})
@@ -37,6 +38,7 @@ func SetupRouter() *gin.Engine {
 	caseRepo := repository.NewCaseRepo(database.FirestoreClient)
 	ipRepo := repository.NewIntellectualPropertyRepo(database.FirestoreClient)
 	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.FirestoreClient)
+	fileRepo := repository.NewFileRepo(database.FirestoreClient)
 
 	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
@@ -47,6 +49,9 @@ func SetupRouter() *gin.Engine {
 	caseHandler := &handlers.CaseHandler{Repo: caseRepo}
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo}
 	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo}
+	presignHandler := &handlers.PresignHandler{GCS: gcsClient}
+	fileHandler := &handlers.FileHandler{Repo: fileRepo}
+	fileDownloadHandler := &handlers.FileDownloadHandler{FileRepo: fileRepo, GCS: gcsClient}
 
 	// ✅ Auth Handlers
 	loginHandler := &auth.LoginHandler{
@@ -69,7 +74,7 @@ func SetupRouter() *gin.Engine {
 
 	// ✅ Protected APIs
 	api := r.Group("/trl")
-	// api.Use(auth.AuthMiddleware()) // uncomment later when JWT ready
+	api.Use(auth.AuthMiddleware())
 	{
 		api.GET("/admins", adminHandler.GetAllAdmins)
 		api.GET("/admin/:id", adminHandler.GetAdminByID)
@@ -118,6 +123,11 @@ func SetupRouter() *gin.Engine {
 		api.GET("/assessment_trl/case/:id", assessmentTrlHandler.GetAssessmentTrlByCaseID)
 		api.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)
 		api.PATCH("/assessment_trl/:id", assessmentTrlHandler.UpdateAssessmentTrlByID)
+
+		// 🟢 File Management
+		api.POST("/presign/upload", presignHandler.PresignUpload)
+		api.POST("/file/upload", fileHandler.FileUploaded)
+		api.GET("/file/download-url/:fileID", fileDownloadHandler.GetDownloadURL)
 	}
 
 	return r

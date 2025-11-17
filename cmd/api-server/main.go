@@ -8,20 +8,25 @@ import (
 	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/router"
+	"trl-research-backend/internal/storage"
 )
 
 func main() {
-	// Load environment variables from .env file
+	// Load environment variables (.env)
 	config.LoadConfig()
 
-	// on cloud
-	// database.InitFirebase("serviceAccountKey.json")
-	// local
+	// init Firestore
 	database.InitFirebase("trl-research-service-account.json")
 	defer database.CloseFirebase()
 
-	// Setup router
-	r := router.SetupRouter()
+	// Initialize GCSClient 
+	bucket := os.Getenv("GCS_BUCKET_NAME")
+	saEmail := os.Getenv("SA_EMAIL")
+
+	gcsClient := storage.NewGCSClient(bucket, saEmail)
+
+	// pass gcsClient here
+	r := router.SetupRouter(gcsClient)
 
 	// Run server
 	port := os.Getenv("PORT")
