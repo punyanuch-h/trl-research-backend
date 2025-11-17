@@ -50,16 +50,20 @@ func (r *AppointmentRepo) GetAppointmentByID(appointmentID string) (*models.Appo
 }
 
 // 🟢 GetAppointmentByCaseID
-func (r *AppointmentRepo) GetAppointmentByCaseID(caseID string) (*models.Appointment, error) {
-	ctx := context.Background()
-	doc, err := r.Client.Collection("appointments").Where("case_id", "==", caseID).Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
+func (r *AppointmentRepo) GetAppointmentByCaseID(caseID string) ([]models.Appointment, error) {
+    ctx := context.Background()
+    docs, err := r.Client.Collection("appointments").Where("case_id", "==", caseID).Documents(ctx).GetAll()
+    if err != nil {
+        return nil, err
+    }
 
-	var ap models.Appointment
-	doc[0].DataTo(&ap)
-	return &ap, nil
+    var appointments []models.Appointment
+    for _, doc := range docs {
+        var ap models.Appointment
+        doc.DataTo(&ap)
+        appointments = append(appointments, ap)
+    }
+    return appointments, nil
 }
 
 // 🟢 CreateAppointment - auto generate ID AP-00001
