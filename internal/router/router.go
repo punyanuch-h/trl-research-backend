@@ -79,12 +79,13 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		api.GET("/admins", adminHandler.GetAllAdmins)
 		api.GET("/admin/:id", adminHandler.GetAdminByID)
 		api.GET("/admin/profile", adminHandler.GetAdminProfile)
+		api.PATCH("/admin/:id", adminHandler.UpdateAdminProfileByID)
 
 		api.GET("/researchers", researcherHandler.GetResearcherAll)
 		api.GET("/researcher/:id", researcherHandler.GetResearcherByID)
 		api.GET("/researcher/case/:id", researcherHandler.GetResearcherByCaseID)
 		api.POST("/researcher", researcherHandler.CreateResearcher)
-		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherByID)
+		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherProfileByID)
 		api.GET("/researcher/profile", researcherHandler.GetResearcherProfile)
 
 		api.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
