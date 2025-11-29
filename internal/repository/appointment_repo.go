@@ -92,6 +92,20 @@ func (r *AppointmentRepo) CreateAppointment(ap *models.Appointment) error {
 // 🟢 UpdateAppointmentByID
 func (r *AppointmentRepo) UpdateAppointmentByID(appointmentID string, data map[string]interface{}) error {
 	ctx := context.Background()
+	
+	// Convert date string to time.Time if present
+	if dateStr, ok := data["date"].(string); ok {
+		parsedDate, err := time.Parse(time.RFC3339, dateStr)
+		if err != nil {
+			// Try alternative format if RFC3339 fails
+			parsedDate, err = time.Parse("2006-01-02T15:04:05Z07:00", dateStr)
+			if err != nil {
+				return fmt.Errorf("invalid date format: %v", err)
+			}
+		}
+		data["date"] = parsedDate
+	}
+	
 	data["updated_at"] = time.Now()
 	_, err := r.Client.Collection("appointments").Doc(appointmentID).Set(ctx, data, firestore.MergeAll)
 	return err

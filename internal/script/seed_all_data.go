@@ -159,6 +159,22 @@ func main() {
 			Department:       "AI Lab",
 			CaseID:           "CS-00003",
 		},
+		{
+			CoordinatorID:    "C-00004",
+			CoordinatorEmail: "coordinator3@university.edu",
+			CoordinatorName:  "ดร. วราภรณ์ อินทรกุล",
+			CoordinatorPhone: "+66-93-111-1111",
+			Department:       "AI Lab",
+			CaseID:           "CS-00004",
+		},
+		{
+			CoordinatorID:    "C-00005",
+			CoordinatorEmail: "coordinator3@university.edu",
+			CoordinatorName:  "ดร. วราภรณ์ อินทรกุล",
+			CoordinatorPhone: "+66-93-111-1111",
+			Department:       "AI Lab",
+			CaseID:           "CS-00005",
+		},
 	}
 	for _, c := range coordinators {
 		c.CreatedAt = time.Now()

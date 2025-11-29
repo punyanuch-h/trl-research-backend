@@ -75,5 +75,11 @@ func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Appointment updated successfully"})
+	updatedAppointment, err := h.Repo.GetAppointmentByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve updated appointment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedAppointment)
 }
