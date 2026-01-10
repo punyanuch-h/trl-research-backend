@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"trl-research-backend/internal/models"
+
+	"cloud.google.com/go/firestore"
 )
 
 type AssessmentTrlRepo struct {
@@ -55,6 +56,10 @@ func (r *AssessmentTrlRepo) GetAssessmentTrlByCaseID(caseID string) (*models.Ass
 	doc, err := r.Client.Collection("assessment_trl").Where("case_id", "==", caseID).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(doc) == 0 {
+		return nil, fmt.Errorf("assessment trl with case_id %s not found", caseID)
 	}
 
 	var a models.AssessmentTrl

@@ -322,6 +322,10 @@ func (r *ResearcherRepo) GetResearcherByCaseID(caseID string) (*models.Researche
 		return nil, err
 	}
 
+	if len(doc) == 0 {
+		return nil, fmt.Errorf("researcher with case_id %s not found", caseID)
+	}
+
 	var researcher models.ResearcherInfo
 	doc[0].DataTo(&researcher)
 	return &researcher, nil

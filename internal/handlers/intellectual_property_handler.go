@@ -1,15 +1,20 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+	"trl-research-backend/internal/storage"
+
+	"github.com/gin-gonic/gin"
 )
 
 type IntellectualPropertyHandler struct {
 	Repo *repository.IntellectualPropertyRepo
+	GCS  *storage.GCSClient
 }
 
 // 🟢 GET /ips
@@ -46,6 +51,51 @@ func (h *IntellectualPropertyHandler) GetIPByCaseID(c *gin.Context) {
 
 // 🟢 POST /ip
 func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
+	contentType := c.GetHeader("Content-Type")
+
+	// 1. Handle Multipart/Form-Data
+	if contentType != "" && (len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
+		var req models.IntellectualProperty
+		if err := c.ShouldBind(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
+			return
+		}
+
+		form, _ := c.MultipartForm()
+		files := form.File["ip_attachment"]
+		var uploadedPaths []string
+
+		today := time.Now().Format("2006-01-02")
+		userID := c.GetString("userID")
+		if userID == "" {
+			userID = "unknown_user"
+		}
+
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				continue
+			}
+			defer file.Close()
+
+			objectPath := fmt.Sprintf("ip_attachments/%s/%s/%s", today, userID, fileHeader.Filename)
+			if err := h.GCS.UploadFile(objectPath, fileHeader.Header.Get("Content-Type"), file); err == nil {
+				uploadedPaths = append(uploadedPaths, objectPath)
+			}
+		}
+
+		req.IPAttachments = uploadedPaths
+
+		if err := h.Repo.CreateIP(&req); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, req)
+		return
+	}
+
+	// 2. Fallback to JSON
 	var req models.IntellectualProperty
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

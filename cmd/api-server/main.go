@@ -16,14 +16,17 @@ func main() {
 	config.LoadConfig()
 
 	// init Firestore
-	database.InitFirebase("trl-research-service-account.json")
+	database.InitFirebase("localServiceAccountKey.json")
 	defer database.CloseFirebase()
 
-	// Initialize GCSClient 
+	// Initialize GCSClient
 	bucket := os.Getenv("GCS_BUCKET_NAME")
 	saEmail := os.Getenv("SA_EMAIL")
 
-	gcsClient := storage.NewGCSClient(bucket, saEmail)
+	gcsClient, err := storage.NewGCSClient(bucket, saEmail)
+	if err != nil {
+		log.Fatalf("Failed to initialize GCS client: %v", err)
+	}
 
 	// pass gcsClient here
 	r := router.SetupRouter(gcsClient)
