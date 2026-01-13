@@ -46,9 +46,13 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 	coordinatorHandler := &handlers.CoordinatorHandler{Repo: coordinatorRepo}
 	supporterHandler := &handlers.SupporterHandler{Repo: supporterRepo}
 	appointmentHandler := &handlers.AppointmentHandler{Repo: appointmentRepo}
-	caseHandler := &handlers.CaseHandler{Repo: caseRepo}
-	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo}
-	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo}
+	caseHandler := &handlers.CaseHandler{
+		Repo:     caseRepo,
+		FileRepo: fileRepo,
+		GCS:      gcsClient,
+	}
+	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo, GCS: gcsClient}
+	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo, GCS: gcsClient}
 	presignHandler := &handlers.PresignHandler{GCS: gcsClient}
 	fileHandler := &handlers.FileHandler{Repo: fileRepo}
 	fileDownloadHandler := &handlers.FileDownloadHandler{FileRepo: fileRepo, GCS: gcsClient}

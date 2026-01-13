@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"trl-research-backend/internal/models"
+
+	"cloud.google.com/go/firestore"
 )
 
 type SupporterRepo struct {
@@ -55,6 +56,10 @@ func (r *SupporterRepo) GetSupporterByCaseID(caseID string) (*models.Supporter, 
 	doc, err := r.Client.Collection("supporters").Where("case_id", "==", caseID).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(doc) == 0 {
+		return nil, fmt.Errorf("supporter with case_id %s not found", caseID)
 	}
 
 	var supporter models.Supporter

@@ -3,15 +3,19 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+	"trl-research-backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CaseHandler struct {
-	Repo *repository.CaseRepo
+	Repo     *repository.CaseRepo
+	FileRepo *repository.FileRepo
+	GCS      *storage.GCSClient
 }
 
 // 🟢 GET /cases
@@ -52,6 +56,65 @@ func (h *CaseHandler) GetCaseByID(c *gin.Context) {
 
 // 🟢 POST /case
 func (h *CaseHandler) CreateCase(c *gin.Context) {
+	// Check Content-Type to determine how to parse
+	contentType := c.GetHeader("Content-Type")
+
+	// 1. Handle Multipart/Form-Data (File Upload)
+	if contentType != "" && (contentType == "multipart/form-data" || len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
+		var req models.CaseInfo
+		// Bind form fields to struct
+		if err := c.ShouldBind(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
+			return
+		}
+
+		// Handle Multiple Files Upload (key: "case_attachments")
+		form, _ := c.MultipartForm()
+		files := form.File["case_attachments"]
+
+		var uploadedPaths []string
+
+		userID := req.ResearcherID
+		if userID == "" {
+			userID = c.GetString("userID")
+		}
+		if userID == "" {
+			userID = "unknown_user"
+		}
+		today := time.Now().Format("2006-01-02")
+
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open file: " + err.Error()})
+				return
+			}
+			defer file.Close()
+
+			objectPath := fmt.Sprintf("case_attachments/%s/%s/%s", today, userID, fileHeader.Filename)
+
+			// Upload to GCS
+			if err := h.GCS.UploadFile(objectPath, fileHeader.Header.Get("Content-Type"), file); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload file: " + err.Error()})
+				return
+			}
+			uploadedPaths = append(uploadedPaths, objectPath)
+		}
+
+		// Add paths to request model
+		req.CaseAttachments = uploadedPaths
+
+		// Save Case
+		if err := h.Repo.CreateCase(&req); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create case: " + err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, req)
+		return
+	}
+
+	// 2. Fallback to JSON (Existing Logic)
 	var req models.CaseInfo
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

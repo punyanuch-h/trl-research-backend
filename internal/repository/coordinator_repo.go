@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"trl-research-backend/internal/models"
+
+	"cloud.google.com/go/firestore"
 )
 
 type CoordinatorRepo struct {
@@ -52,6 +54,10 @@ func (r *CoordinatorRepo) GetCoordinatorByCaseID(caseID string) (*models.Coordin
 	doc, err := r.Client.Collection("coordinators").Where("case_id", "==", caseID).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(doc) == 0 {
+		return nil, fmt.Errorf("coordinator with case_id %s not found", caseID)
 	}
 
 	var coordinator models.CoordinatorInfo

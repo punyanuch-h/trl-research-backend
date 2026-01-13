@@ -1,15 +1,20 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+	"trl-research-backend/internal/storage"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AssessmentTrlHandler struct {
 	Repo *repository.AssessmentTrlRepo
+	GCS  *storage.GCSClient
 }
 
 // 🟢 GET /assessments
@@ -46,6 +51,71 @@ func (h *AssessmentTrlHandler) GetAssessmentTrlByCaseID(c *gin.Context) {
 
 // 🟢 POST /assessment
 func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
+	contentType := c.GetHeader("Content-Type")
+
+	// 1. Handle Multipart/Form-Data
+	if contentType != "" && (len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
+		var req models.AssessmentTrl
+		if err := c.ShouldBind(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
+			return
+		}
+
+		form, _ := c.MultipartForm()
+		today := time.Now().Format("2006-01-02")
+		userID := c.GetString("userID")
+		if userID == "" {
+			userID = "unknown_user"
+		}
+
+		// Helper to upload files for a specific key
+		uploadFiles := func(key string) []string {
+			files := form.File[key]
+			var paths []string
+			for _, fileHeader := range files {
+				file, err := fileHeader.Open()
+				if err != nil {
+					continue
+				}
+				defer file.Close()
+
+				objectPath := fmt.Sprintf("assessment_attachments/%s/%s/%s/%s", today, req.CaseID, key, fileHeader.Filename)
+				if err := h.GCS.UploadFile(objectPath, fileHeader.Header.Get("Content-Type"), file); err == nil {
+					paths = append(paths, objectPath)
+				}
+			}
+			return paths
+		}
+
+		// Process all attachments
+		req.Rq1Attachments = uploadFiles("rq1_attachment")
+		req.Rq2Attachments = uploadFiles("rq2_attachment")
+		req.Rq3Attachments = uploadFiles("rq3_attachment")
+		req.Rq4Attachments = uploadFiles("rq4_attachment")
+		req.Rq5Attachments = uploadFiles("rq5_attachment")
+		req.Rq6Attachments = uploadFiles("rq6_attachment")
+		req.Rq7Attachments = uploadFiles("rq7_attachment")
+
+		req.Cq1Attachments = uploadFiles("cq1_attachment")
+		req.Cq2Attachments = uploadFiles("cq2_attachment")
+		req.Cq3Attachments = uploadFiles("cq3_attachment")
+		req.Cq4Attachments = uploadFiles("cq4_attachment")
+		req.Cq5Attachments = uploadFiles("cq5_attachment")
+		req.Cq6Attachments = uploadFiles("cq6_attachment")
+		req.Cq7Attachments = uploadFiles("cq7_attachment")
+		req.Cq8Attachments = uploadFiles("cq8_attachment")
+		req.Cq9Attachments = uploadFiles("cq9_attachment")
+
+		if err := h.Repo.CreateAssessmentTrl(&req); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, req)
+		return
+	}
+
+	// 2. Fallback to JSON
 	var req models.AssessmentTrl
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

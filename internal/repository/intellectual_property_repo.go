@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"trl-research-backend/internal/models"
+
+	"cloud.google.com/go/firestore"
 )
 
 type IntellectualPropertyRepo struct {
@@ -55,6 +56,10 @@ func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.Intelle
 	doc, err := r.Client.Collection("intellectual_properties").Where("case_id", "==", caseID).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(doc) == 0 {
+		return nil, fmt.Errorf("intellectual property with case_id %s not found", caseID)
 	}
 
 	var ip models.IntellectualProperty
