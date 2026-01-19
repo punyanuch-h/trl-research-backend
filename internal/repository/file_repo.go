@@ -1,38 +1,30 @@
 package repository
 
 import (
-    "context"
-    "trl-research-backend/internal/models"
+	"context"
 
-    "cloud.google.com/go/firestore"
+	"trl-research-backend/internal/models"
+
+	"gorm.io/gorm"
 )
 
 type FileRepo struct {
-    client *firestore.Client
+	DB *gorm.DB
 }
 
-func NewFileRepo(client *firestore.Client) *FileRepo {
-    return &FileRepo{client}
+func NewFileRepo(db *gorm.DB) FileRepository {
+	return &FileRepo{DB: db}
 }
 
 func (r *FileRepo) SaveFile(ctx context.Context, file *models.FileMetadata) error {
-    _, err := r.client.
-        Collection("files").
-        Doc(file.ID).
-        Set(ctx, file)
-    return err
+	return r.DB.WithContext(ctx).Create(file).Error
 }
 
 func (r *FileRepo) GetFileByID(ctx context.Context, fileID string) (*models.FileMetadata, error) {
-	doc, err := r.client.Collection("files").Doc(fileID).Get(ctx)
+	var file models.FileMetadata
+	err := r.DB.WithContext(ctx).Where("id = ?", fileID).First(&file).Error
 	if err != nil {
 		return nil, err
 	}
-
-	var file models.FileMetadata
-	if err := doc.DataTo(&file); err != nil {
-		return nil, err
-	}
-
 	return &file, nil
 }

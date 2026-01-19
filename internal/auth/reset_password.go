@@ -10,7 +10,7 @@ import (
 )
 
 type ResetHandler struct {
-	AdminRepo repository.AdminRepo
+	AdminRepo repository.AdminRepository
 }
 
 type ResetReq struct {

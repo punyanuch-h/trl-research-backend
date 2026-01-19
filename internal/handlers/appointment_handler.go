@@ -3,13 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AppointmentHandler struct {
-	Repo *repository.AppointmentRepo
+	Repo repository.AppointmentRepository
 }
 
 // 🟢 GET /appointments
@@ -35,13 +36,13 @@ func (h *AppointmentHandler) GetAppointmentByID(c *gin.Context) {
 
 // 🟢 GET /appointment/case/:id
 func (h *AppointmentHandler) GetAppointmentByCaseID(c *gin.Context) {
-    id := c.Param("id")
-    appointments, err := h.Repo.GetAppointmentByCaseID(id)
-    if err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Appointments not found"})
-        return
-    }
-    c.JSON(http.StatusOK, appointments)
+	id := c.Param("id")
+	appointments, err := h.Repo.GetAppointmentByCaseID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appointments not found"})
+		return
+	}
+	c.JSON(http.StatusOK, appointments)
 }
 
 // 🟢 POST /appointment

@@ -16,7 +16,7 @@ import (
 )
 
 type AdminHandler struct {
-	Repo *repository.AdminRepo
+	Repo repository.AdminRepository
 }
 
 // 🟢 GET /admins
@@ -64,9 +64,7 @@ func (h *AdminHandler) GetAdminProfile(c *gin.Context) {
 		return
 	}
 
-	// Query from Firestore using email from claims (document ID lookup for immediate consistency)
-	// Using GetAdminByEmail instead of GetAdminByID to avoid eventual consistency issues
-	// with Firestore field queries after updates
+	// Query from Postgres using email from claims
 	admin, err := h.Repo.GetAdminByEmail(claims.UserEmail)
 	if err != nil {
 		// Fallback to GetAdminByID if GetAdminByEmail fails
@@ -160,7 +158,7 @@ func (h *AdminHandler) UpdateAdminProfileByID(c *gin.Context) {
 	if updateReq.PhoneNumber != "" {
 		updateFields.AdminPhoneNumber = updateReq.PhoneNumber
 	}
-	
+
 	if err := h.Repo.UpdateAdminByID(id, updateFields); err != nil {
 		log.Printf("❌ [UpdateAdminProfile] Error updating admin: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -168,8 +166,6 @@ func (h *AdminHandler) UpdateAdminProfileByID(c *gin.Context) {
 	}
 
 	// Fetch updated admin to verify changes
-	// Use GetAdminByEmail (document ID lookup) instead of GetAdminByID (field query)
-	// to avoid eventual consistency issues with Firestore queries
 	updatedAdmin, err := h.Repo.GetAdminByEmail(updateFields.AdminEmail)
 	if err != nil {
 		// Fallback to GetAdminByID if GetAdminByEmail fails

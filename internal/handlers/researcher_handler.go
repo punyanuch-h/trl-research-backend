@@ -16,7 +16,7 @@ import (
 )
 
 type ResearcherHandler struct {
-	Repo *repository.ResearcherRepo
+	Repo repository.ResearcherRepository
 }
 
 // 🟢 GET /researchers
@@ -77,17 +77,11 @@ func (h *ResearcherHandler) GetResearcherProfile(c *gin.Context) {
 		return
 	}
 
-	// Query from Firestore using user_id from claims (document ID lookup for immediate consistency)
-	// For researchers, document ID = researcher_id, so we can use GetResearcherByIDDirect
-	// which uses document ID lookup instead of field query
-	researcher, err := h.Repo.GetResearcherByIDDirect(claims.UserID)
+	// Query from Postgres using user_id from claims
+	researcher, err := h.Repo.GetResearcherByID(claims.UserID)
 	if err != nil {
-		// Fallback to field query if document ID lookup fails
-		researcher, err = h.Repo.GetResearcherByID(claims.UserID)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Researcher not found"})
-			return
-		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "Researcher not found"})
+		return
 	}
 
 	// Convert to response DTO
@@ -133,40 +127,40 @@ func (h *ResearcherHandler) UpdateResearcherProfileByID(c *gin.Context) {
 
 	// Update only fields that are provided in the request (non-empty values)
 	updateFields := &models.ResearcherInfo{
-		ResearcherID:               existingResearcher.ResearcherID,
-		AdminID:                    existingResearcher.AdminID,
-		ResearcherPrefix:           existingResearcher.ResearcherPrefix,
-		ResearcherAcademicPosition: existingResearcher.ResearcherAcademicPosition,
-		ResearcherFirstName:        existingResearcher.ResearcherFirstName,
-		ResearcherLastName:         existingResearcher.ResearcherLastName,
-		ResearcherDepartment:       existingResearcher.ResearcherDepartment,
-		ResearcherPhoneNumber:      existingResearcher.ResearcherPhoneNumber,
-		ResearcherEmail:            existingResearcher.ResearcherEmail,
-		ResearcherPassword:         existingResearcher.ResearcherPassword,
-		CreatedAt:                  existingResearcher.CreatedAt,
-		UpdatedAt:                  time.Now(),
+		ResearcherID:     existingResearcher.ResearcherID,
+		AdminID:          existingResearcher.AdminID,
+		Prefix:           existingResearcher.Prefix,
+		AcademicPosition: existingResearcher.AcademicPosition,
+		FirstName:        existingResearcher.FirstName,
+		LastName:         existingResearcher.LastName,
+		Department:       existingResearcher.Department,
+		PhoneNumber:      existingResearcher.PhoneNumber,
+		Email:            existingResearcher.Email,
+		Password:         existingResearcher.Password,
+		CreatedAt:        existingResearcher.CreatedAt,
+		UpdatedAt:        time.Now(),
 	}
 
 	// Only update fields that are provided (non-empty) in the request
 	if updateReq.Prefix != "" {
-		updateFields.ResearcherPrefix = updateReq.Prefix
+		updateFields.Prefix = updateReq.Prefix
 	}
 	if updateReq.AcademicPosition != "" {
-		updateFields.ResearcherAcademicPosition = updateReq.AcademicPosition
+		updateFields.AcademicPosition = updateReq.AcademicPosition
 	}
 	if updateReq.FirstName != "" {
-		updateFields.ResearcherFirstName = updateReq.FirstName
+		updateFields.FirstName = updateReq.FirstName
 	}
 	if updateReq.LastName != "" {
-		updateFields.ResearcherLastName = updateReq.LastName
+		updateFields.LastName = updateReq.LastName
 	}
 	if updateReq.Department != "" {
-		updateFields.ResearcherDepartment = updateReq.Department
+		updateFields.Department = updateReq.Department
 	}
 	if updateReq.PhoneNumber != "" {
-		updateFields.ResearcherPhoneNumber = updateReq.PhoneNumber
+		updateFields.PhoneNumber = updateReq.PhoneNumber
 	}
-	
+
 	if err := h.Repo.UpdateResearcherByID(id, updateFields); err != nil {
 		log.Printf("❌ [UpdateResearcherProfile] Error updating researcher: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -174,15 +168,9 @@ func (h *ResearcherHandler) UpdateResearcherProfileByID(c *gin.Context) {
 	}
 
 	// Fetch updated researcher to verify changes
-	// Use GetResearcherByIDDirect (document ID lookup) instead of GetResearcherByID (field query)
-	// to avoid eventual consistency issues with Firestore queries
-	updatedResearcher, err := h.Repo.GetResearcherByIDDirect(id)
+	updatedResearcher, err := h.Repo.GetResearcherByID(id)
 	if err != nil {
-		// Fallback to GetResearcherByID if GetResearcherByIDDirect fails
-		updatedResearcher, err = h.Repo.GetResearcherByID(id)
-		if err != nil {
-			log.Printf("⚠️ [UpdateResearcherProfile] Failed to verify update: %v", err)
-		}
+		log.Printf("⚠️ [UpdateResearcherProfile] Failed to verify update: %v", err)
 	}
 
 	// Return updated profile in response (using entity.ResearcherResponse format)

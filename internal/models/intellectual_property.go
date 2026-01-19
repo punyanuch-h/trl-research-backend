@@ -2,16 +2,21 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type IntellectualProperty struct {
-	ID                 string   `json:"id" firestore:"id" form:"id"`
-	CaseID             string   `json:"case_id" firestore:"case_id" form:"case_id"`
-	IPTypes            string   `json:"ip_types" firestore:"ip_types" form:"ip_types"`
-	IPProtectionStatus string   `json:"ip_protection_status" firestore:"ip_protection_status" form:"ip_protection_status"`
-	IPRequestNumber    string   `json:"ip_request_number" firestore:"ip_request_number" form:"ip_request_number"`
-	IPAttachments      []string `json:"ip_attachment" firestore:"ip_attachment"`
+	ID                 string         `gorm:"primaryKey;column:id" json:"id" form:"id"`
+	CaseID             string         `gorm:"column:case_id" json:"case_id" form:"case_id"`
+	IPTypes            string         `gorm:"column:ip_types" json:"ip_types" form:"ip_types"`
+	IPProtectionStatus string         `gorm:"column:ip_protection_status" json:"ip_protection_status" form:"ip_protection_status"`
+	IPRequestNumber    string         `gorm:"column:ip_request_number" json:"ip_request_number" form:"ip_request_number"`
+	IPAttachments      datatypes.JSON `gorm:"column:ip_attachment" json:"ip_attachment"`
+	CreatedAt          time.Time      `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt          time.Time      `gorm:"column:updated_at" json:"updated_at"`
+}
 
-	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
+func (IntellectualProperty) TableName() string {
+	return "intellectual_properties"
 }

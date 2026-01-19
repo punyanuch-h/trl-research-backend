@@ -16,7 +16,7 @@ import (
 )
 
 type ForgotHandler struct {
-	AdminRepo repository.AdminRepo
+	AdminRepo repository.AdminRepository
 }
 
 type ForgotReq struct {

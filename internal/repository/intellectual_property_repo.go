@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,72 +8,54 @@ import (
 
 	"trl-research-backend/internal/models"
 
-	"cloud.google.com/go/firestore"
+	"gorm.io/gorm"
 )
 
 type IntellectualPropertyRepo struct {
-	Client *firestore.Client
+	DB *gorm.DB
 }
 
-func NewIntellectualPropertyRepo(client *firestore.Client) *IntellectualPropertyRepo {
-	return &IntellectualPropertyRepo{Client: client}
+func NewIntellectualPropertyRepo(db *gorm.DB) IntellectualPropertyRepository {
+	return &IntellectualPropertyRepo{DB: db}
 }
 
 // 🟢 GetIPAll - fetch all intellectual property records
 func (r *IntellectualPropertyRepo) GetIPAll() ([]models.IntellectualProperty, error) {
-	ctx := context.Background()
-	docs, err := r.Client.Collection("intellectual_properties").Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
-
 	var ips []models.IntellectualProperty
-	for _, doc := range docs {
-		var ip models.IntellectualProperty
-		doc.DataTo(&ip)
-		ips = append(ips, ip)
-	}
-	return ips, nil
+	err := r.DB.Find(&ips).Error
+	return ips, err
 }
 
 // 🟢 GetIPByID
 func (r *IntellectualPropertyRepo) GetIPByID(ipID string) (*models.IntellectualProperty, error) {
-	ctx := context.Background()
-	doc, err := r.Client.Collection("intellectual_properties").Doc(ipID).Get(ctx)
+	var ip models.IntellectualProperty
+	err := r.DB.Where("id = ?", ipID).First(&ip).Error
 	if err != nil {
 		return nil, err
 	}
-
-	var ip models.IntellectualProperty
-	doc.DataTo(&ip)
 	return &ip, nil
 }
 
 // 🟢 GetIPByCaseID
 func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.IntellectualProperty, error) {
-	ctx := context.Background()
-	doc, err := r.Client.Collection("intellectual_properties").Where("case_id", "==", caseID).Documents(ctx).GetAll()
+	var ip models.IntellectualProperty
+	err := r.DB.Where("case_id = ?", caseID).First(&ip).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("intellectual property with case_id %s not found", caseID)
+		}
 		return nil, err
 	}
-
-	if len(doc) == 0 {
-		return nil, fmt.Errorf("intellectual property with case_id %s not found", caseID)
-	}
-
-	var ip models.IntellectualProperty
-	doc[0].DataTo(&ip)
 	return &ip, nil
 }
 
 // 🟢 CreateIP - auto generate ID IP-00001
 func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperty) error {
-	ctx := context.Background()
-
-	docs, err := r.Client.Collection("intellectual_properties").OrderBy("id", firestore.Desc).Limit(1).Documents(ctx).GetAll()
+	var lastIP models.IntellectualProperty
 	nextID := "IP-00001"
-	if err == nil && len(docs) > 0 {
-		lastID := docs[0].Data()["id"].(string)
+	err := r.DB.Order("id desc").First(&lastIP).Error
+	if err == nil {
+		lastID := lastIP.ID
 		numStr := strings.TrimPrefix(lastID, "IP-")
 		if n, err := strconv.Atoi(numStr); err == nil {
 			nextID = fmt.Sprintf("IP-%05d", n+1)
@@ -86,14 +67,11 @@ func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperty) err
 	ip.CreatedAt = now
 	ip.UpdatedAt = now
 
-	_, err = r.Client.Collection("intellectual_properties").Doc(ip.ID).Set(ctx, ip)
-	return err
+	return r.DB.Create(ip).Error
 }
 
 // 🟢 UpdateIPByID
 func (r *IntellectualPropertyRepo) UpdateIPByID(ipID string, data map[string]interface{}) error {
-	ctx := context.Background()
 	data["updated_at"] = time.Now()
-	_, err := r.Client.Collection("intellectual_properties").Doc(ipID).Set(ctx, data, firestore.MergeAll)
-	return err
+	return r.DB.Model(&models.IntellectualProperty{}).Where("id = ?", ipID).Updates(data).Error
 }

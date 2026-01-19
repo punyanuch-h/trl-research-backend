@@ -6,29 +6,33 @@ import (
 )
 
 type ResearcherInfo struct {
-	ResearcherID               string    `json:"researcher_id" firestore:"researcher_id"`
-	AdminID                    string    `json:"admin_id" firestore:"admin_id"`
-	ResearcherPrefix           string    `json:"researcher_prefix" firestore:"researcher_prefix"`
-	ResearcherAcademicPosition string    `json:"researcher_academic_position" firestore:"researcher_academic_position"`
-	ResearcherFirstName        string    `json:"researcher_first_name" firestore:"researcher_first_name"`
-	ResearcherLastName         string    `json:"researcher_last_name" firestore:"researcher_last_name"`
-	ResearcherDepartment       string    `json:"researcher_department" firestore:"researcher_department"`
-	ResearcherPhoneNumber      string    `json:"researcher_phone_number" firestore:"researcher_phone_number"`
-	ResearcherEmail            string    `json:"researcher_email" firestore:"researcher_email"`
-	ResearcherPassword         string    `json:"researcher_password" firestore:"researcher_password"`
-	CreatedAt                  time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt                  time.Time `json:"updated_at" firestore:"updated_at"`
+	ResearcherID     string    `gorm:"primaryKey;column:researcher_id" json:"researcher_id"`
+	AdminID          string    `gorm:"column:admin_id" json:"admin_id"`
+	Prefix           string    `gorm:"column:prefix" json:"researcher_prefix"`
+	AcademicPosition string    `gorm:"column:academic_position" json:"researcher_academic_position"`
+	FirstName        string    `gorm:"column:first_name" json:"researcher_first_name"`
+	LastName         string    `gorm:"column:last_name" json:"researcher_last_name"`
+	Department       string    `gorm:"column:department" json:"researcher_department"`
+	PhoneNumber      string    `gorm:"column:phone_number" json:"researcher_phone_number"`
+	Email            string    `gorm:"column:email;unique" json:"researcher_email"`
+	Password         string    `gorm:"column:password" json:"researcher_password"`
+	CreatedAt        time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt        time.Time `gorm:"column:updated_at" json:"updated_at"`
+}
+
+func (ResearcherInfo) TableName() string {
+	return "researchers"
 }
 
 func (r *ResearcherInfo) ToResponse() entity.ResearcherResponse {
 	return entity.ResearcherResponse{
 		ID:               r.ResearcherID,
-		Prefix:           r.ResearcherPrefix,
-		AcademicPosition: r.ResearcherAcademicPosition,
-		FirstName:        r.ResearcherFirstName,
-		LastName:         r.ResearcherLastName,
-		Department:       r.ResearcherDepartment,
-		PhoneNumber:      r.ResearcherPhoneNumber,
-		Email:            r.ResearcherEmail,
+		Prefix:           r.Prefix,
+		AcademicPosition: r.AcademicPosition,
+		FirstName:        r.FirstName,
+		LastName:         r.LastName,
+		Department:       r.Department,
+		PhoneNumber:      r.PhoneNumber,
+		Email:            r.Email,
 	}
 }

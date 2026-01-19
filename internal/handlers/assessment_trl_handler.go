@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,10 +11,11 @@ import (
 	"trl-research-backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type AssessmentTrlHandler struct {
-	Repo *repository.AssessmentTrlRepo
+	Repo repository.AssessmentTrlRepository
 	GCS  *storage.GCSClient
 }
 
@@ -68,8 +70,8 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 			userID = "unknown_user"
 		}
 
-		// Helper to upload files for a specific key
-		uploadFiles := func(key string) []string {
+		// Helper to upload files for a specific key and return as datatypes.JSON
+		uploadFiles := func(key string) datatypes.JSON {
 			files := form.File[key]
 			var paths []string
 			for _, fileHeader := range files {
@@ -84,7 +86,8 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 					paths = append(paths, objectPath)
 				}
 			}
-			return paths
+			jsonData, _ := json.Marshal(paths)
+			return datatypes.JSON(jsonData)
 		}
 
 		// Process all attachments

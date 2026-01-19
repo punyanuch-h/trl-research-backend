@@ -3,13 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/storage"
+
+	"github.com/gin-gonic/gin"
 )
 
 type FileDownloadHandler struct {
-	FileRepo *repository.FileRepo
+	FileRepo repository.FileRepository
 	GCS      *storage.GCSClient
 }
 

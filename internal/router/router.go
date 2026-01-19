@@ -29,16 +29,16 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// ✅ Firestore repositories
-	adminRepo := repository.NewAdminRepo(database.FirestoreClient)
-	researcherRepo := repository.NewResearcherRepo(database.FirestoreClient)
-	coordinatorRepo := repository.NewCoordinatorRepo(database.FirestoreClient)
-	supporterRepo := repository.NewSupporterRepo(database.FirestoreClient)
-	appointmentRepo := repository.NewAppointmentRepo(database.FirestoreClient)
-	caseRepo := repository.NewCaseRepo(database.FirestoreClient)
-	ipRepo := repository.NewIntellectualPropertyRepo(database.FirestoreClient)
-	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.FirestoreClient)
-	fileRepo := repository.NewFileRepo(database.FirestoreClient)
+	// ✅ Postgres (GORM) repositories
+	adminRepo := repository.NewAdminRepo(database.DB)
+	researcherRepo := repository.NewResearcherRepo(database.DB)
+	coordinatorRepo := repository.NewCoordinatorRepo(database.DB)
+	supporterRepo := repository.NewSupporterRepo(database.DB)
+	appointmentRepo := repository.NewAppointmentRepo(database.DB)
+	caseRepo := repository.NewCaseRepo(database.DB)
+	ipRepo := repository.NewIntellectualPropertyRepo(database.DB)
+	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.DB)
+	fileRepo := repository.NewFileRepo(database.DB)
 
 	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
@@ -62,8 +62,8 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		AdminRepo:      adminRepo,
 		ResearcherRepo: researcherRepo,
 	}
-	forgotHandler := &auth.ForgotHandler{AdminRepo: *adminRepo}
-	resetHandler := &auth.ResetHandler{AdminRepo: *adminRepo}
+	forgotHandler := &auth.ForgotHandler{AdminRepo: adminRepo}
+	resetHandler := &auth.ResetHandler{AdminRepo: adminRepo}
 
 	// ✅ Health check
 	r.GET("/health", func(c *gin.Context) {

@@ -15,8 +15,8 @@ import (
 
 // LoginHandler รวม repository ของทั้ง admin และ researcher
 type LoginHandler struct {
-	AdminRepo      *repository.AdminRepo
-	ResearcherRepo *repository.ResearcherRepo
+	AdminRepo      repository.AdminRepository
+	ResearcherRepo repository.ResearcherRepository
 }
 
 // LoginRequest รับข้อมูลจาก frontend
@@ -54,7 +54,7 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		fmt.Println("errR", errR)
 		if errR == nil && researcher != nil {
 			userID = researcher.ResearcherID
-			userEmail = researcher.ResearcherEmail
+			userEmail = researcher.Email
 			userRole = "researcher"
 		}
 	}
@@ -82,13 +82,13 @@ func (h *LoginHandler) Login(c *gin.Context) {
 	}
 
 	token, err := utils.GenerateJWT(
-		userID,        // user id
-		userEmail,     // email
-		userRole,      // role (admin/researcher)
-		"", "",        // clientID, clientName (optional)
+		userID,    // user id
+		userEmail, // email
+		userRole,  // role (admin/researcher)
+		"", "",    // clientID, clientName (optional)
 		os.Getenv("JWT_ISSUER"),
 		os.Getenv("JWT_AUDIENCE"),
-		"v1",          // key id
+		"v1", // key id
 		time.Duration(expH),
 		*kp,
 	)

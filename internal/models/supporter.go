@@ -3,22 +3,25 @@ package models
 import "time"
 
 type Supporter struct {
-	SupporterID                    string    `json:"supporter_id" firestore:"supporter_id"`
-	CaseID                         string    `json:"case_id" firestore:"case_id"`
-	SupportResearch                bool      `json:"support_research" firestore:"support_research"`
-	SupportVDC                     bool      `json:"support_vdc" firestore:"support_vdc"`
-	SupportSiEIC                   bool      `json:"support_sieic" firestore:"support_sieic"`
-	NeedProtectIntellectualProperty bool     `json:"need_protect_intellectual_property" firestore:"need_protect_intellectual_property"`
-	NeedCoDevelopers               bool      `json:"need_co_developers" firestore:"need_co_developers"`
-	NeedActivities                 bool      `json:"need_activities" firestore:"need_activities"`
-	NeedTest                       bool      `json:"need_test" firestore:"need_test"`
-	NeedCapital                    bool      `json:"need_capital" firestore:"need_capital"`
-	NeedPartners                   bool      `json:"need_partners" firestore:"need_partners"`
-	NeedGuidelines                 bool      `json:"need_guidelines" firestore:"need_guidelines"`
-	NeedCertification              bool      `json:"need_certification" firestore:"need_certification"`
-	NeedAccount                    bool      `json:"need_account" firestore:"need_account"`
-	Need                           string    `json:"need" firestore:"need"`
-	AdditionalDocuments            string    `json:"additional_documents" firestore:"additional_documents"`
-	CreatedAt                      time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt                      time.Time `json:"updated_at" firestore:"updated_at"`
+	SupporterID                     string    `gorm:"primaryKey;column:supporter_id" json:"supporter_id"`
+	CaseID                          string    `gorm:"column:case_id" json:"case_id"`
+	SupportResearch                 bool      `gorm:"column:support_research" json:"support_research"`
+	SupportVDC                      bool      `gorm:"column:support_vdc" json:"support_vdc"`
+	SupportSiEIC                    bool      `gorm:"column:support_sieic" json:"support_sieic"`
+	NeedProtectIntellectualProperty bool      `gorm:"column:need_protect_intellectual_property" json:"need_protect_intellectual_property"`
+	NeedCoDevelopers                bool      `gorm:"column:need_co_developers" json:"need_co_developers"`
+	NeedActivities                  bool      `gorm:"column:need_activities" json:"need_activities"`
+	NeedTest                        bool      `gorm:"column:need_test" json:"need_test"`
+	NeedCapital                     bool      `gorm:"column:need_capital" json:"need_capital"`
+	NeedPartners                    bool      `gorm:"column:need_partners" json:"need_partners"`
+	NeedGuidelines                  bool      `gorm:"column:need_guidelines" json:"need_guidelines"`
+	NeedCertification               bool      `gorm:"column:need_certification" json:"need_certification"`
+	NeedAccount                     bool      `gorm:"column:need_account" json:"need_account"`
+	Need                            string    `gorm:"column:need" json:"need"`
+	CreatedAt                       time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt                       time.Time `gorm:"column:updated_at" json:"updated_at"`
+}
+
+func (Supporter) TableName() string {
+	return "supporters"
 }
