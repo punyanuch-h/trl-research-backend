@@ -41,6 +41,8 @@ type AssessmentTrl struct {
 	Cq9Answer      []string `json:"cq9_answer" firestore:"cq9_answer" form:"cq9_answer"`
 	Cq9Attachments []string `json:"cq9_attachment" firestore:"cq9_attachment"`
 
+	ImprovementSuggestion string    `json:"improvement_suggestion" firestore:"improvement_suggestion" form:"improvement_suggestion"`
+
 	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
 }
