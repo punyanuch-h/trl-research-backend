@@ -415,6 +415,7 @@ func main() {
 			Cq7Answer:      pickRandomSubset(checkboxQuestionList[6]),
 			Cq8Answer:      pickRandomSubset(checkboxQuestionList[7]),
 			Cq9Answer:      pickRandomSubset(checkboxQuestionList[8]),
+			ImprovementSuggestion: "",
 			CreatedAt:      now,
 			UpdatedAt:      now,
 		}
