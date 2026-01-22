@@ -20,9 +20,13 @@ vendor/
 .env
 .env.local
 .env.*.local
+localServiceAccountKey.json
 
 # IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# localServiceAccountKey.json
+localServiceAccountKey.json

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -40,7 +41,7 @@ func (r *CoordinatorRepo) GetCoordinatorByCaseID(caseID string) (*models.Coordin
 	var coordinator models.CoordinatorInfo
 	err := r.DB.Where("case_id = ?", caseID).First(&coordinator).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("coordinator with case_id %s not found", caseID)
 		}
 		return nil, err
