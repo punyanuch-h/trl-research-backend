@@ -71,6 +71,6 @@ func (r *CaseRepo) UpdateCaseByID(caseID string, data map[string]interface{}) er
 }
 
 // 🟢 UpdateCaseStatusByID
-func (r *CaseRepo) UpdateCaseStatusByID(caseID string, status string) error {
+func (r *CaseRepo) UpdateCaseStatusByID(caseID string, status bool) error {
 	return r.DB.Model(&models.CaseInfo{}).Where("case_id = ?", caseID).Update("status", status).Error
 }

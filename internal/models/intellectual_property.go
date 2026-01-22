@@ -12,7 +12,7 @@ type IntellectualProperty struct {
 	IPTypes            string         `gorm:"column:ip_types" json:"ip_types" form:"ip_types"`
 	IPProtectionStatus string         `gorm:"column:ip_protection_status" json:"ip_protection_status" form:"ip_protection_status"`
 	IPRequestNumber    string         `gorm:"column:ip_request_number" json:"ip_request_number" form:"ip_request_number"`
-	IPAttachments      datatypes.JSON `gorm:"column:ip_attachment" json:"ip_attachment"`
+	IPAttachments      datatypes.JSON `gorm:"column:ip_attachment" json:"ip_attachment" form:"-"`
 	CreatedAt          time.Time      `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt          time.Time      `gorm:"column:updated_at" json:"updated_at"`
 }

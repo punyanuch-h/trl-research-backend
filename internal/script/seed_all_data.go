@@ -32,7 +32,9 @@ func main() {
 	// =============================
 	// 🧹 Clear all existing data first (Optional, but good for seeding)
 	// =============================
-	db.Exec("TRUNCATE TABLE admins, researchers, coordinators, cases, appointments, assessment_trls, intellectual_properties, supporters, file_metadatas RESTART IDENTITY CASCADE")
+	if err := db.Exec("TRUNCATE TABLE admins, researchers, coordinators, cases, appointments, assessment_trls, intellectual_properties, supporters, file_metadatas RESTART IDENTITY CASCADE").Error; err != nil {
+		log.Fatalf("❌ Failed to truncate tables: %v\n", err)
+	}
 
 	now := time.Now()
 
@@ -93,11 +95,11 @@ func main() {
 	// =============================
 	emptyJSON, _ := json.Marshal([]string{})
 	cases := []models.CaseInfo{
-		{CaseID: "CS-00001", CoordinatorEmail: "admin1@example.com", TrlScore: "5", TrlSuggestion: "Excellent progress", Status: "approved", IsUrgent: false, CaseTitle: "AI-powered Diagnosis", CaseType: "Software", CaseDescription: "ML model for early disease detection", CaseKeywords: "AI, ML, Medical", ResearcherID: "RS-00001", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now},
-		{CaseID: "CS-00002", CoordinatorEmail: "admin2@example.com", TrlScore: "6", TrlSuggestion: "Ready for pilot testing", Status: "approved", IsUrgent: false, CaseTitle: "Robotics Arm Control", CaseType: "Hardware", CaseDescription: "Design for precise robot movement", CaseKeywords: "Robot, Control, Sensor", ResearcherID: "RS-00002", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now},
-		{CaseID: "CS-00003", CoordinatorEmail: "coordinator3@university.edu", TrlScore: "2", TrlSuggestion: "Need prototype validation", Status: "pending", IsUrgent: false, CaseTitle: "Smart Irrigation", CaseType: "IoT", CaseDescription: "Water system for agriculture", CaseKeywords: "IoT, Sensor", ResearcherID: "RS-00003", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now},
-		{CaseID: "CS-00004", CoordinatorEmail: "coordinator3@university.edu", TrlScore: "7", TrlSuggestion: "Improve prototype stability", Status: "pending", IsUrgent: true, UrgentReason: "ต้องการขอทุนภายในเดือนมิถุนายน 2026", CaseTitle: "Nanotech Coating", CaseType: "Material", CaseDescription: "Durable coating for surfaces", CaseKeywords: "Nano, Surface", ResearcherID: "RS-00002", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now},
-		{CaseID: "CS-00005", CoordinatorEmail: "admin2@example.com", TrlScore: "1", TrlSuggestion: "In concept phase", Status: "pending", IsUrgent: false, CaseTitle: "Green Battery", CaseType: "Energy", CaseDescription: "New eco battery", CaseKeywords: "Energy, Battery", ResearcherID: "RS-00003", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now},
+		{CaseID: "CS-00001", CoordinatorEmail: "admin1@example.com", TrlScore: "5", TrlSuggestion: "Excellent progress", Status: true, IsUrgent: false, CaseTitle: "AI-powered Diagnosis", CaseType: "Software", CaseDescription: "ML model for early disease detection", CaseKeywords: "AI, ML, Medical", ResearcherID: "RS-00001", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now, UrgentFeedback: ""},
+		{CaseID: "CS-00002", CoordinatorEmail: "admin2@example.com", TrlScore: "6", TrlSuggestion: "Ready for pilot testing", Status: true, IsUrgent: false, CaseTitle: "Robotics Arm Control", CaseType: "Hardware", CaseDescription: "Design for precise robot movement", CaseKeywords: "Robot, Control, Sensor", ResearcherID: "RS-00002", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now, UrgentFeedback: ""},
+		{CaseID: "CS-00003", CoordinatorEmail: "coordinator3@university.edu", TrlScore: "2", TrlSuggestion: "Need prototype validation", Status: false, IsUrgent: false, CaseTitle: "Smart Irrigation", CaseType: "IoT", CaseDescription: "Water system for agriculture", CaseKeywords: "IoT, Sensor", ResearcherID: "RS-00003", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now, UrgentFeedback: ""},
+		{CaseID: "CS-00004", CoordinatorEmail: "coordinator3@university.edu", TrlScore: "7", TrlSuggestion: "Improve prototype stability", Status: false, IsUrgent: true, UrgentReason: "ต้องการขอทุนภายในเดือนมิถุนายน 2026", CaseTitle: "Nanotech Coating", CaseType: "Material", CaseDescription: "Durable coating for surfaces", CaseKeywords: "Nano, Surface", ResearcherID: "RS-00002", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now, UrgentFeedback: "Need more details on the request"},
+		{CaseID: "CS-00005", CoordinatorEmail: "admin2@example.com", TrlScore: "1", TrlSuggestion: "In concept phase", Status: false, IsUrgent: false, CaseTitle: "Green Battery", CaseType: "Energy", CaseDescription: "New eco battery", CaseKeywords: "Energy, Battery", ResearcherID: "RS-00003", CaseAttachments: datatypes.JSON(emptyJSON), CreatedAt: now, UpdatedAt: now, UrgentFeedback: ""},
 	}
 	for _, c := range cases {
 		if err := db.Create(&c).Error; err != nil {
@@ -131,6 +133,13 @@ func main() {
 	checkboxQuestionList := [][]string{
 		{"สมมุติฐานมีทฤษฎีทางวิทยาศาสตร์หรือคณิตศาสตร์รองรับ", "สมมุติฐานเป็นไปตามงานวิจัยที่เกี่ยวข้อง", "ผู้วิจัยมีการพัฒนาแนวคิดหรือสมการเพื่อสนับสนุนสมมุติฐาน"},
 		{"สมมุติฐานผ่านการตรวจสอบโดยผู้เชี่ยวชาญ และยืนยันหลักการทางวิทยาศาสตร์พื้นฐาน", "สมมุติฐานแสดงแนวทางที่เป็นไปได้พร้อม ระบุส่วนประกอบสำคัญของเทคโนโลยี", "สมมุติฐานมีการประเมินหรือคาดการณ์ประสิทธิภาพเบื้องต้นขององค์ประกอบหลัก", "มีการศึกษาเบื้องต้นยืนยันความเป็นไปได้ของการจำลอง กระบวนการอย่างง่าย (การศึกษาโดยไม่มีการทดลองในห้องปฏิบัติการ", "สมมุติฐานมีการทดสอบแนวคิด (Proof of Concept) ด้วยข้อมูลสังเคราะห์"},
+		{"มีการยืนยันผลการทดสอบส่วนประกอบพื้นฐาน", "มีการทดลองในสภาวะควบคุม"},
+		{"มีการประกอบส่วนประกอบเป็นระบบต้นแบบ", "มีการทดสอบในห้องปฏิบัติการ"},
+		{"มีการทดสอบในสภาพแวดล้อมที่จำลองขึ้น", "ผลการทดสอบมีความน่าเชื่อถือ"},
+		{"มีการทดสอบในสภาพแวดล้อมจริง", "สามารถทำงานได้ตามข้อกำหนด"},
+		{"ผ่านการทดสอบมาตรฐาน", "พร้อมสำหรับการผลิตเชิงพาณิชย์"},
+		{"มีการตลาดรองรับ", "มีการขอจดสิทธิบัตรแล้ว"},
+		{"ผลิตภัณฑ์วางจำหน่ายแล้ว", "มีการใช้งานจริงในวงกว้าง"},
 	}
 
 	pickRandomSubset := func(options []string) datatypes.JSON {
@@ -153,10 +162,34 @@ func main() {
 			Rq1Attachments: datatypes.JSON(emptyJSON),
 			Rq2Answer:      true,
 			Rq2Attachments: datatypes.JSON(emptyJSON),
+			Rq3Answer:      true,
+			Rq3Attachments: datatypes.JSON(emptyJSON),
+			Rq4Answer:      true,
+			Rq4Attachments: datatypes.JSON(emptyJSON),
+			Rq5Answer:      true,
+			Rq5Attachments: datatypes.JSON(emptyJSON),
+			Rq6Answer:      true,
+			Rq6Attachments: datatypes.JSON(emptyJSON),
+			Rq7Answer:      true,
+			Rq7Attachments: datatypes.JSON(emptyJSON),
 			Cq1Answer:      pickRandomSubset(checkboxQuestionList[0]),
 			Cq1Attachments: datatypes.JSON(emptyJSON),
 			Cq2Answer:      pickRandomSubset(checkboxQuestionList[1]),
 			Cq2Attachments: datatypes.JSON(emptyJSON),
+			Cq3Answer:      pickRandomSubset(checkboxQuestionList[2]),
+			Cq3Attachments: datatypes.JSON(emptyJSON),
+			Cq4Answer:      pickRandomSubset(checkboxQuestionList[3]),
+			Cq4Attachments: datatypes.JSON(emptyJSON),
+			Cq5Answer:      pickRandomSubset(checkboxQuestionList[4]),
+			Cq5Attachments: datatypes.JSON(emptyJSON),
+			Cq6Answer:      pickRandomSubset(checkboxQuestionList[5]),
+			Cq6Attachments: datatypes.JSON(emptyJSON),
+			Cq7Answer:      pickRandomSubset(checkboxQuestionList[6]),
+			Cq7Attachments: datatypes.JSON(emptyJSON),
+			Cq8Answer:      pickRandomSubset(checkboxQuestionList[7]),
+			Cq8Attachments: datatypes.JSON(emptyJSON),
+			Cq9Answer:      pickRandomSubset(checkboxQuestionList[8]),
+			Cq9Attachments: datatypes.JSON(emptyJSON),
 			CreatedAt:      now,
 			UpdatedAt:      now,
 		}
@@ -198,12 +231,17 @@ func main() {
 			SupporterID:                     fmt.Sprintf("SP-0000%d", i),
 			CaseID:                          fmt.Sprintf("CS-0000%d", i),
 			SupportResearch:                 i%2 == 0,
+			SupportVDC:                      true,
 			SupportSiEIC:                    true,
 			NeedProtectIntellectualProperty: i%2 != 0,
+			NeedCoDevelopers:                true,
 			NeedActivities:                  true,
 			NeedTest:                        true,
 			NeedCapital:                     i%2 == 0,
 			NeedPartners:                    true,
+			NeedGuidelines:                  true,
+			NeedCertification:               i%2 == 0,
+			NeedAccount:                     true,
 			Need:                            "Require collaboration and mentorship",
 			CreatedAt:                       now,
 			UpdatedAt:                       now,

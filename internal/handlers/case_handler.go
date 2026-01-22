@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"trl-research-backend/internal/models"
@@ -155,7 +156,13 @@ func (h *CaseHandler) UpdateCaseByID(c *gin.Context) {
 // 🟢 PATCH /case/update-status/:id
 func (h *CaseHandler) UpdateCaseStatusByID(c *gin.Context) {
 	id := c.Param("id")
-	status := c.Query("status")
+	statusStr := c.Query("status")
+
+	status, err := strconv.ParseBool(statusStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status value, expected boolean"})
+		return
+	}
 
 	if err := h.Repo.UpdateCaseStatusByID(id, status); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

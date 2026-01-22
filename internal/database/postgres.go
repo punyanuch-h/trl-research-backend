@@ -14,15 +14,10 @@ import (
 var DB *gorm.DB
 
 func InitPostgres() {
-	dsn := os.Getenv("DATABASE_URL")
-	log.Fatal("dsn database_url", dsn)
+	dsn := os.Getenv("DB_URL") // production
+	// dsn := os.Getenv("DEV_DB_URL") // local
 	if dsn == "" {
-		dsn = os.Getenv("DB_URL")
-		log.Fatal("dsn db_url", dsn)
-	}
-
-	if dsn == "" {
-		log.Fatal("❌ ")
+		log.Fatal("❌ DB_URL environment variable is not set")
 	}
 
 	var err error

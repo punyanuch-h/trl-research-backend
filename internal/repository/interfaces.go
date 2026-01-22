@@ -31,7 +31,7 @@ type CaseRepository interface {
 	GetCaseByID(caseID string) (*models.CaseInfo, error)
 	CreateCase(cs *models.CaseInfo) error
 	UpdateCaseByID(caseID string, data map[string]interface{}) error
-	UpdateCaseStatusByID(caseID string, status string) error
+	UpdateCaseStatusByID(caseID string, status bool) error
 }
 
 type SupporterRepository interface {

@@ -21,7 +21,7 @@ func LoadConfig() Config {
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		// Support Neon default env var name
-		dbURL = os.Getenv("DATABASE_URL")
+		dbURL = os.Getenv("DB_URL")
 	}
 
 	return Config{

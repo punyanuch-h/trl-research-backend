@@ -90,6 +90,15 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 			return datatypes.JSON(jsonData)
 		}
 
+		// Helper to bind JSON fields from form (for answers)
+		bindJSON := func(key string) datatypes.JSON {
+			val := c.PostForm(key)
+			if val == "" {
+				return datatypes.JSON("[]")
+			}
+			return datatypes.JSON(val)
+		}
+
 		// Process all attachments
 		req.Rq1Attachments = uploadFiles("rq1_attachment")
 		req.Rq2Attachments = uploadFiles("rq2_attachment")
@@ -98,6 +107,17 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 		req.Rq5Attachments = uploadFiles("rq5_attachment")
 		req.Rq6Attachments = uploadFiles("rq6_attachment")
 		req.Rq7Attachments = uploadFiles("rq7_attachment")
+
+		// Process all answers
+		req.Cq1Answer = bindJSON("cq1_answer")
+		req.Cq2Answer = bindJSON("cq2_answer")
+		req.Cq3Answer = bindJSON("cq3_answer")
+		req.Cq4Answer = bindJSON("cq4_answer")
+		req.Cq5Answer = bindJSON("cq5_answer")
+		req.Cq6Answer = bindJSON("cq6_answer")
+		req.Cq7Answer = bindJSON("cq7_answer")
+		req.Cq8Answer = bindJSON("cq8_answer")
+		req.Cq9Answer = bindJSON("cq9_answer")
 
 		req.Cq1Attachments = uploadFiles("cq1_attachment")
 		req.Cq2Attachments = uploadFiles("cq2_attachment")
