@@ -42,8 +42,11 @@ type AssessmentTrl struct {
 	Cq8Attachments datatypes.JSON `gorm:"column:cq8_attachment" json:"cq8_attachment" form:"-"`
 	Cq9Answer      datatypes.JSON `gorm:"column:cq9_answer" json:"cq9_answer" form:"-"`
 	Cq9Attachments datatypes.JSON `gorm:"column:cq9_attachment" json:"cq9_attachment" form:"-"`
-	CreatedAt      time.Time      `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt      time.Time      `gorm:"column:updated_at" json:"updated_at"`
+
+	ImprovementSuggestion string `gorm:"column:improvement_suggestion" json:"improvement_suggestion" form:"-"`
+
+	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 func (AssessmentTrl) TableName() string {
