@@ -2,11 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -49,18 +48,7 @@ func (r *AdminRepo) GetAdminByEmail(email string) (*models.AdminInfo, error) {
 
 // 🟢 Create admin (auto-generate AdminID)
 func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
-	var lastAdmin models.AdminInfo
-	nextID := "AD-00001"
-	err := r.DB.Order("admin_id desc").First(&lastAdmin).Error
-	if err == nil {
-		lastID := lastAdmin.AdminID
-		numStr := strings.TrimPrefix(lastID, "AD-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("AD-%05d", n+1)
-		}
-	}
-
-	admin.AdminID = nextID
+	admin.AdminID = utils.GenerateID("AD")
 	now := time.Now()
 	admin.CreatedAt = now
 	admin.UpdatedAt = now
@@ -90,7 +78,11 @@ func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, err
 
 // 🟢 Update password
 func (r *AdminRepo) UpdatePasswordByEmail(email string, password string) error {
-	return r.DB.Model(&models.AdminInfo{}).Where("admin_email = ?", email).Update("admin_password", password).Error
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+	return r.DB.Model(&models.AdminInfo{}).Where("admin_email = ?", email).Update("admin_password", string(hashedPassword)).Error
 }
 
 // 🟢 Update admin by ID

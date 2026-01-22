@@ -1,12 +1,10 @@
 package repository
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -43,20 +41,9 @@ func (r *CaseRepo) GetCaseByID(caseID string) (*models.CaseInfo, error) {
 	return &cs, nil
 }
 
-// 🟢 CreateCase - auto generate CaseID (CS-00001)
+// 🟢 CreateCase - auto generate CaseID (CS-<UUID>)
 func (r *CaseRepo) CreateCase(cs *models.CaseInfo) error {
-	var lastCase models.CaseInfo
-	nextID := "CS-00001"
-	err := r.DB.Order("case_id desc").First(&lastCase).Error
-	if err == nil {
-		lastID := lastCase.CaseID
-		numStr := strings.TrimPrefix(lastID, "CS-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("CS-%05d", n+1)
-		}
-	}
-
-	cs.CaseID = nextID
+	cs.CaseID = utils.GenerateID("CS")
 	now := time.Now()
 	cs.CreatedAt = now
 	cs.UpdatedAt = now
@@ -72,5 +59,8 @@ func (r *CaseRepo) UpdateCaseByID(caseID string, data map[string]interface{}) er
 
 // 🟢 UpdateCaseStatusByID
 func (r *CaseRepo) UpdateCaseStatusByID(caseID string, status bool) error {
-	return r.DB.Model(&models.CaseInfo{}).Where("case_id = ?", caseID).Update("status", status).Error
+	return r.DB.Model(&models.CaseInfo{}).Where("case_id = ?", caseID).Updates(map[string]interface{}{
+		"status":     status,
+		"updated_at": time.Now(),
+	}).Error
 }

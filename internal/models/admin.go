@@ -14,7 +14,7 @@ type AdminInfo struct {
 	AdminDepartment       string    `gorm:"column:admin_department" json:"admin_department"`
 	AdminPhoneNumber      string    `gorm:"column:admin_phone_number" json:"admin_phone_number"`
 	AdminEmail            string    `gorm:"column:admin_email;unique" json:"admin_email"`
-	AdminPassword         string    `gorm:"column:admin_password" json:"admin_password"`
+	AdminPassword         string    `gorm:"column:admin_password" json:"-"`
 	CaseID                string    `gorm:"column:case_id" json:"case_id"`
 	CreatedAt             time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt             time.Time `gorm:"column:updated_at" json:"updated_at"`

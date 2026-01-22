@@ -96,6 +96,12 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 			if val == "" {
 				return datatypes.JSON("[]")
 			}
+
+			// Check if it's a valid JSON array
+			if !json.Valid([]byte(val)) {
+				return datatypes.JSON("[]")
+			}
+
 			return datatypes.JSON(val)
 		}
 

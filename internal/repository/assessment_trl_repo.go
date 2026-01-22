@@ -2,11 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -49,20 +48,9 @@ func (r *AssessmentTrlRepo) GetAssessmentTrlByCaseID(caseID string) (*models.Ass
 	return &a, nil
 }
 
-// 🟢 CreateAssessmentTrl - auto generate ID AS-00001
+// 🟢 CreateAssessmentTrl - auto generate ID AS-<UUID>
 func (r *AssessmentTrlRepo) CreateAssessmentTrl(a *models.AssessmentTrl) error {
-	var lastA models.AssessmentTrl
-	nextID := "AS-00001"
-	err := r.DB.Order("id desc").First(&lastA).Error
-	if err == nil {
-		lastID := lastA.ID
-		numStr := strings.TrimPrefix(lastID, "AS-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("AS-%05d", n+1)
-		}
-	}
-
-	a.ID = nextID
+	a.ID = utils.GenerateID("AS")
 	now := time.Now()
 	a.CreatedAt = now
 	a.UpdatedAt = now

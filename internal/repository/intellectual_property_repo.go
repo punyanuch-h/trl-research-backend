@@ -2,11 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -49,20 +48,9 @@ func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.Intelle
 	return &ip, nil
 }
 
-// 🟢 CreateIP - auto generate ID IP-00001
+// 🟢 CreateIP - auto generate ID IP-<UUID>
 func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperty) error {
-	var lastIP models.IntellectualProperty
-	nextID := "IP-00001"
-	err := r.DB.Order("id desc").First(&lastIP).Error
-	if err == nil {
-		lastID := lastIP.ID
-		numStr := strings.TrimPrefix(lastID, "IP-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("IP-%05d", n+1)
-		}
-	}
-
-	ip.ID = nextID
+	ip.ID = utils.GenerateID("IP")
 	now := time.Now()
 	ip.CreatedAt = now
 	ip.UpdatedAt = now

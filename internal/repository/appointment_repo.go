@@ -2,11 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -43,20 +42,9 @@ func (r *AppointmentRepo) GetAppointmentByCaseID(caseID string) ([]models.Appoin
 	return appointments, err
 }
 
-// 🟢 CreateAppointment - auto generate ID AP-00001
+// 🟢 CreateAppointment - auto generate ID AP-<UUID>
 func (r *AppointmentRepo) CreateAppointment(ap *models.Appointment) error {
-	var lastAp models.Appointment
-	nextID := "AP-00001"
-	err := r.DB.Order("appointment_id desc").First(&lastAp).Error
-	if err == nil {
-		lastID := lastAp.AppointmentID
-		numStr := strings.TrimPrefix(lastID, "AP-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("AP-%05d", n+1)
-		}
-	}
-
-	ap.AppointmentID = nextID
+	ap.AppointmentID = utils.GenerateID("AP")
 	now := time.Now()
 	ap.CreatedAt = now
 	ap.UpdatedAt = now

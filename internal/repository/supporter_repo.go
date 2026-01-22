@@ -2,11 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -49,20 +48,9 @@ func (r *SupporterRepo) GetSupporterByCaseID(caseID string) (*models.Supporter, 
 	return &supporter, nil
 }
 
-// 🟢 CreateSupporter - auto-generate ID SP-00001
+// 🟢 CreateSupporter - auto-generate ID SP-<UUID>
 func (r *SupporterRepo) CreateSupporter(supporter *models.Supporter) error {
-	var lastSupporter models.Supporter
-	nextID := "SP-00001"
-	err := r.DB.Order("supporter_id desc").First(&lastSupporter).Error
-	if err == nil {
-		lastID := lastSupporter.SupporterID
-		numStr := strings.TrimPrefix(lastID, "SP-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("SP-%05d", n+1)
-		}
-	}
-
-	supporter.SupporterID = nextID
+	supporter.SupporterID = utils.GenerateID("SP")
 	now := time.Now()
 	supporter.CreatedAt = now
 	supporter.UpdatedAt = now

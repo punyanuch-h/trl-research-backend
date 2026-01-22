@@ -43,10 +43,17 @@ func InitPostgres() {
 }
 
 func ClosePostgres() {
+	if DB == nil {
+		return
+	}
+
 	sqlDB, err := DB.DB()
 	if err != nil {
 		log.Printf("⚠️ Error getting database instance during close: %v", err)
 		return
 	}
-	sqlDB.Close()
+
+	if err := sqlDB.Close(); err != nil {
+		log.Printf("⚠️ Error closing database connection: %v", err)
+	}
 }

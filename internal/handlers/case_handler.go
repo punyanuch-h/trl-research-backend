@@ -74,8 +74,6 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 		// Handle Multiple Files Upload (key: "case_attachments")
 		form, _ := c.MultipartForm()
 		files := form.File["case_attachments"]
-		print(form)
-		print(files)
 
 		var uploadedPaths []string
 

@@ -2,11 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -70,19 +69,7 @@ func (r *ResearcherRepo) GetResearcherByCaseID(caseID string) (*models.Researche
 
 // 🟢 CreateResearcher - auto-generate ResearcherID and create new record
 func (r *ResearcherRepo) CreateResearcher(researcher *models.ResearcherInfo) error {
-	// find last ID to generate next
-	var lastResearcher models.ResearcherInfo
-	nextID := "RS-00001"
-	err := r.DB.Order("researcher_id desc").First(&lastResearcher).Error
-	if err == nil {
-		lastID := lastResearcher.ResearcherID
-		numStr := strings.TrimPrefix(lastID, "RS-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("RS-%05d", n+1)
-		}
-	}
-
-	researcher.ResearcherID = nextID
+	researcher.ResearcherID = utils.GenerateID("RS")
 	now := time.Now()
 	researcher.CreatedAt = now
 	researcher.UpdatedAt = now

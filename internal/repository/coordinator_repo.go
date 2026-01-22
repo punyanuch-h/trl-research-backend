@@ -2,11 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -49,7 +48,7 @@ func (r *CoordinatorRepo) GetCoordinatorByCaseID(caseID string) (*models.Coordin
 	return &coordinator, nil
 }
 
-// 🟢 CreateCoordinator - auto generate CoordinatorID (C-00001) or update if email exists
+// 🟢 CreateCoordinator - auto generate CoordinatorID (C-<UUID>) or update if email exists
 func (r *CoordinatorRepo) CreateCoordinator(coordinator *models.CoordinatorInfo) error {
 	// Check if a coordinator with this email already exists
 	var existing models.CoordinatorInfo
@@ -61,19 +60,7 @@ func (r *CoordinatorRepo) CreateCoordinator(coordinator *models.CoordinatorInfo)
 		return r.DB.Model(&existing).Updates(coordinator).Error
 	}
 
-	// If not exists, find last ID to generate next
-	var lastCoordinator models.CoordinatorInfo
-	nextID := "C-00001"
-	err := r.DB.Order("coordinator_id desc").First(&lastCoordinator).Error
-	if err == nil {
-		lastID := lastCoordinator.CoordinatorID
-		numStr := strings.TrimPrefix(lastID, "C-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("C-%05d", n+1)
-		}
-	}
-
-	coordinator.CoordinatorID = nextID
+	coordinator.CoordinatorID = utils.GenerateID("C")
 	now := time.Now()
 	coordinator.CreatedAt = now
 	coordinator.UpdatedAt = now
