@@ -1,0 +1,32 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+bin/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories
+vendor/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+localServiceAccountKey.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# localServiceAccountKey.json
+localServiceAccountKey.json

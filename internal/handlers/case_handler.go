@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"trl-research-backend/internal/models"
@@ -10,11 +12,12 @@ import (
 	"trl-research-backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type CaseHandler struct {
-	Repo     *repository.CaseRepo
-	FileRepo *repository.FileRepo
+	Repo     repository.CaseRepository
+	FileRepo repository.FileRepository
 	GCS      *storage.GCSClient
 }
 
@@ -102,7 +105,8 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 		}
 
 		// Add paths to request model
-		req.CaseAttachments = uploadedPaths
+		jsonData, _ := json.Marshal(uploadedPaths)
+		req.CaseAttachments = datatypes.JSON(jsonData)
 
 		// Save Case
 		if err := h.Repo.CreateCase(&req); err != nil {
@@ -150,7 +154,13 @@ func (h *CaseHandler) UpdateCaseByID(c *gin.Context) {
 // 🟢 PATCH /case/update-status/:id
 func (h *CaseHandler) UpdateCaseStatusByID(c *gin.Context) {
 	id := c.Param("id")
-	status := c.Query("status")
+	statusStr := c.Query("status")
+
+	status, err := strconv.ParseBool(statusStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status value, expected boolean"})
+		return
+	}
 
 	if err := h.Repo.UpdateCaseStatusByID(id, status); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

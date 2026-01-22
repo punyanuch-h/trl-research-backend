@@ -1,116 +1,71 @@
 package repository
 
 import (
-	"context"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
 
-	"cloud.google.com/go/firestore"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type AdminRepo struct {
-	Client *firestore.Client
+	DB *gorm.DB
 }
 
-func NewAdminRepo(client *firestore.Client) *AdminRepo {
-	return &AdminRepo{Client: client}
+func NewAdminRepo(db *gorm.DB) AdminRepository {
+	return &AdminRepo{DB: db}
 }
 
 // 🟢 Get all admins
 func (r *AdminRepo) GetAdminAll() ([]models.AdminInfo, error) {
-	ctx := context.Background()
-	docs, err := r.Client.Collection("admin_info").Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
-
 	var admins []models.AdminInfo
-	for _, doc := range docs {
-		var admin models.AdminInfo
-		doc.DataTo(&admin)
-		admins = append(admins, admin)
-	}
-	return admins, nil
+	err := r.DB.Find(&admins).Error
+	return admins, err
 }
 
 // 🟢 Get admin by ID
 func (r *AdminRepo) GetAdminByID(adminID string) (*models.AdminInfo, error) {
-	ctx := context.Background()
-
-	// Query by admin_id field instead of document ID
-	docs, err := r.Client.Collection("admin_info").Where("admin_id", "==", adminID).Limit(1).Documents(ctx).GetAll()
+	var admin models.AdminInfo
+	err := r.DB.Where("admin_id = ?", adminID).First(&admin).Error
 	if err != nil {
 		return nil, err
 	}
-
-	if len(docs) == 0 {
-		return nil, fmt.Errorf("admin not found")
-	}
-
-	var admin models.AdminInfo
-	docs[0].DataTo(&admin)
 	return &admin, nil
 }
 
 // 🟢 Get admin by email
 func (r *AdminRepo) GetAdminByEmail(email string) (*models.AdminInfo, error) {
-	ctx := context.Background()
-	doc, err := r.Client.Collection("admin_info").Doc(email).Get(ctx)
+	var admin models.AdminInfo
+	err := r.DB.Where("admin_email = ?", email).First(&admin).Error
 	if err != nil {
 		return nil, err
 	}
-
-	var admin models.AdminInfo
-	doc.DataTo(&admin)
 	return &admin, nil
 }
 
 // 🟢 Create admin (auto-generate AdminID)
 func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
-	ctx := context.Background()
-
-	// find last ID to generate next
-	docs, err := r.Client.Collection("admin_info").OrderBy("admin_id", firestore.Desc).Limit(1).Documents(ctx).GetAll()
-	nextID := "AD-00001"
-	if err == nil && len(docs) > 0 {
-		lastID := docs[0].Data()["admin_id"].(string)
-		numStr := strings.TrimPrefix(lastID, "SI-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("AD-%05d", n+1)
-		}
-	}
-
-	// assign values
-	admin.AdminID = nextID
+	admin.AdminID = utils.GenerateID("AD")
 	now := time.Now()
 	admin.CreatedAt = now
+	admin.UpdatedAt = now
 
-	// save to Firestore using email as document ID
-	_, err = r.Client.Collection("admin_info").Doc(admin.AdminEmail).Set(ctx, admin)
-	return err
+	return r.DB.Create(admin).Error
 }
 
 // 🟢 Login with password verification
 func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, error) {
-	ctx := context.Background()
-
-	// Query by email field instead of using email as document ID
-	docs, err := r.Client.Collection("admin_info").Where("admin_email", "==", email).Limit(1).Documents(ctx).GetAll()
+	var admin models.AdminInfo
+	err := r.DB.Where("admin_email = ?", email).First(&admin).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("admin not found")
+		}
 		return nil, err
 	}
-
-	if len(docs) == 0 {
-		return nil, fmt.Errorf("admin not found")
-	}
-
-	var admin models.AdminInfo
-	docs[0].DataTo(&admin)
 
 	// Verify password
 	err = bcrypt.CompareHashAndPassword([]byte(admin.AdminPassword), []byte(password))
@@ -123,43 +78,20 @@ func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, err
 
 // 🟢 Update password
 func (r *AdminRepo) UpdatePasswordByEmail(email string, password string) error {
-	ctx := context.Background()
-	_, err := r.Client.Collection("admin_info").Doc(email).Set(ctx, map[string]interface{}{"admin_password": password}, firestore.MergeAll)
-	return err
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+	return r.DB.Model(&models.AdminInfo{}).Where("admin_email = ?", email).Update("admin_password", string(hashedPassword)).Error
 }
 
 // 🟢 Update admin by ID
-func (r *AdminRepo) UpdateAdminByID(id string, data *models.AdminInfo) error {
-	ctx := context.Background()
-	// update data from request body to this admin
-	// Note: Documents are stored with email as document ID, not admin_id
-	// So we use data.AdminEmail (which should be set from existingAdmin)
+func (r *AdminRepo) UpdateAdminByID(adminID string, data *models.AdminInfo) error {
 	data.UpdatedAt = time.Now()
-
-	// Convert struct to map for Firestore update (using MergeAll like other repos)
-	updateMap := map[string]interface{}{
-		"admin_id":                data.AdminID,
-		"admin_prefix":            data.AdminPrefix,
-		"admin_academic_position": data.AdminAcademicPosition,
-		"admin_first_name":        data.AdminFirstName,
-		"admin_last_name":         data.AdminLastName,
-		"admin_department":        data.AdminDepartment,
-		"admin_phone_number":      data.AdminPhoneNumber,
-		"admin_email":             data.AdminEmail,
-		"admin_password":          data.AdminPassword,
-		"case_id":                 data.CaseID,
-		"created_at":              data.CreatedAt,
-		"updated_at":              data.UpdatedAt,
-	}
-
-	docRef := r.Client.Collection("admin_info").Doc(data.AdminEmail)
-	_, err := docRef.Set(ctx, updateMap, firestore.MergeAll)
-	return err
+	return r.DB.Model(&models.AdminInfo{}).Where("admin_id = ?", adminID).Updates(data).Error
 }
 
 // 🟢 Delete admin
 func (r *AdminRepo) DeleteAdmin(email string) error {
-	ctx := context.Background()
-	_, err := r.Client.Collection("admin_info").Doc(email).Delete(ctx)
-	return err
+	return r.DB.Where("admin_email = ?", email).Delete(&models.AdminInfo{}).Error
 }

@@ -3,12 +3,16 @@ package models
 import "time"
 
 type FileMetadata struct {
-    ID              string    `json:"id" firestore:"id"`
-    FileName        string    `json:"file_name" firestore:"file_name"`
-    ObjectPath      string    `json:"object_path" firestore:"object_path"`
-    Bucket          string    `json:"bucket" firestore:"bucket"`
-    UploadedBy      string    `json:"uploaded_by" firestore:"uploaded_by"`
-    UploadedAt      time.Time `json:"uploaded_at" firestore:"uploaded_at"`
-    ContentType     string    `json:"content_type" firestore:"content_type"`
-    BelongsToCaseID string    `json:"belongs_to_case_id" firestore:"belongs_to_case_id"` // optional
+	ID              string    `gorm:"primaryKey;column:id" json:"id"`
+	FileName        string    `gorm:"column:file_name" json:"file_name"`
+	ObjectPath      string    `gorm:"column:object_path" json:"object_path"`
+	Bucket          string    `gorm:"column:bucket" json:"bucket"`
+	UploadedBy      string    `gorm:"column:uploaded_by" json:"uploaded_by"`
+	UploadedAt      time.Time `gorm:"column:uploaded_at" json:"uploaded_at"`
+	ContentType     string    `gorm:"column:content_type" json:"content_type"`
+	BelongsToCaseID string    `gorm:"column:belongs_to_case_id" json:"belongs_to_case_id"` // optional
+}
+
+func (FileMetadata) TableName() string {
+	return "file_metadatas"
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,10 +11,11 @@ import (
 	"trl-research-backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type IntellectualPropertyHandler struct {
-	Repo *repository.IntellectualPropertyRepo
+	Repo repository.IntellectualPropertyRepository
 	GCS  *storage.GCSClient
 }
 
@@ -84,7 +86,8 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 			}
 		}
 
-		req.IPAttachments = uploadedPaths
+		jsonData, _ := json.Marshal(uploadedPaths)
+		req.IPAttachments = datatypes.JSON(jsonData)
 
 		if err := h.Repo.CreateIP(&req); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

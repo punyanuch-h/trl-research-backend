@@ -3,13 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CoordinatorHandler struct {
-	Repo *repository.CoordinatorRepo
+	Repo repository.CoordinatorRepository
 }
 
 // 🟢 GET /coordinators

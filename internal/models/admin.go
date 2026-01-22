@@ -6,18 +6,22 @@ import (
 )
 
 type AdminInfo struct {
-	AdminID               string    `json:"admin_id" firestore:"admin_id"`
-	AdminPrefix           string    `json:"admin_prefix" firestore:"admin_prefix"`
-	AdminAcademicPosition string    `json:"admin_academic_position" firestore:"admin_academic_position"`
-	AdminFirstName        string    `json:"admin_first_name" firestore:"admin_first_name"`
-	AdminLastName         string    `json:"admin_last_name" firestore:"admin_last_name"`
-	AdminDepartment       string    `json:"admin_department" firestore:"admin_department"`
-	AdminPhoneNumber      string    `json:"admin_phone_number" firestore:"admin_phone_number"`
-	AdminEmail            string    `json:"admin_email" firestore:"admin_email"`
-	AdminPassword         string    `json:"admin_password" firestore:"admin_password"`
-	CaseID                string    `json:"case_id" firestore:"case_id"`
-	CreatedAt             time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt             time.Time `json:"updated_at" firestore:"updated_at"`
+	AdminID               string    `gorm:"primaryKey;column:admin_id" json:"admin_id"`
+	AdminPrefix           string    `gorm:"column:admin_prefix" json:"admin_prefix"`
+	AdminAcademicPosition string    `gorm:"column:admin_academic_position" json:"admin_academic_position"`
+	AdminFirstName        string    `gorm:"column:admin_first_name" json:"admin_first_name"`
+	AdminLastName         string    `gorm:"column:admin_last_name" json:"admin_last_name"`
+	AdminDepartment       string    `gorm:"column:admin_department" json:"admin_department"`
+	AdminPhoneNumber      string    `gorm:"column:admin_phone_number" json:"admin_phone_number"`
+	AdminEmail            string    `gorm:"column:admin_email;unique" json:"admin_email"`
+	AdminPassword         string    `gorm:"column:admin_password" json:"-"`
+	CaseID                string    `gorm:"column:case_id" json:"case_id"`
+	CreatedAt             time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt             time.Time `gorm:"column:updated_at" json:"updated_at"`
+}
+
+func (AdminInfo) TableName() string {
+	return "admins"
 }
 
 func (r *AdminInfo) ToResponse() entity.AdminResponse {

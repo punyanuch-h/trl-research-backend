@@ -15,9 +15,9 @@ func main() {
 	// Load environment variables (.env)
 	config.LoadConfig()
 
-	// init Firestore
-	database.InitFirebase("localServiceAccountKey.json")
-	defer database.CloseFirebase()
+	// Initialize Postgres (Neon)
+	database.InitPostgres()
+	defer database.ClosePostgres()
 
 	// Initialize GCSClient
 	bucket := os.Getenv("GCS_BUCKET_NAME")

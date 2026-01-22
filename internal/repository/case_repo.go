@@ -1,111 +1,66 @@
 package repository
 
 import (
-	"context"
-	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/utils"
+
+	"gorm.io/gorm"
 )
 
 type CaseRepo struct {
-	Client *firestore.Client
+	DB *gorm.DB
 }
 
-func NewCaseRepo(client *firestore.Client) *CaseRepo {
-	return &CaseRepo{Client: client}
+func NewCaseRepo(db *gorm.DB) CaseRepository {
+	return &CaseRepo{DB: db}
 }
 
 // 🟢 GetCaseAll - fetch all cases
 func (r *CaseRepo) GetCaseAll() ([]models.CaseInfo, error) {
-	fmt.Println("GetCaseAll from repo")
-	fmt.Println("r", r)
-	ctx := context.Background()
-	fmt.Println("ctx", ctx)
-	docs, err := r.Client.Collection("cases").Documents(ctx).GetAll()
-	if err != nil {
-		fmt.Println("err", err)
-		return nil, err
-	}
-	fmt.Println(docs)
-
 	var cases []models.CaseInfo
-	for _, doc := range docs {
-		var cs models.CaseInfo
-		doc.DataTo(&cs)
-		cases = append(cases, cs)
-	}
-	fmt.Println(cases)
-	return cases, nil
+	err := r.DB.Find(&cases).Error
+	return cases, err
 }
 
 // 🟢 GetCaseAllByResearcher_id - fetch all cases for a researcher
-func (r *CaseRepo) GetCaseAllByResearcher_id(researcher_id string) ([]models.CaseInfo, error) {
-	ctx := context.Background()
-	docs, err := r.Client.Collection("cases").Where("researcher_id", "==", researcher_id).Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
-
+func (r *CaseRepo) GetCaseAllByResearcher_id(researcherID string) ([]models.CaseInfo, error) {
 	var cases []models.CaseInfo
-	for _, doc := range docs {
-		var cs models.CaseInfo
-		doc.DataTo(&cs)
-		cases = append(cases, cs)
-	}
-	return cases, nil
+	err := r.DB.Where("researcher_id = ?", researcherID).Find(&cases).Error
+	return cases, err
 }
 
 // 🟢 GetCaseByID
 func (r *CaseRepo) GetCaseByID(caseID string) (*models.CaseInfo, error) {
-	ctx := context.Background()
-	doc, err := r.Client.Collection("cases").Doc(caseID).Get(ctx)
+	var cs models.CaseInfo
+	err := r.DB.Where("case_id = ?", caseID).First(&cs).Error
 	if err != nil {
 		return nil, err
 	}
-
-	var cs models.CaseInfo
-	doc.DataTo(&cs)
 	return &cs, nil
 }
 
-// 🟢 CreateCase - auto generate CaseID (CS-00001)
+// 🟢 CreateCase - auto generate CaseID (CS-<UUID>)
 func (r *CaseRepo) CreateCase(cs *models.CaseInfo) error {
-	ctx := context.Background()
-
-	docs, err := r.Client.Collection("cases").OrderBy("case_id", firestore.Desc).Limit(1).Documents(ctx).GetAll()
-	nextID := "CS-00001"
-	if err == nil && len(docs) > 0 {
-		lastID := docs[0].Data()["case_id"].(string)
-		numStr := strings.TrimPrefix(lastID, "CS-")
-		if n, err := strconv.Atoi(numStr); err == nil {
-			nextID = fmt.Sprintf("CS-%05d", n+1)
-		}
-	}
-
-	cs.CaseID = nextID
+	cs.CaseID = utils.GenerateID("CS")
 	now := time.Now()
 	cs.CreatedAt = now
 	cs.UpdatedAt = now
 
-	_, err = r.Client.Collection("cases").Doc(cs.CaseID).Set(ctx, cs)
-	return err
+	return r.DB.Create(cs).Error
 }
 
 // 🟢 UpdateCaseByID
 func (r *CaseRepo) UpdateCaseByID(caseID string, data map[string]interface{}) error {
-	ctx := context.Background()
 	data["updated_at"] = time.Now()
-	_, err := r.Client.Collection("cases").Doc(caseID).Set(ctx, data, firestore.MergeAll)
-	return err
+	return r.DB.Model(&models.CaseInfo{}).Where("case_id = ?", caseID).Updates(data).Error
 }
 
 // 🟢 UpdateCaseStatusByID
-func (r *CaseRepo) UpdateCaseStatusByID(caseID string, status string) error {
-	ctx := context.Background()
-	_, err := r.Client.Collection("cases").Doc(caseID).Set(ctx, map[string]interface{}{"status": status}, firestore.MergeAll)
-	return err
+func (r *CaseRepo) UpdateCaseStatusByID(caseID string, status bool) error {
+	return r.DB.Model(&models.CaseInfo{}).Where("case_id = ?", caseID).Updates(map[string]interface{}{
+		"status":     status,
+		"updated_at": time.Now(),
+	}).Error
 }

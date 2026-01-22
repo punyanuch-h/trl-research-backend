@@ -3,13 +3,17 @@ package models
 import "time"
 
 type Appointment struct {
-	AppointmentID string    `json:"appointment_id" firestore:"appointment_id"`
-	CaseID        string    `json:"case_id" firestore:"case_id"`
-	Date          time.Time `json:"date" firestore:"date"`
-	Status        string    `json:"status" firestore:"status"`
-	Location      string    `json:"location" firestore:"location"`
-	Note          string    `json:"note" firestore:"note"`
-	Summary       string    `json:"summary" firestore:"summary"`
-	CreatedAt     time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at" firestore:"updated_at"`
+	AppointmentID string    `gorm:"primaryKey;column:appointment_id" json:"appointment_id"`
+	CaseID        string    `gorm:"column:case_id" json:"case_id"`
+	Date          time.Time `gorm:"column:date" json:"date"`
+	Status        string    `gorm:"column:status" json:"status"`
+	Location      string    `gorm:"column:location" json:"location"`
+	Note          string    `gorm:"column:note" json:"note"`
+	Summary       string    `gorm:"column:summary" json:"summary"`
+	CreatedAt     time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at" json:"updated_at"`
+}
+
+func (Appointment) TableName() string {
+	return "appointments"
 }

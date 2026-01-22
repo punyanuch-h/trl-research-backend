@@ -2,24 +2,31 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type CaseInfo struct {
-	CaseID           string    `json:"case_id" firestore:"case_id" form:"case_id"`
-	CoordinatorEmail string    `json:"coordinator_email" firestore:"coordinator_email" form:"coordinator_email"`
-	TrlScore         string    `json:"trl_score" firestore:"trl_score" form:"trl_score"`
-	TrlSuggestion    string    `json:"trl_suggestion" firestore:"trl_suggestion" form:"trl_suggestion"`
-	Status           bool      `json:"status" firestore:"status" form:"status"`
-	IsUrgent         bool      `json:"is_urgent" firestore:"is_urgent" form:"is_urgent"`
-	UrgentReason     string    `json:"urgent_reason" firestore:"urgent_reason" form:"urgent_reason"`
-	UrgentFeedback   string    `json:"urgent_feedback" firestore:"urgent_feedback" form:"urgent_feedback"`
-	CaseTitle        string    `json:"case_title" firestore:"case_title" form:"case_title"`
-	CaseType         string    `json:"case_type" firestore:"case_type" form:"case_type"`
-	CaseDescription  string    `json:"case_description" firestore:"case_description" form:"case_description"`
-	CaseKeywords     string    `json:"case_keywords" firestore:"case_keywords" form:"case_keywords"`
-	CaseAttachments  []string  `json:"case_attachments" firestore:"case_attachments"`
-	CreatedAt        time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at" firestore:"updated_at"`
+	CaseID           string `gorm:"primaryKey;column:case_id" json:"case_id" form:"case_id"`
+	CoordinatorEmail string `gorm:"column:coordinator_email" json:"coordinator_email" form:"coordinator_email"`
+	TrlScore         string `gorm:"column:trl_score" json:"trl_score" form:"trl_score"`
+	TrlSuggestion    string `gorm:"column:trl_suggestion" json:"trl_suggestion" form:"trl_suggestion"`
+	Status           bool   `gorm:"column:status" json:"status" form:"status"`
+	IsUrgent         bool   `gorm:"column:is_urgent" json:"is_urgent" form:"is_urgent"`
+	UrgentReason     string `gorm:"column:urgent_reason" json:"urgent_reason" form:"urgent_reason"`
+	UrgentFeedback   string `gorm:"column:urgent_feedback" json:"urgent_feedback" form:"urgent_feedback"`
 
-	ResearcherID string `json:"researcher_id" firestore:"researcher_id" form:"researcher_id"`
+	CaseTitle       string         `gorm:"column:case_title" json:"case_title" form:"case_title"`
+	CaseType        string         `gorm:"column:case_type" json:"case_type" form:"case_type"`
+	CaseDescription string         `gorm:"column:case_description" json:"case_description" form:"case_description"`
+	CaseKeywords    string         `gorm:"column:case_keywords" json:"case_keywords" form:"case_keywords"`
+	CaseAttachments datatypes.JSON `gorm:"column:case_attachments" json:"case_attachments" form:"-"`
+	CreatedAt       time.Time      `gorm:"column:created_at" json:"created_at"`
+
+	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
+	ResearcherID string    `gorm:"column:researcher_id" json:"researcher_id" form:"researcher_id"`
+}
+
+func (CaseInfo) TableName() string {
+	return "cases"
 }

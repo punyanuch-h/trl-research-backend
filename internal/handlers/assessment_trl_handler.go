@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,10 +11,11 @@ import (
 	"trl-research-backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type AssessmentTrlHandler struct {
-	Repo *repository.AssessmentTrlRepo
+	Repo repository.AssessmentTrlRepository
 	GCS  *storage.GCSClient
 }
 
@@ -68,8 +70,8 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 			userID = "unknown_user"
 		}
 
-		// Helper to upload files for a specific key
-		uploadFiles := func(key string) []string {
+		// Helper to upload files for a specific key and return as datatypes.JSON
+		uploadFiles := func(key string) datatypes.JSON {
 			files := form.File[key]
 			var paths []string
 			for _, fileHeader := range files {
@@ -84,7 +86,23 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 					paths = append(paths, objectPath)
 				}
 			}
-			return paths
+			jsonData, _ := json.Marshal(paths)
+			return datatypes.JSON(jsonData)
+		}
+
+		// Helper to bind JSON fields from form (for answers)
+		bindJSON := func(key string) datatypes.JSON {
+			val := c.PostForm(key)
+			if val == "" {
+				return datatypes.JSON("[]")
+			}
+
+			// Check if it's a valid JSON array
+			if !json.Valid([]byte(val)) {
+				return datatypes.JSON("[]")
+			}
+
+			return datatypes.JSON(val)
 		}
 
 		// Process all attachments
@@ -95,6 +113,17 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 		req.Rq5Attachments = uploadFiles("rq5_attachment")
 		req.Rq6Attachments = uploadFiles("rq6_attachment")
 		req.Rq7Attachments = uploadFiles("rq7_attachment")
+
+		// Process all answers
+		req.Cq1Answer = bindJSON("cq1_answer")
+		req.Cq2Answer = bindJSON("cq2_answer")
+		req.Cq3Answer = bindJSON("cq3_answer")
+		req.Cq4Answer = bindJSON("cq4_answer")
+		req.Cq5Answer = bindJSON("cq5_answer")
+		req.Cq6Answer = bindJSON("cq6_answer")
+		req.Cq7Answer = bindJSON("cq7_answer")
+		req.Cq8Answer = bindJSON("cq8_answer")
+		req.Cq9Answer = bindJSON("cq9_answer")
 
 		req.Cq1Attachments = uploadFiles("cq1_attachment")
 		req.Cq2Attachments = uploadFiles("cq2_attachment")
