@@ -24,3 +24,5 @@ gcloud run deploy trl-research-backend \
   --source . \
   --region asia-southeast1 \
   --allow-unauthenticated
+
+gcloud run deploy trl-research-backend --source . --region asia-southeast1 --allow-unauthenticated

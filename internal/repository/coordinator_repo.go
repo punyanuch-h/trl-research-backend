@@ -42,7 +42,7 @@ func (r *CoordinatorRepo) GetCoordinatorByCaseID(caseID string) (*models.Coordin
         return nil, fmt.Errorf("case not found: %v", err)
     }
     var coordinator models.Coordinators
-    if err := r.DB.Where("email = ?", caseData.CoordinatorEmail).First(&coordinator).Error; err != nil {
+    if err := r.DB.Where("id = ?", caseData.CoordinatorID).First(&coordinator).Error; err != nil {
         return nil, fmt.Errorf("coordinator not found: %v", err)
     }
     return &coordinator, nil

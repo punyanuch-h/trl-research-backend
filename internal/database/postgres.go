@@ -20,7 +20,7 @@ func InitPostgres() {
 	}
 
 	if dsn == "" {
-		log.Fatal("❌ DB_URL environment variable is not set")
+		log.Println("❌ DB_URL environment variable is not set")
 	}
 
 	var err error
@@ -29,12 +29,12 @@ func InitPostgres() {
 	})
 
 	if err != nil {
-		log.Fatalf("❌ Failed to connect to database: %v", err)
+		log.Println("❌ Failed to connect to database: %v", err)
 	}
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		log.Fatalf("❌ Failed to get database instance: %v", err)
+		log.Println("❌ Failed to get database instance: %v", err)
 	}
 
 	// Set connection pool settings

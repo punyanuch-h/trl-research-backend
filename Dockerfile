@@ -31,9 +31,6 @@
     # Copy binary from builder
     COPY --from=builder /app/server .
     
-    # Copy Firebase service account key
-    COPY trl-research-service-account.json .
-    
     # Expose port
     EXPOSE 8080
     

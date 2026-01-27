@@ -22,10 +22,19 @@ func main() {
 	// Initialize GCSClient
 	bucket := os.Getenv("GCS_BUCKET_NAME")
 	saEmail := os.Getenv("SA_EMAIL")
+	log.Println("GCS_BUCKET_NAME:", bucket)
+	log.Println("SA_EMAIL:", saEmail)
 
-	gcsClient, err := storage.NewGCSClient(bucket, saEmail)
-	if err != nil {
-		log.Fatalf("Failed to initialize GCS client: %v", err)
+	var gcsClient *storage.GCSClient
+	if bucket != "" {
+		client, err := storage.NewGCSClient(bucket, saEmail)
+		if err != nil {
+			log.Println("⚠️ GCS init failed, continue without GCS:", err)
+		} else {
+			gcsClient = client
+		}
+	} else {
+		log.Println("⚠️ GCS_BUCKET_NAME not set, skip GCS")
 	}
 
 	// pass gcsClient here
@@ -36,7 +45,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	addr := fmt.Sprintf(":%s", port)
+	addr := fmt.Sprintf("0.0.0.0:%s", port)
 
 	fmt.Println("🚀 Server running on", addr)
 	if err := r.Run(addr); err != nil {

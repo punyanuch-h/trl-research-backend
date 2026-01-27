@@ -17,7 +17,7 @@ import (
 func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode) // ปิด debug log ของ Gin
 	r := gin.Default()
-	r.SetTrustedProxies([]string{"127.0.0.1"})
+	r.SetTrustedProxies([]string{"0.0.0.0/0"})
 
 	// ✅ CORS config
 	r.Use(cors.New(cors.Config{
