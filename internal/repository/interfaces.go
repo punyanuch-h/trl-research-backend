@@ -27,7 +27,7 @@ type ResearcherRepository interface {
 
 type CaseRepository interface {
 	GetCaseAll() ([]models.Cases, error)
-	GetCaseAllByResearcher_id(researcherID string) ([]models.Cases, error)
+	GetCaseAllByResearcherID(researcherID string) ([]models.Cases, error)
 	GetCaseByID(caseID string) (*models.Cases, error)
 	CreateCase(cs *models.Cases) error
 	UpdateCaseByID(caseID string, data map[string]interface{}) error

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -37,18 +38,26 @@ func main() {
 		"appointments", "cases", "coordinators", "researchers", "admins",
 	}
 	for _, table := range tables {
-		db.Exec(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table))
+		if err := db.Exec(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table)).Error; err != nil {
+			log.Fatalf("❌ Failed to truncate %s: %v", table, err)
+		}
 	}
 
 	// ==========================================
 	// 🛠️ HELPERS & DATA
 	// ==========================================
 	now := time.Now()
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	if err != nil {
+		panic("failed to hash seed password: " + err.Error())
+	}
 
 	// Helper: Convert Struct/Slice -> JSONB
 	toJSON := func(v interface{}) datatypes.JSON {
-		b, _ := json.Marshal(v)
+		b, err := json.Marshal(v)
+		if err != nil {
+			panic("failed to marshal JSON seed data: " + err.Error())
+		}
 		return datatypes.JSON(b)
 	}
 	emptyJSON := toJSON([]string{})
@@ -120,7 +129,9 @@ func main() {
 		{ID: "AD-00004", Prefix: "นางสาว", AcademicPosition: "ดร.", FirstName: "สิริ", LastName: "เพ็ญ", Department: "Grant Management", PhoneNumber: "0811111114", Email: "admin.siri@uni.ac.th", Password: string(hashedPassword)},
 		{ID: "AD-00005", Prefix: "นาย", AcademicPosition: "อาจารย์", FirstName: "สมศักดิ์", LastName: "ไอที", Department: "System Admin", PhoneNumber: "0811111115", Email: "admin.somsak@uni.ac.th", Password: string(hashedPassword)},
 	}
-	db.CreateInBatches(&admins, 5)
+	if err := db.CreateInBatches(&admins, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed admins: %v", err)
+	}
 	fmt.Println("✅ Admins seeded")
 
 	// ==========================================
@@ -146,7 +157,9 @@ func main() {
 		{ID: "CO-00004", Prefix: "นางสาว", AcademicPosition: "ผศ. ดร.", FirstName: "ดาริน", LastName: "ช่วยงาน", Department: "Agro-Industry", PhoneNumber: "0833333334", Email: "coor.darin@uni.ac.th"},
 		{ID: "CO-00005", Prefix: "นาย", AcademicPosition: "รศ. ภญ.", FirstName: "เอก", LastName: "กฎหมาย", Department: "IP Dept", PhoneNumber: "0833333335", Email: "coor.ek@uni.ac.th"},
 	}
-	db.CreateInBatches(&coordinators, 5)
+	if err := db.CreateInBatches(&coordinators, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed coordinators: %v", err)
+	}
 	fmt.Println("✅ Coordinators seeded")
 
 	// ==========================================
@@ -193,7 +206,9 @@ func main() {
 			CreatedAt: now.AddDate(-1, 0, 0), UpdatedAt: now,
 		},
 	}
-	db.CreateInBatches(&cases, 5)
+	if err := db.CreateInBatches(&cases, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed cases: %v", err)
+	}
 	fmt.Println("✅ Cases seeded")
 
 	// ==========================================
@@ -211,7 +226,9 @@ func main() {
 		// Case 5
 		{ID: "AP-00005", CaseID: "CS-00005", Date: now.AddDate(0, -2, 0), Status: "completed", Location: "Factory", Detail: "Final Inspection", Summary: "Passed"},
 	}
-	db.CreateInBatches(&appointments, 5)
+	if err := db.CreateInBatches(&appointments, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed appointments: %v", err)
+	}
 	fmt.Println("✅ Appointments seeded")
 
 	// ==========================================
@@ -313,7 +330,9 @@ func main() {
 			ImprovementSuggestion: "System is fully deployed and operational.",
 		},
 	}
-	db.CreateInBatches(&assessments, 5)
+	if err := db.CreateInBatches(&assessments, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed assessments: %v", err)
+	}
 	fmt.Println("✅ Assessments seeded")
 
 	// ==========================================
@@ -326,7 +345,9 @@ func main() {
 		{ID: "IP-00004", CaseID: "CS-00004", Types: "เครื่องหมายการค้า", ProtectionStatus: "Registered", RequestNumber: "TM-88899"},
 		{ID: "IP-00005", CaseID: "CS-00005", Types: "สิทธิบัตรออกแบบผลิตภัณฑ์", ProtectionStatus: "Application Filed", RequestNumber: "DS-2024-555"},
 	}
-	db.CreateInBatches(&ips, 5)
+	if err := db.CreateInBatches(&ips, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed ips: %v", err)
+	}
 	fmt.Println("✅ IPs seeded")
 
 	// ==========================================
@@ -339,7 +360,9 @@ func main() {
 		{ID: "F-00004", CaseID: "CS-00004", Name: "stress_test_data.csv", ObjectPath: "cases/cs00004/data.csv", ContentType: "text/csv", UploadedBy: "RS-00004", UploadedAt: now},
 		{ID: "F-00005", CaseID: "CS-00005", Name: "fda_certificate.pdf", ObjectPath: "cases/cs00005/cert.pdf", ContentType: "application/pdf", UploadedBy: "RS-00005", UploadedAt: now},
 	}
-	db.CreateInBatches(&files, 5)
+	if err := db.CreateInBatches(&files, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed files: %v", err)
+	}
 	fmt.Println("✅ Files seeded")
 
 	// ==========================================
@@ -352,7 +375,9 @@ func main() {
 		{ID: "SP-00004", CaseID: "CS-00004", NeedActivities: true, NeedCoDevelopers: true, Need: "Matching with construction firms."},
 		{ID: "SP-00005", CaseID: "CS-00005", SupportSiEIC: true, NeedAccount: true, Need: "Business model canvas workshop."},
 	}
-	db.CreateInBatches(&supportments, 5)
+	if err := db.CreateInBatches(&supportments, 5).Error; err != nil {
+		log.Fatalf("❌ Failed to seed supportments: %v", err)
+	}
 	fmt.Println("✅ Supportments seeded")
 
 	fmt.Println(strings.Repeat("=", 60))
