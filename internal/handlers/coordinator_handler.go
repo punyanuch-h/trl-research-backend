@@ -47,7 +47,7 @@ func (h *CoordinatorHandler) GetCoordinatorByCaseID(c *gin.Context) {
 
 // 🟢 POST /coordinator
 func (h *CoordinatorHandler) CreateCoordinator(c *gin.Context) {
-	var req models.CoordinatorInfo
+	var req models.Coordinators
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

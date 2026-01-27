@@ -20,16 +20,16 @@ func NewAdminRepo(db *gorm.DB) AdminRepository {
 }
 
 // 🟢 Get all admins
-func (r *AdminRepo) GetAdminAll() ([]models.AdminInfo, error) {
-	var admins []models.AdminInfo
+func (r *AdminRepo) GetAdminAll() ([]models.Admins, error) {
+	var admins []models.Admins
 	err := r.DB.Find(&admins).Error
 	return admins, err
 }
 
 // 🟢 Get admin by ID
-func (r *AdminRepo) GetAdminByID(adminID string) (*models.AdminInfo, error) {
-	var admin models.AdminInfo
-	err := r.DB.Where("admin_id = ?", adminID).First(&admin).Error
+func (r *AdminRepo) GetAdminByID(adminID string) (*models.Admins, error) {
+	var admin models.Admins
+	err := r.DB.Where("id = ?", adminID).First(&admin).Error
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +37,9 @@ func (r *AdminRepo) GetAdminByID(adminID string) (*models.AdminInfo, error) {
 }
 
 // 🟢 Get admin by email
-func (r *AdminRepo) GetAdminByEmail(email string) (*models.AdminInfo, error) {
-	var admin models.AdminInfo
-	err := r.DB.Where("admin_email = ?", email).First(&admin).Error
+func (r *AdminRepo) GetAdminByEmail(email string) (*models.Admins, error) {
+	var admin models.Admins
+	err := r.DB.Where("email = ?", email).First(&admin).Error
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +47,8 @@ func (r *AdminRepo) GetAdminByEmail(email string) (*models.AdminInfo, error) {
 }
 
 // 🟢 Create admin (auto-generate AdminID)
-func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
-	admin.AdminID = utils.GenerateID("AD")
+func (r *AdminRepo) CreateAdmin(admin *models.Admins) error {
+	admin.ID = utils.GenerateID("AD")
 	now := time.Now()
 	admin.CreatedAt = now
 	admin.UpdatedAt = now
@@ -57,9 +57,9 @@ func (r *AdminRepo) CreateAdmin(admin *models.AdminInfo) error {
 }
 
 // 🟢 Login with password verification
-func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, error) {
-	var admin models.AdminInfo
-	err := r.DB.Where("admin_email = ?", email).First(&admin).Error
+func (r *AdminRepo) Login(email string, password string) (*models.Admins, error) {
+	var admin models.Admins
+	err := r.DB.Where("email = ?", email).First(&admin).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("admin not found")
@@ -68,7 +68,7 @@ func (r *AdminRepo) Login(email string, password string) (*models.AdminInfo, err
 	}
 
 	// Verify password
-	err = bcrypt.CompareHashAndPassword([]byte(admin.AdminPassword), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password))
 	if err != nil {
 		return nil, fmt.Errorf("invalid password")
 	}
@@ -82,16 +82,16 @@ func (r *AdminRepo) UpdatePasswordByEmail(email string, password string) error {
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
-	return r.DB.Model(&models.AdminInfo{}).Where("admin_email = ?", email).Update("admin_password", string(hashedPassword)).Error
+	return r.DB.Model(&models.Admins{}).Where("email = ?", email).Update("password", string(hashedPassword)).Error
 }
 
 // 🟢 Update admin by ID
-func (r *AdminRepo) UpdateAdminByID(adminID string, data *models.AdminInfo) error {
+func (r *AdminRepo) UpdateAdminByID(adminID string, data *models.Admins) error {
 	data.UpdatedAt = time.Now()
-	return r.DB.Model(&models.AdminInfo{}).Where("admin_id = ?", adminID).Updates(data).Error
+	return r.DB.Model(&models.Admins{}).Where("id = ?", adminID).Updates(data).Error
 }
 
 // 🟢 Delete admin
 func (r *AdminRepo) DeleteAdmin(email string) error {
-	return r.DB.Where("admin_email = ?", email).Delete(&models.AdminInfo{}).Error
+	return r.DB.Where("email = ?", email).Delete(&models.Admins{}).Error
 }

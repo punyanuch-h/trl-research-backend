@@ -19,16 +19,16 @@ func NewAppointmentRepo(db *gorm.DB) AppointmentRepository {
 }
 
 // 🟢 GetAppointmentAll
-func (r *AppointmentRepo) GetAppointmentAll() ([]models.Appointment, error) {
-	var appointments []models.Appointment
+func (r *AppointmentRepo) GetAppointmentAll() ([]models.Appointments, error) {
+	var appointments []models.Appointments
 	err := r.DB.Find(&appointments).Error
 	return appointments, err
 }
 
 // 🟢 GetAppointmentByID
-func (r *AppointmentRepo) GetAppointmentByID(appointmentID string) (*models.Appointment, error) {
-	var ap models.Appointment
-	err := r.DB.Where("appointment_id = ?", appointmentID).First(&ap).Error
+func (r *AppointmentRepo) GetAppointmentByID(appointmentID string) (*models.Appointments, error) {
+	var ap models.Appointments
+	err := r.DB.Where("id = ?", appointmentID).First(&ap).Error
 	if err != nil {
 		return nil, err
 	}
@@ -36,15 +36,15 @@ func (r *AppointmentRepo) GetAppointmentByID(appointmentID string) (*models.Appo
 }
 
 // 🟢 GetAppointmentByCaseID
-func (r *AppointmentRepo) GetAppointmentByCaseID(caseID string) ([]models.Appointment, error) {
-	var appointments []models.Appointment
+func (r *AppointmentRepo) GetAppointmentByCaseID(caseID string) ([]models.Appointments, error) {
+	var appointments []models.Appointments
 	err := r.DB.Where("case_id = ?", caseID).Find(&appointments).Error
 	return appointments, err
 }
 
 // 🟢 CreateAppointment - auto generate ID AP-<UUID>
-func (r *AppointmentRepo) CreateAppointment(ap *models.Appointment) error {
-	ap.AppointmentID = utils.GenerateID("AP")
+func (r *AppointmentRepo) CreateAppointment(ap *models.Appointments) error {
+	ap.ID = utils.GenerateID("AP")
 	now := time.Now()
 	ap.CreatedAt = now
 	ap.UpdatedAt = now
@@ -68,5 +68,5 @@ func (r *AppointmentRepo) UpdateAppointmentByID(appointmentID string, data map[s
 	}
 
 	data["updated_at"] = time.Now()
-	return r.DB.Model(&models.Appointment{}).Where("appointment_id = ?", appointmentID).Updates(data).Error
+	return r.DB.Model(&models.Appointments{}).Where("id = ?", appointmentID).Updates(data).Error
 }

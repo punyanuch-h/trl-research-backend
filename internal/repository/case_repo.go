@@ -18,23 +18,23 @@ func NewCaseRepo(db *gorm.DB) CaseRepository {
 }
 
 // 🟢 GetCaseAll - fetch all cases
-func (r *CaseRepo) GetCaseAll() ([]models.CaseInfo, error) {
-	var cases []models.CaseInfo
+func (r *CaseRepo) GetCaseAll() ([]models.Cases, error) {
+	var cases []models.Cases
 	err := r.DB.Find(&cases).Error
 	return cases, err
 }
 
-// 🟢 GetCaseAllByResearcher_id - fetch all cases for a researcher
-func (r *CaseRepo) GetCaseAllByResearcher_id(researcherID string) ([]models.CaseInfo, error) {
-	var cases []models.CaseInfo
+// 🟢 GetCaseAllByResearcherID - fetch all cases for a researcher
+func (r *CaseRepo) GetCaseAllByResearcherID(researcherID string) ([]models.Cases, error) {
+	var cases []models.Cases
 	err := r.DB.Where("researcher_id = ?", researcherID).Find(&cases).Error
 	return cases, err
 }
 
 // 🟢 GetCaseByID
-func (r *CaseRepo) GetCaseByID(caseID string) (*models.CaseInfo, error) {
-	var cs models.CaseInfo
-	err := r.DB.Where("case_id = ?", caseID).First(&cs).Error
+func (r *CaseRepo) GetCaseByID(caseID string) (*models.Cases, error) {
+	var cs models.Cases
+	err := r.DB.Where("id = ?", caseID).First(&cs).Error
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +42,8 @@ func (r *CaseRepo) GetCaseByID(caseID string) (*models.CaseInfo, error) {
 }
 
 // 🟢 CreateCase - auto generate CaseID (CS-<UUID>)
-func (r *CaseRepo) CreateCase(cs *models.CaseInfo) error {
-	cs.CaseID = utils.GenerateID("CS")
+func (r *CaseRepo) CreateCase(cs *models.Cases) error {
+	cs.ID = utils.GenerateID("CS")
 	now := time.Now()
 	cs.CreatedAt = now
 	cs.UpdatedAt = now
@@ -54,12 +54,12 @@ func (r *CaseRepo) CreateCase(cs *models.CaseInfo) error {
 // 🟢 UpdateCaseByID
 func (r *CaseRepo) UpdateCaseByID(caseID string, data map[string]interface{}) error {
 	data["updated_at"] = time.Now()
-	return r.DB.Model(&models.CaseInfo{}).Where("case_id = ?", caseID).Updates(data).Error
+	return r.DB.Model(&models.Cases{}).Where("id = ?", caseID).Updates(data).Error
 }
 
 // 🟢 UpdateCaseStatusByID
 func (r *CaseRepo) UpdateCaseStatusByID(caseID string, status bool) error {
-	return r.DB.Model(&models.CaseInfo{}).Where("case_id = ?", caseID).Updates(map[string]interface{}{
+	return r.DB.Model(&models.Cases{}).Where("id = ?", caseID).Updates(map[string]interface{}{
 		"status":     status,
 		"updated_at": time.Now(),
 	}).Error

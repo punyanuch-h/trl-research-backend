@@ -82,7 +82,7 @@ func (h *AdminHandler) GetAdminProfile(c *gin.Context) {
 
 // 🟢 POST /admin
 func (h *AdminHandler) CreateAdmin(c *gin.Context) {
-	var req models.AdminInfo
+	var req models.Admins
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -98,7 +98,7 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 
 // update password
 func (h *AdminHandler) UpdatePassword(c *gin.Context) {
-	var req models.AdminInfo
+	var req models.Admins
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -124,39 +124,38 @@ func (h *AdminHandler) UpdateAdminProfileByID(c *gin.Context) {
 	}
 
 	// Update only fields that are provided in the request (non-empty values)
-	updateFields := &models.AdminInfo{
-		AdminID:               existingAdmin.AdminID,
-		AdminPrefix:           existingAdmin.AdminPrefix,
-		AdminAcademicPosition: existingAdmin.AdminAcademicPosition,
-		AdminFirstName:        existingAdmin.AdminFirstName,
-		AdminLastName:         existingAdmin.AdminLastName,
-		AdminDepartment:       existingAdmin.AdminDepartment,
-		AdminPhoneNumber:      existingAdmin.AdminPhoneNumber,
-		AdminEmail:            existingAdmin.AdminEmail,
-		AdminPassword:         existingAdmin.AdminPassword,
-		CaseID:                existingAdmin.CaseID,
-		CreatedAt:             existingAdmin.CreatedAt,
-		UpdatedAt:             time.Now(),
+	updateFields := &models.Admins{
+		ID:               existingAdmin.ID,
+		Prefix:           existingAdmin.Prefix,
+		AcademicPosition: existingAdmin.AcademicPosition,
+		FirstName:        existingAdmin.FirstName,
+		LastName:         existingAdmin.LastName,
+		Department:       existingAdmin.Department,
+		PhoneNumber:      existingAdmin.PhoneNumber,
+		Email:            existingAdmin.Email,
+		Password:         existingAdmin.Password,
+		CreatedAt:        existingAdmin.CreatedAt,
+		UpdatedAt:        time.Now(),
 	}
 
 	// Only update fields that are provided (non-empty) in the request
 	if updateReq.Prefix != "" {
-		updateFields.AdminPrefix = updateReq.Prefix
+		updateFields.Prefix = updateReq.Prefix
 	}
 	if updateReq.AcademicPosition != "" {
-		updateFields.AdminAcademicPosition = updateReq.AcademicPosition
+		updateFields.AcademicPosition = updateReq.AcademicPosition
 	}
 	if updateReq.FirstName != "" {
-		updateFields.AdminFirstName = updateReq.FirstName
+		updateFields.FirstName = updateReq.FirstName
 	}
 	if updateReq.LastName != "" {
-		updateFields.AdminLastName = updateReq.LastName
+		updateFields.LastName = updateReq.LastName
 	}
 	if updateReq.Department != "" {
-		updateFields.AdminDepartment = updateReq.Department
+		updateFields.Department = updateReq.Department
 	}
 	if updateReq.PhoneNumber != "" {
-		updateFields.AdminPhoneNumber = updateReq.PhoneNumber
+		updateFields.PhoneNumber = updateReq.PhoneNumber
 	}
 
 	if err := h.Repo.UpdateAdminByID(id, updateFields); err != nil {
@@ -166,7 +165,7 @@ func (h *AdminHandler) UpdateAdminProfileByID(c *gin.Context) {
 	}
 
 	// Fetch updated admin to verify changes
-	updatedAdmin, err := h.Repo.GetAdminByEmail(updateFields.AdminEmail)
+	updatedAdmin, err := h.Repo.GetAdminByEmail(updateFields.Email)
 	if err != nil {
 		// Fallback to GetAdminByID if GetAdminByEmail fails
 		updatedAdmin, err = h.Repo.GetAdminByID(id)
@@ -186,7 +185,7 @@ func (h *AdminHandler) UpdateAdminProfileByID(c *gin.Context) {
 
 // Login
 func (h *AdminHandler) Login(c *gin.Context) {
-	var req models.AdminInfo
+	var req models.Admins
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

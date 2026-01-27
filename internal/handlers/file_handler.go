@@ -16,10 +16,10 @@ type FileHandler struct {
 }
 
 type FileUploadedRequest struct {
-	FileName        string `json:"file_name"`
+	CaseID 	   		string `json:"case_id"`
+	Name        	string `json:"name"`
 	ObjectPath      string `json:"object_path"`
 	ContentType     string `json:"content_type"`
-	BelongsToCaseID string `json:"belongs_to_case_id"`
 }
 
 func (h *FileHandler) FileUploaded(c *gin.Context) {
@@ -36,15 +36,15 @@ func (h *FileHandler) FileUploaded(c *gin.Context) {
 		return
 	}
 
-	file := &models.FileMetadata{
+	file := &models.Files{
 		ID:              uuid.NewString(),
-		FileName:        req.FileName,
+		CaseID:          req.CaseID,
+		Name:            req.Name,
 		ObjectPath:      req.ObjectPath,
 		Bucket:          "trl-pdf-storage",
 		UploadedBy:      userID,
 		UploadedAt:      time.Now(),
 		ContentType:     req.ContentType,
-		BelongsToCaseID: req.BelongsToCaseID,
 	}
 
 	if err := h.Repo.SaveFile(c, file); err != nil {

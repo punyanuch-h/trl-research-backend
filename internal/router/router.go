@@ -33,18 +33,18 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 	adminRepo := repository.NewAdminRepo(database.DB)
 	researcherRepo := repository.NewResearcherRepo(database.DB)
 	coordinatorRepo := repository.NewCoordinatorRepo(database.DB)
-	supporterRepo := repository.NewSupporterRepo(database.DB)
+	supportmentRepo := repository.NewSupportmentRepo(database.DB)
 	appointmentRepo := repository.NewAppointmentRepo(database.DB)
 	caseRepo := repository.NewCaseRepo(database.DB)
 	ipRepo := repository.NewIntellectualPropertyRepo(database.DB)
-	assessmentTrlRepo := repository.NewAssessmentTrlRepo(database.DB)
+	assessmentRepo := repository.NewAssessmentRepo(database.DB)
 	fileRepo := repository.NewFileRepo(database.DB)
 
 	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
 	researcherHandler := &handlers.ResearcherHandler{Repo: researcherRepo}
 	coordinatorHandler := &handlers.CoordinatorHandler{Repo: coordinatorRepo}
-	supporterHandler := &handlers.SupporterHandler{Repo: supporterRepo}
+	supportmentHandler := &handlers.SupportmentHandler{Repo: supportmentRepo}
 	appointmentHandler := &handlers.AppointmentHandler{Repo: appointmentRepo}
 	caseHandler := &handlers.CaseHandler{
 		Repo:     caseRepo,
@@ -52,7 +52,7 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		GCS:      gcsClient,
 	}
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo, GCS: gcsClient}
-	assessmentTrlHandler := &handlers.AssessmentTrlHandler{Repo: assessmentTrlRepo, GCS: gcsClient}
+	assessmentHandler := &handlers.AssessmentHandler{Repo: assessmentRepo, GCS: gcsClient}
 	presignHandler := &handlers.PresignHandler{GCS: gcsClient}
 	fileHandler := &handlers.FileHandler{Repo: fileRepo}
 	fileDownloadHandler := &handlers.FileDownloadHandler{FileRepo: fileRepo, GCS: gcsClient}
@@ -98,11 +98,11 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		api.POST("/coordinator", coordinatorHandler.CreateCoordinator)
 		api.PATCH("/coordinator/:id", coordinatorHandler.UpdateCoordinatorByEmail)
 
-		api.GET("/supporters", supporterHandler.GetSupporterAll)
-		api.GET("/supporter/:id", supporterHandler.GetSupporterByID)
-		api.GET("/supporter/case/:id", supporterHandler.GetSupporterByCaseID)
-		api.POST("/supporter", supporterHandler.CreateSupporter)
-		api.PATCH("/supporter/:id", supporterHandler.UpdateSupporterByID)
+		api.GET("/supportments", supportmentHandler.GetSupportmentAll)
+		api.GET("/supportment/:id", supportmentHandler.GetSupportmentByID)
+		api.GET("/supportment/case/:id", supportmentHandler.GetSupportmentByCaseID)
+		api.POST("/supportment", supportmentHandler.CreateSupportment)
+		api.PATCH("/supportment/:id", supportmentHandler.UpdateSupportmentByID)
 
 		api.GET("/appointments", appointmentHandler.GetAppointmentAll)
 		api.GET("/appointment/:id", appointmentHandler.GetAppointmentByID)
@@ -111,7 +111,7 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		api.PATCH("/appointment/:id", appointmentHandler.UpdateAppointmentByID)
 
 		api.GET("/cases", caseHandler.GetCaseAll)
-		api.GET("/case/researcher/:id", caseHandler.GetCaseAllByResearcher_id)
+		api.GET("/case/researcher/:id", caseHandler.GetCaseAllByResearcherID)
 		api.GET("/case/:id", caseHandler.GetCaseByID)
 		api.POST("/case", caseHandler.CreateCase)
 		api.PATCH("/case/:id", caseHandler.UpdateCaseByID)
@@ -123,12 +123,11 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		api.POST("/ip", ipHandler.CreateIP)
 		api.PATCH("/ip/:id", ipHandler.UpdateIPByID)
 
-		api.GET("/assessment_trl", assessmentTrlHandler.GetAssessmentTrlAll)
-		api.GET("/assessment_trl/:id", assessmentTrlHandler.GetAssessmentTrlByID)
-		api.GET("/assessment_trl/case/:id", assessmentTrlHandler.GetAssessmentTrlByCaseID)
-		api.POST("/assessment_trl", assessmentTrlHandler.CreateAssessmentTrl)
-		api.PATCH("/assessment_trl/:id", assessmentTrlHandler.UpdateAssessmentTrlByID)
-
+		api.GET("/assessments", assessmentHandler.GetAssessmentAll)
+		api.GET("/assessment/:id", assessmentHandler.GetAssessmentByID)
+		api.GET("/assessment/case/:id", assessmentHandler.GetAssessmentByCaseID)
+		api.POST("/assessment", assessmentHandler.CreateAssessment)
+		api.PATCH("/assessment/:id", assessmentHandler.UpdateAssessmentByID)
 		// 🟢 File Management
 		api.POST("/presign/upload", presignHandler.PresignUpload)
 		api.POST("/file/upload", fileHandler.FileUploaded)

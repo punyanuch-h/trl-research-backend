@@ -91,7 +91,7 @@ func (h *ResearcherHandler) GetResearcherProfile(c *gin.Context) {
 
 // 🟢 POST /researcher
 func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
-	var req models.ResearcherInfo
+	var req models.Researchers
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Println("Can not bind JSON:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -126,9 +126,8 @@ func (h *ResearcherHandler) UpdateResearcherProfileByID(c *gin.Context) {
 	}
 
 	// Update only fields that are provided in the request (non-empty values)
-	updateFields := &models.ResearcherInfo{
-		ResearcherID:     existingResearcher.ResearcherID,
-		AdminID:          existingResearcher.AdminID,
+	updateFields := &models.Researchers{
+		ID:               existingResearcher.ID,
 		Prefix:           existingResearcher.Prefix,
 		AcademicPosition: existingResearcher.AcademicPosition,
 		FirstName:        existingResearcher.FirstName,

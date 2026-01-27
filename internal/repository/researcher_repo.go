@@ -20,8 +20,8 @@ func NewResearcherRepo(db *gorm.DB) ResearcherRepository {
 }
 
 // 🟢 Login with password verification
-func (r *ResearcherRepo) Login(email string, password string) (*models.ResearcherInfo, error) {
-	var researcher models.ResearcherInfo
+func (r *ResearcherRepo) Login(email string, password string) (*models.Researchers, error) {
+	var researcher models.Researchers
 	err := r.DB.Where("email = ?", email).First(&researcher).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -40,16 +40,16 @@ func (r *ResearcherRepo) Login(email string, password string) (*models.Researche
 }
 
 // 🟢 GetResearcherAll - fetch all researchers
-func (r *ResearcherRepo) GetResearcherAll() ([]models.ResearcherInfo, error) {
-	var researchers []models.ResearcherInfo
+func (r *ResearcherRepo) GetResearcherAll() ([]models.Researchers, error) {
+	var researchers []models.Researchers
 	err := r.DB.Find(&researchers).Error
 	return researchers, err
 }
 
 // 🟢 GetResearcherByID - fetch one researcher by ID
-func (r *ResearcherRepo) GetResearcherByID(researcherID string) (*models.ResearcherInfo, error) {
-	var researcher models.ResearcherInfo
-	err := r.DB.Where("researcher_id = ?", researcherID).First(&researcher).Error
+func (r *ResearcherRepo) GetResearcherByID(researcherID string) (*models.Researchers, error) {
+	var researcher models.Researchers
+	err := r.DB.Where("id = ?", researcherID).First(&researcher).Error
 	if err != nil {
 		return nil, err
 	}
@@ -57,10 +57,10 @@ func (r *ResearcherRepo) GetResearcherByID(researcherID string) (*models.Researc
 }
 
 // 🟢 GetResearcherByCaseID
-func (r *ResearcherRepo) GetResearcherByCaseID(caseID string) (*models.ResearcherInfo, error) {
-	// CaseInfo has researcher_id. Researcher does NOT have CaseID.
-	var c models.CaseInfo
-	if err := r.DB.Where("case_id = ?", caseID).First(&c).Error; err != nil {
+func (r *ResearcherRepo) GetResearcherByCaseID(caseID string) (*models.Researchers, error) {
+	// Cases has researcher_id. Researchers does NOT have CaseID.
+	var c models.Cases
+	if err := r.DB.Where("id = ?", caseID).First(&c).Error; err != nil {
 		return nil, err
 	}
 
@@ -68,8 +68,8 @@ func (r *ResearcherRepo) GetResearcherByCaseID(caseID string) (*models.Researche
 }
 
 // 🟢 CreateResearcher - auto-generate ResearcherID and create new record
-func (r *ResearcherRepo) CreateResearcher(researcher *models.ResearcherInfo) error {
-	researcher.ResearcherID = utils.GenerateID("RS")
+func (r *ResearcherRepo) CreateResearcher(researcher *models.Researchers) error {
+	researcher.ID = utils.GenerateID("RS")
 	now := time.Now()
 	researcher.CreatedAt = now
 	researcher.UpdatedAt = now
@@ -78,7 +78,7 @@ func (r *ResearcherRepo) CreateResearcher(researcher *models.ResearcherInfo) err
 }
 
 // 🟢 UpdateResearcherByID - update with UpdatedAt
-func (r *ResearcherRepo) UpdateResearcherByID(researcherID string, data *models.ResearcherInfo) error {
+func (r *ResearcherRepo) UpdateResearcherByID(researcherID string, data *models.Researchers) error {
 	data.UpdatedAt = time.Now()
-	return r.DB.Model(&models.ResearcherInfo{}).Where("researcher_id = ?", researcherID).Updates(data).Error
+	return r.DB.Model(&models.Researchers{}).Where("id = ?", researcherID).Updates(data).Error
 }

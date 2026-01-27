@@ -6,75 +6,75 @@ import (
 )
 
 type AdminRepository interface {
-	GetAdminAll() ([]models.AdminInfo, error)
-	GetAdminByID(adminID string) (*models.AdminInfo, error)
-	GetAdminByEmail(email string) (*models.AdminInfo, error)
-	CreateAdmin(admin *models.AdminInfo) error
-	Login(email string, password string) (*models.AdminInfo, error)
+	GetAdminAll() ([]models.Admins, error)
+	GetAdminByID(adminID string) (*models.Admins, error)
+	GetAdminByEmail(email string) (*models.Admins, error)
+	CreateAdmin(admin *models.Admins) error
+	Login(email string, password string) (*models.Admins, error)
 	UpdatePasswordByEmail(email string, password string) error
-	UpdateAdminByID(adminID string, data *models.AdminInfo) error
+	UpdateAdminByID(adminID string, data *models.Admins) error
 	DeleteAdmin(email string) error
 }
 
 type ResearcherRepository interface {
-	Login(email string, password string) (*models.ResearcherInfo, error)
-	GetResearcherAll() ([]models.ResearcherInfo, error)
-	GetResearcherByID(researcherID string) (*models.ResearcherInfo, error)
-	GetResearcherByCaseID(caseID string) (*models.ResearcherInfo, error)
-	CreateResearcher(researcher *models.ResearcherInfo) error
-	UpdateResearcherByID(researcherID string, data *models.ResearcherInfo) error
+	Login(email string, password string) (*models.Researchers, error)
+	GetResearcherAll() ([]models.Researchers, error)
+	GetResearcherByID(researcherID string) (*models.Researchers, error)
+	GetResearcherByCaseID(caseID string) (*models.Researchers, error)
+	CreateResearcher(researcher *models.Researchers) error
+	UpdateResearcherByID(researcherID string, data *models.Researchers) error
 }
 
 type CaseRepository interface {
-	GetCaseAll() ([]models.CaseInfo, error)
-	GetCaseAllByResearcher_id(researcherID string) ([]models.CaseInfo, error)
-	GetCaseByID(caseID string) (*models.CaseInfo, error)
-	CreateCase(cs *models.CaseInfo) error
+	GetCaseAll() ([]models.Cases, error)
+	GetCaseAllByResearcherID(researcherID string) ([]models.Cases, error)
+	GetCaseByID(caseID string) (*models.Cases, error)
+	CreateCase(cs *models.Cases) error
 	UpdateCaseByID(caseID string, data map[string]interface{}) error
 	UpdateCaseStatusByID(caseID string, status bool) error
 }
 
-type SupporterRepository interface {
-	GetSupporterAll() ([]models.Supporter, error)
-	GetSupporterByID(supporterID string) (*models.Supporter, error)
-	GetSupporterByCaseID(caseID string) (*models.Supporter, error)
-	CreateSupporter(supporter *models.Supporter) error
-	UpdateSupporterByID(supporterID string, data map[string]interface{}) error
+type SupportmentRepository interface {
+	GetSupportmentAll() ([]models.Supportments, error)
+	GetSupportmentByID(supportmentID string) (*models.Supportments, error)
+	GetSupportmentByCaseID(caseID string) (*models.Supportments, error)
+	CreateSupportment(supportment *models.Supportments) error
+	UpdateSupportmentByID(supportmentID string, data map[string]interface{}) error
 }
 
 type AppointmentRepository interface {
-	GetAppointmentAll() ([]models.Appointment, error)
-	GetAppointmentByID(appointmentID string) (*models.Appointment, error)
-	GetAppointmentByCaseID(caseID string) ([]models.Appointment, error)
-	CreateAppointment(ap *models.Appointment) error
+	GetAppointmentAll() ([]models.Appointments, error)
+	GetAppointmentByID(appointmentID string) (*models.Appointments, error)
+	GetAppointmentByCaseID(caseID string) ([]models.Appointments, error)
+	CreateAppointment(ap *models.Appointments) error
 	UpdateAppointmentByID(appointmentID string, data map[string]interface{}) error
 }
 
 type CoordinatorRepository interface {
-	GetCoordinatorAll() ([]models.CoordinatorInfo, error)
-	GetCoordinatorByEmail(email string) (*models.CoordinatorInfo, error)
-	GetCoordinatorByCaseID(caseID string) (*models.CoordinatorInfo, error)
-	CreateCoordinator(coordinator *models.CoordinatorInfo) error
+	GetCoordinatorAll() ([]models.Coordinators, error)
+	GetCoordinatorByEmail(email string) (*models.Coordinators, error)
+	GetCoordinatorByCaseID(caseID string) (*models.Coordinators, error)
+	CreateCoordinator(coordinator *models.Coordinators) error
 	UpdateCoordinatorByEmail(email string, data map[string]interface{}) error
 }
 
-type AssessmentTrlRepository interface {
-	GetAssessmentTrlAll() ([]models.AssessmentTrl, error)
-	GetAssessmentTrlByID(id string) (*models.AssessmentTrl, error)
-	GetAssessmentTrlByCaseID(caseID string) (*models.AssessmentTrl, error)
-	CreateAssessmentTrl(a *models.AssessmentTrl) error
-	UpdateAssessmentTrlByID(id string, data map[string]interface{}) error
+type AssessmentRepository interface {
+	GetAssessmentAll() ([]models.Assessments, error)
+	GetAssessmentByID(id string) (*models.Assessments, error)
+	GetAssessmentByCaseID(caseID string) (*models.Assessments, error)
+	CreateAssessment(a *models.Assessments) error
+	UpdateAssessmentByID(id string, data map[string]interface{}) error
 }
 
 type IntellectualPropertyRepository interface {
-	GetIPAll() ([]models.IntellectualProperty, error)
-	GetIPByID(ipID string) (*models.IntellectualProperty, error)
-	GetIPByCaseID(caseID string) (*models.IntellectualProperty, error)
-	CreateIP(ip *models.IntellectualProperty) error
+	GetIPAll() ([]models.IntellectualProperties, error)
+	GetIPByID(ipID string) (*models.IntellectualProperties, error)
+	GetIPByCaseID(caseID string) (*models.IntellectualProperties, error)
+	CreateIP(ip *models.IntellectualProperties) error
 	UpdateIPByID(ipID string, data map[string]interface{}) error
 }
 
 type FileRepository interface {
-	SaveFile(ctx context.Context, file *models.FileMetadata) error
-	GetFileByID(ctx context.Context, fileID string) (*models.FileMetadata, error)
+	SaveFile(ctx context.Context, file *models.Files) error
+	GetFileByID(ctx context.Context, fileID string) (*models.Files, error)
 }

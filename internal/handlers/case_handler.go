@@ -36,9 +36,9 @@ func (h *CaseHandler) GetCaseAll(c *gin.Context) {
 }
 
 // 🟢 GET /case/researcher/:id - Get all cases for a researcher
-func (h *CaseHandler) GetCaseAllByResearcher_id(c *gin.Context) {
+func (h *CaseHandler) GetCaseAllByResearcherID(c *gin.Context) {
 	id := c.Param("id")
-	cases, err := h.Repo.GetCaseAllByResearcher_id(id)
+	cases, err := h.Repo.GetCaseAllByResearcherID(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -64,7 +64,7 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 
 	// 1. Handle Multipart/Form-Data (File Upload)
 	if contentType != "" && (contentType == "multipart/form-data" || len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
-		var req models.CaseInfo
+		var req models.Cases
 		// Bind form fields to struct
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
@@ -106,7 +106,7 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 
 		// Add paths to request model
 		jsonData, _ := json.Marshal(uploadedPaths)
-		req.CaseAttachments = datatypes.JSON(jsonData)
+		req.Attachments = datatypes.JSON(jsonData)
 
 		// Save Case
 		if err := h.Repo.CreateCase(&req); err != nil {
@@ -119,7 +119,7 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 	}
 
 	// 2. Fallback to JSON (Existing Logic)
-	var req models.CaseInfo
+	var req models.Cases
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

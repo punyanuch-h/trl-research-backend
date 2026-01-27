@@ -42,8 +42,8 @@ func (h *LoginHandler) Login(c *gin.Context) {
 	fmt.Println("admin", admin)
 	fmt.Println("errA", errA)
 	if errA == nil && admin != nil {
-		userID = admin.AdminID
-		userEmail = admin.AdminEmail
+		userID = admin.ID
+		userEmail = admin.Email
 		userRole = "admin"
 	}
 
@@ -53,7 +53,7 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		fmt.Println("researcher", researcher)
 		fmt.Println("errR", errR)
 		if errR == nil && researcher != nil {
-			userID = researcher.ResearcherID
+			userID = researcher.ID
 			userEmail = researcher.Email
 			userRole = "researcher"
 		}
