@@ -67,9 +67,13 @@ func (r *ResearcherRepo) GetResearcherByCaseID(caseID string) (*models.Researche
 	return r.GetResearcherByID(c.ResearcherID)
 }
 
-// 🟢 CreateResearcher - auto-generate ResearcherID and create new record
+// 🟢 CreateResearcher - auto-generate ResearcherID (RS-00001) and create new record
 func (r *ResearcherRepo) CreateResearcher(researcher *models.Researchers) error {
-	researcher.ID = utils.GenerateID("RS")
+	id, err := utils.GenerateID(r.DB, "researchers", "RS")
+	if err != nil {
+		return err
+	}
+	researcher.ID = id
 	now := time.Now()
 	researcher.CreatedAt = now
 	researcher.UpdatedAt = now

@@ -46,9 +46,13 @@ func (r *AdminRepo) GetAdminByEmail(email string) (*models.Admins, error) {
 	return &admin, nil
 }
 
-// 🟢 Create admin (auto-generate AdminID)
+// 🟢 Create admin (auto-generate AdminID AD-00001)
 func (r *AdminRepo) CreateAdmin(admin *models.Admins) error {
-	admin.ID = utils.GenerateID("AD")
+	id, err := utils.GenerateID(r.DB, "admins", "AD")
+	if err != nil {
+		return err
+	}
+	admin.ID = id
 	now := time.Now()
 	admin.CreatedAt = now
 	admin.UpdatedAt = now

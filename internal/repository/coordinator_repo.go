@@ -37,18 +37,18 @@ func (r *CoordinatorRepo) GetCoordinatorByEmail(email string) (*models.Coordinat
 
 // 🟢 GetCoordinatorByCaseID
 func (r *CoordinatorRepo) GetCoordinatorByCaseID(caseID string) (*models.Coordinators, error) {
-    var caseData models.Cases
-    if err := r.DB.Where("id = ?", caseID).First(&caseData).Error; err != nil {
-        return nil, fmt.Errorf("case not found: %v", err)
-    }
-    var coordinator models.Coordinators
-    if err := r.DB.Where("id = ?", caseData.CoordinatorID).First(&coordinator).Error; err != nil {
-        return nil, fmt.Errorf("coordinator not found: %v", err)
-    }
-    return &coordinator, nil
+	var caseData models.Cases
+	if err := r.DB.Where("id = ?", caseID).First(&caseData).Error; err != nil {
+		return nil, fmt.Errorf("case not found: %v", err)
+	}
+	var coordinator models.Coordinators
+	if err := r.DB.Where("id = ?", caseData.CoordinatorID).First(&coordinator).Error; err != nil {
+		return nil, fmt.Errorf("coordinator not found: %v", err)
+	}
+	return &coordinator, nil
 }
 
-// 🟢 CreateCoordinator - auto generate CoordinatorID (C-<UUID>) or update if email exists
+// 🟢 CreateCoordinator - auto generate CoordinatorID (CO-00001) or update if email exists
 func (r *CoordinatorRepo) CreateCoordinator(coordinator *models.Coordinators) error {
 	// Check if a coordinator with this email already exists
 	var existing models.Coordinators
@@ -60,7 +60,11 @@ func (r *CoordinatorRepo) CreateCoordinator(coordinator *models.Coordinators) er
 		return r.DB.Model(&existing).Updates(coordinator).Error
 	}
 
-	coordinator.ID = utils.GenerateID("CO")
+	id, err := utils.GenerateID(r.DB, "coordinators", "CO")
+	if err != nil {
+		return err
+	}
+	coordinator.ID = id
 	now := time.Now()
 	coordinator.CreatedAt = now
 	coordinator.UpdatedAt = now

@@ -42,9 +42,13 @@ func (r *AppointmentRepo) GetAppointmentByCaseID(caseID string) ([]models.Appoin
 	return appointments, err
 }
 
-// 🟢 CreateAppointment - auto generate ID AP-<UUID>
+// 🟢 CreateAppointment - auto generate ID AP-00001
 func (r *AppointmentRepo) CreateAppointment(ap *models.Appointments) error {
-	ap.ID = utils.GenerateID("AP")
+	id, err := utils.GenerateID(r.DB, "appointments", "AP")
+	if err != nil {
+		return err
+	}
+	ap.ID = id
 	now := time.Now()
 	ap.CreatedAt = now
 	ap.UpdatedAt = now

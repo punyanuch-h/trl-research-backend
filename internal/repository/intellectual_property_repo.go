@@ -48,9 +48,13 @@ func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.Intelle
 	return &ip, nil
 }
 
-// 🟢 CreateIP - auto generate ID IP-<UUID>
+// 🟢 CreateIP - auto generate ID IP-00001
 func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperties) error {
-	ip.ID = utils.GenerateID("IP")
+	id, err := utils.GenerateID(r.DB, "intellectual_properties", "IP")
+	if err != nil {
+		return err
+	}
+	ip.ID = id
 	now := time.Now()
 	ip.CreatedAt = now
 	ip.UpdatedAt = now

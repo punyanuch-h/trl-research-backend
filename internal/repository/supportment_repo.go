@@ -48,9 +48,13 @@ func (r *SupportmentRepo) GetSupportmentByCaseID(caseID string) (*models.Support
 	return &supportment, nil
 }
 
-// 🟢 CreateSupportment - auto-generate ID SP-<UUID>
+// 🟢 CreateSupportment - auto-generate ID SP-00001
 func (r *SupportmentRepo) CreateSupportment(supportment *models.Supportments) error {
-	supportment.ID = utils.GenerateID("SP")
+	id, err := utils.GenerateID(r.DB, "supportments", "SP")
+	if err != nil {
+		return err
+	}
+	supportment.ID = id
 	now := time.Now()
 	supportment.CreatedAt = now
 	supportment.UpdatedAt = now

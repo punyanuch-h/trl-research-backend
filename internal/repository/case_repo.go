@@ -41,9 +41,13 @@ func (r *CaseRepo) GetCaseByID(caseID string) (*models.Cases, error) {
 	return &cs, nil
 }
 
-// 🟢 CreateCase - auto generate CaseID (CS-<UUID>)
+// 🟢 CreateCase - auto generate CaseID (CS-00001)
 func (r *CaseRepo) CreateCase(cs *models.Cases) error {
-	cs.ID = utils.GenerateID("CS")
+	id, err := utils.GenerateID(r.DB, "cases", "CS")
+	if err != nil {
+		return err
+	}
+	cs.ID = id
 	now := time.Now()
 	cs.CreatedAt = now
 	cs.UpdatedAt = now

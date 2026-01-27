@@ -165,42 +165,40 @@ func main() {
 	// ==========================================
 	// 📁 4. CASES
 	// ==========================================
-	adminID1 := "AD-00001"
-	adminID2 := "AD-00002"
 
 	// TRL Score logic applies to the specific Assessment scenario below
 	cases := []models.Cases{
 		// Case 1: TRL 8. Finished (Status=True). No Urgent. Has Admin.
 		{
-			ID: "CS-00001", ResearcherID: "RS-00001", AdminID: adminID1, CoordinatorEmail: "coor.suda@uni.ac.th",
+			ID: "CS-00001", ResearcherID: "RS-00001", CoordinatorID: "CO-00001",
 			Title: "AI Screening for Retinopathy", Type: "Software/Medical", Description: "Deep learning model.", Keywords: "AI, Retina",
 			TrlScore: 8, Status: true, IsUrgent: false,
 			CreatedAt: now.AddDate(0, -6, 0), UpdatedAt: now,
 		},
 		// Case 2: TRL 4. In Progress. Urgent (Funding). Has Admin.
 		{
-			ID: "CS-00002", ResearcherID: "RS-00002", AdminID: adminID2, CoordinatorEmail: "coor.piti@uni.ac.th",
+			ID: "CS-00002", ResearcherID: "RS-00002", CoordinatorID: "CO-00002",
 			Title: "Smart PM2.5 Grid Sensor", Type: "Hardware/IoT", Description: "LoRaWAN sensor.", Keywords: "IoT, Environment",
-			TrlScore: 4, Status: false, IsUrgent: true, UrgentReason: "Submit for NRCT funding", UrgentFeedback: "Please revise budget",
+			TrlScore: 4, Status: false, IsUrgent: false, UrgentReason: "Submit for NRCT funding", UrgentFeedback: "Please revise budget",
 			CreatedAt: now.AddDate(0, -2, 0), UpdatedAt: now,
 		},
 		// Case 3: TRL 2. In Progress. No Urgent. NO Admin (New Case).
 		{
-			ID: "CS-00003", ResearcherID: "RS-00003", AdminID: adminID1, CoordinatorEmail: "coor.wanna@uni.ac.th",
+			ID: "CS-00003", ResearcherID: "RS-00003", CoordinatorID: "CO-00003",
 			Title: "Nano-Curcumin Extraction", Type: "Process/Pharma", Description: "New extraction method.", Keywords: "Herb, Nano",
-			TrlScore: 2, Status: false, IsUrgent: false,
+			TrlScore: 2, Status: false, IsUrgent: true, UrgentReason: "Submit for NRCT funding",
 			CreatedAt: now.AddDate(0, 0, -10), UpdatedAt: now,
 		},
 		// Case 4: TRL 5. In Progress. Urgent (Contest). Has Admin.
 		{
-			ID: "CS-00004", ResearcherID: "RS-00004", AdminID: adminID2, CoordinatorEmail: "coor.darin@uni.ac.th",
+			ID: "CS-00004", ResearcherID: "RS-00004", CoordinatorID: "CO-00004",
 			Title: "Self-Healing Bio-Concrete", Type: "Material", Description: "Bacteria concrete.", Keywords: "Bio, Construction",
-			TrlScore: 5, Status: false, IsUrgent: true, UrgentReason: "Competition deadline", UrgentFeedback: "Wait for stress test results",
+			TrlScore: 5, Status: false, IsUrgent: true, UrgentReason: "Competition deadline",
 			CreatedAt: now.AddDate(0, -4, 0), UpdatedAt: now,
 		},
 		// Case 5: TRL 9. Finished. No Urgent. Has Admin.
 		{
-			ID: "CS-00005", ResearcherID: "RS-00005", AdminID: adminID1, CoordinatorEmail: "coor.ek@uni.ac.th",
+			ID: "CS-00005", ResearcherID: "RS-00005", CoordinatorID: "CO-00005",
 			Title: "Probiotic Durian Bites", Type: "Food Tech", Description: "Freeze-dried product.", Keywords: "Food, Export",
 			TrlScore: 9, Status: true, IsUrgent: false,
 			CreatedAt: now.AddDate(-1, 0, 0), UpdatedAt: now,

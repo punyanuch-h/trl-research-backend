@@ -48,9 +48,13 @@ func (r *AssessmentRepo) GetAssessmentByCaseID(caseID string) (*models.Assessmen
 	return &a, nil
 }
 
-// 🟢 CreateAssessment - auto generate ID AS-<UUID>
+// 🟢 CreateAssessment - auto generate ID AS-00001
 func (r *AssessmentRepo) CreateAssessment(a *models.Assessments) error {
-	a.ID = utils.GenerateID("AS")
+	id, err := utils.GenerateID(r.DB, "assessments", "AS")
+	if err != nil {
+		return err
+	}
+	a.ID = id
 	now := time.Now()
 	a.CreatedAt = now
 	a.UpdatedAt = now

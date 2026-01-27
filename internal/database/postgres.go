@@ -18,6 +18,7 @@ func InitPostgres() {
 	if dsn == "" {
 		dsn = os.Getenv("DB_URL") // production
 	}
+	log.Println("DB_URL: ", dsn)
 
 	if dsn == "" {
 		log.Println("❌ DB_URL environment variable is not set")

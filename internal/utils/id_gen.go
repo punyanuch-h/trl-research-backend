@@ -2,23 +2,37 @@ package utils
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-// GenerateID generates a collision-free ID with a given prefix.
-// The ID format is <prefix>-<uuid_segment>
-func GenerateID(prefix string) string {
-	newUUID := uuid.New().String()
-	// Using the full UUID to ensure uniqueness as requested
-	return fmt.Sprintf("%s-%s", prefix, newUUID)
-}
+// GenerateID generates an ID with the format PREFIX-00001
+// It finds the highest numeric ID with the given prefix and increments it.
+func GenerateID(db *gorm.DB, tableName string, prefix string) (string, error) {
+	var ids []string
+	// Fetch IDs that start with the prefix
+	err := db.Table(tableName).Where("id LIKE ?", prefix+"-%").Select("id").Find(&ids).Error
+	if err != nil {
+		return "", err
+	}
 
-// GenerateShortID generates a shorter collision-free ID with a given prefix.
-// It uses the first segment of the UUID.
-func GenerateShortID(prefix string) string {
-	newUUID := uuid.New().String()
-	segment := strings.Split(newUUID, "-")[0]
-	return fmt.Sprintf("%s-%s", prefix, segment)
+	maxNum := 0
+	for _, id := range ids {
+		// Example: CS-00001
+		parts := strings.Split(id, "-")
+		if len(parts) != 2 {
+			continue
+		}
+
+		num, err := strconv.Atoi(parts[1])
+		if err == nil {
+			if num > maxNum {
+				maxNum = num
+			}
+		}
+	}
+
+	return fmt.Sprintf("%s-%05d", prefix, maxNum+1), nil
 }
