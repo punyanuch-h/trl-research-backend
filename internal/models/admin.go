@@ -5,34 +5,33 @@ import (
 	"trl-research-backend/internal/entity"
 )
 
-type AdminInfo struct {
-	AdminID               string    `gorm:"primaryKey;column:admin_id" json:"admin_id"`
-	AdminPrefix           string    `gorm:"column:admin_prefix" json:"admin_prefix"`
-	AdminAcademicPosition string    `gorm:"column:admin_academic_position" json:"admin_academic_position"`
-	AdminFirstName        string    `gorm:"column:admin_first_name" json:"admin_first_name"`
-	AdminLastName         string    `gorm:"column:admin_last_name" json:"admin_last_name"`
-	AdminDepartment       string    `gorm:"column:admin_department" json:"admin_department"`
-	AdminPhoneNumber      string    `gorm:"column:admin_phone_number" json:"admin_phone_number"`
-	AdminEmail            string    `gorm:"column:admin_email;unique" json:"admin_email"`
-	AdminPassword         string    `gorm:"column:admin_password" json:"-"`
-	CaseID                string    `gorm:"column:case_id" json:"case_id"`
-	CreatedAt             time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt             time.Time `gorm:"column:updated_at" json:"updated_at"`
+type Admins struct {
+	ID               string    `gorm:"primaryKey;column:id" json:"id"`
+	Prefix           string    `gorm:"column:prefix;not null" json:"prefix"`
+	AcademicPosition string    `gorm:"column:academic_position" json:"academic_position"`
+	FirstName        string    `gorm:"column:first_name;not null" json:"first_name"`
+	LastName         string    `gorm:"column:last_name;not null" json:"last_name"`
+	Department       string    `gorm:"column:department;not null" json:"department"`
+	PhoneNumber      string    `gorm:"column:phone_number;not null" json:"phone_number"`
+	Email            string    `gorm:"column:email;not null;unique" json:"email"`
+	Password         string    `gorm:"column:password;not null" json:"-"`
+	CreatedAt        time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt        time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-func (AdminInfo) TableName() string {
+func (Admins) TableName() string {
 	return "admins"
 }
 
-func (r *AdminInfo) ToResponse() entity.AdminResponse {
+func (r *Admins) ToResponse() entity.AdminResponse {
 	return entity.AdminResponse{
-		ID:               r.AdminID,
-		Prefix:           r.AdminPrefix,
-		AcademicPosition: r.AdminAcademicPosition,
-		FirstName:        r.AdminFirstName,
-		LastName:         r.AdminLastName,
-		Department:       r.AdminDepartment,
-		PhoneNumber:      r.AdminPhoneNumber,
-		Email:            r.AdminEmail,
+		ID:               r.ID,
+		Prefix:           r.Prefix,
+		AcademicPosition: r.AcademicPosition,
+		FirstName:        r.FirstName,
+		LastName:         r.LastName,
+		Department:       r.Department,
+		PhoneNumber:      r.PhoneNumber,
+		Email:            r.Email,
 	}
 }

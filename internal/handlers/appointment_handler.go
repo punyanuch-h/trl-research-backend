@@ -47,7 +47,7 @@ func (h *AppointmentHandler) GetAppointmentByCaseID(c *gin.Context) {
 
 // 🟢 POST /appointment
 func (h *AppointmentHandler) CreateAppointment(c *gin.Context) {
-	var req models.Appointment
+	var req models.Appointments
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

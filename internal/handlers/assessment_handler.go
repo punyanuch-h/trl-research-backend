@@ -14,14 +14,14 @@ import (
 	"gorm.io/datatypes"
 )
 
-type AssessmentTrlHandler struct {
-	Repo repository.AssessmentTrlRepository
+type AssessmentHandler struct {
+	Repo repository.AssessmentRepository
 	GCS  *storage.GCSClient
 }
 
 // 🟢 GET /assessments
-func (h *AssessmentTrlHandler) GetAssessmentTrlAll(c *gin.Context) {
-	assessments, err := h.Repo.GetAssessmentTrlAll()
+func (h *AssessmentHandler) GetAssessmentAll(c *gin.Context) {
+	assessments, err := h.Repo.GetAssessmentAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -30,34 +30,34 @@ func (h *AssessmentTrlHandler) GetAssessmentTrlAll(c *gin.Context) {
 }
 
 // 🟢 GET /assessment/:id
-func (h *AssessmentTrlHandler) GetAssessmentTrlByID(c *gin.Context) {
+func (h *AssessmentHandler) GetAssessmentByID(c *gin.Context) {
 	id := c.Param("id")
-	a, err := h.Repo.GetAssessmentTrlByID(id)
+	a, err := h.Repo.GetAssessmentByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Assessment TRL not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assessment not found"})
 		return
 	}
 	c.JSON(http.StatusOK, a)
 }
 
 // 🟢 GET /assessment/case/:id
-func (h *AssessmentTrlHandler) GetAssessmentTrlByCaseID(c *gin.Context) {
+func (h *AssessmentHandler) GetAssessmentByCaseID(c *gin.Context) {
 	id := c.Param("id")
-	a, err := h.Repo.GetAssessmentTrlByCaseID(id)
+	a, err := h.Repo.GetAssessmentByCaseID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Assessment TRL not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assessment not found"})
 		return
 	}
 	c.JSON(http.StatusOK, a)
 }
 
 // 🟢 POST /assessment
-func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
+func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 	contentType := c.GetHeader("Content-Type")
 
 	// 1. Handle Multipart/Form-Data
 	if contentType != "" && (len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
-		var req models.AssessmentTrl
+		var req models.Assessments
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
 			return
@@ -106,13 +106,13 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 		}
 
 		// Process all attachments
-		req.Rq1Attachments = uploadFiles("rq1_attachment")
-		req.Rq2Attachments = uploadFiles("rq2_attachment")
-		req.Rq3Attachments = uploadFiles("rq3_attachment")
-		req.Rq4Attachments = uploadFiles("rq4_attachment")
-		req.Rq5Attachments = uploadFiles("rq5_attachment")
-		req.Rq6Attachments = uploadFiles("rq6_attachment")
-		req.Rq7Attachments = uploadFiles("rq7_attachment")
+		req.Rq1Attachments = uploadFiles("rq1_attachments")
+		req.Rq2Attachments = uploadFiles("rq2_attachments")
+		req.Rq3Attachments = uploadFiles("rq3_attachments")
+		req.Rq4Attachments = uploadFiles("rq4_attachments")
+		req.Rq5Attachments = uploadFiles("rq5_attachments")
+		req.Rq6Attachments = uploadFiles("rq6_attachments")
+		req.Rq7Attachments = uploadFiles("rq7_attachments")
 
 		// Process all answers
 		req.Cq1Answer = bindJSON("cq1_answer")
@@ -125,17 +125,17 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 		req.Cq8Answer = bindJSON("cq8_answer")
 		req.Cq9Answer = bindJSON("cq9_answer")
 
-		req.Cq1Attachments = uploadFiles("cq1_attachment")
-		req.Cq2Attachments = uploadFiles("cq2_attachment")
-		req.Cq3Attachments = uploadFiles("cq3_attachment")
-		req.Cq4Attachments = uploadFiles("cq4_attachment")
-		req.Cq5Attachments = uploadFiles("cq5_attachment")
-		req.Cq6Attachments = uploadFiles("cq6_attachment")
-		req.Cq7Attachments = uploadFiles("cq7_attachment")
-		req.Cq8Attachments = uploadFiles("cq8_attachment")
-		req.Cq9Attachments = uploadFiles("cq9_attachment")
+		req.Cq1Attachments = uploadFiles("cq1_attachments")
+		req.Cq2Attachments = uploadFiles("cq2_attachments")
+		req.Cq3Attachments = uploadFiles("cq3_attachments")
+		req.Cq4Attachments = uploadFiles("cq4_attachments")
+		req.Cq5Attachments = uploadFiles("cq5_attachments")
+		req.Cq6Attachments = uploadFiles("cq6_attachments")
+		req.Cq7Attachments = uploadFiles("cq7_attachments")
+		req.Cq8Attachments = uploadFiles("cq8_attachments")
+		req.Cq9Attachments = uploadFiles("cq9_attachments")
 
-		if err := h.Repo.CreateAssessmentTrl(&req); err != nil {
+		if err := h.Repo.CreateAssessment(&req); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -145,13 +145,13 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 	}
 
 	// 2. Fallback to JSON
-	var req models.AssessmentTrl
+	var req models.Assessments
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.Repo.CreateAssessmentTrl(&req); err != nil {
+	if err := h.Repo.CreateAssessment(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -160,7 +160,7 @@ func (h *AssessmentTrlHandler) CreateAssessmentTrl(c *gin.Context) {
 }
 
 // 🟢 PATCH /assessment/:id
-func (h *AssessmentTrlHandler) UpdateAssessmentTrlByID(c *gin.Context) {
+func (h *AssessmentHandler) UpdateAssessmentByID(c *gin.Context) {
 	id := c.Param("id")
 	var updateData map[string]interface{}
 
@@ -169,10 +169,10 @@ func (h *AssessmentTrlHandler) UpdateAssessmentTrlByID(c *gin.Context) {
 		return
 	}
 
-	if err := h.Repo.UpdateAssessmentTrlByID(id, updateData); err != nil {
+	if err := h.Repo.UpdateAssessmentByID(id, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Assessment TRL updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Assessment updated successfully"})
 }

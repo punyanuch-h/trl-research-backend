@@ -14,8 +14,8 @@ import (
 var DB *gorm.DB
 
 func InitPostgres() {
-	dsn := os.Getenv("DB_URL") // production
-	// dsn := os.Getenv("DEV_DB_URL") // local
+	// dsn := os.Getenv("DB_URL") // production
+	dsn := os.Getenv("DEV_DB_URL") // local
 	if dsn == "" {
 		log.Fatal("❌ DB_URL environment variable is not set")
 	}

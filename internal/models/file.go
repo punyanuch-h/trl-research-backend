@@ -2,17 +2,19 @@ package models
 
 import "time"
 
-type FileMetadata struct {
+type Files struct {
 	ID              string    `gorm:"primaryKey;column:id" json:"id"`
-	FileName        string    `gorm:"column:file_name" json:"file_name"`
-	ObjectPath      string    `gorm:"column:object_path" json:"object_path"`
+	CaseID		    string    `gorm:"column:case_id;not null" json:"case_id"`
+	Case 		    *Cases    `gorm:"foreignKey:CaseID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"case"`
+	Name        	string    `gorm:"column:name;not null" json:"name"`
+	ObjectPath      string    `gorm:"column:object_path;not null" json:"object_path"`
 	Bucket          string    `gorm:"column:bucket" json:"bucket"`
-	UploadedBy      string    `gorm:"column:uploaded_by" json:"uploaded_by"`
-	UploadedAt      time.Time `gorm:"column:uploaded_at" json:"uploaded_at"`
 	ContentType     string    `gorm:"column:content_type" json:"content_type"`
-	BelongsToCaseID string    `gorm:"column:belongs_to_case_id" json:"belongs_to_case_id"` // optional
+	UploadedBy      string    `gorm:"column:uploaded_by;not null" json:"uploaded_by"`
+	UploadedAt      time.Time `gorm:"column:uploaded_at" json:"uploaded_at"`
+	
 }
 
-func (FileMetadata) TableName() string {
-	return "file_metadatas"
+func (Files) TableName() string {
+	return "files"
 }

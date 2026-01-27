@@ -5,28 +5,27 @@ import (
 	"trl-research-backend/internal/entity"
 )
 
-type ResearcherInfo struct {
-	ResearcherID     string    `gorm:"primaryKey;column:researcher_id" json:"researcher_id"`
-	AdminID          string    `gorm:"column:admin_id" json:"admin_id"`
-	Prefix           string    `gorm:"column:prefix" json:"researcher_prefix"`
-	AcademicPosition string    `gorm:"column:academic_position" json:"researcher_academic_position"`
-	FirstName        string    `gorm:"column:first_name" json:"researcher_first_name"`
-	LastName         string    `gorm:"column:last_name" json:"researcher_last_name"`
-	Department       string    `gorm:"column:department" json:"researcher_department"`
-	PhoneNumber      string    `gorm:"column:phone_number" json:"researcher_phone_number"`
-	Email            string    `gorm:"column:email;unique" json:"researcher_email"`
-	Password         string    `gorm:"column:password" json:"researcher_password"`
+type Researchers struct {
+	ID     			 string    `gorm:"primaryKey;column:id" json:"id"`
+	Prefix           string    `gorm:"column:prefix;not null" json:"prefix"`
+	AcademicPosition string    `gorm:"column:academic_position" json:"academic_position"`
+	FirstName        string    `gorm:"column:first_name;not null" json:"first_name"`
+	LastName         string    `gorm:"column:last_name;not null" json:"last_name"`
+	Department       string    `gorm:"column:department;not null" json:"department"`
+	PhoneNumber      string    `gorm:"column:phone_number;not null" json:"phone_number"`
+	Email            string    `gorm:"column:email;not null;unique" json:"email"`
+	Password         string    `gorm:"column:password;not null" json:"password"`
 	CreatedAt        time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt        time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-func (ResearcherInfo) TableName() string {
+func (Researchers) TableName() string {
 	return "researchers"
 }
 
-func (r *ResearcherInfo) ToResponse() entity.ResearcherResponse {
+func (r *Researchers) ToResponse() entity.ResearcherResponse {
 	return entity.ResearcherResponse{
-		ID:               r.ResearcherID,
+		ID:               r.ID,
 		Prefix:           r.Prefix,
 		AcademicPosition: r.AcademicPosition,
 		FirstName:        r.FirstName,

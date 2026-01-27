@@ -19,15 +19,15 @@ func NewIntellectualPropertyRepo(db *gorm.DB) IntellectualPropertyRepository {
 }
 
 // 🟢 GetIPAll - fetch all intellectual property records
-func (r *IntellectualPropertyRepo) GetIPAll() ([]models.IntellectualProperty, error) {
-	var ips []models.IntellectualProperty
+func (r *IntellectualPropertyRepo) GetIPAll() ([]models.IntellectualProperties, error) {
+	var ips []models.IntellectualProperties
 	err := r.DB.Find(&ips).Error
 	return ips, err
 }
 
 // 🟢 GetIPByID
-func (r *IntellectualPropertyRepo) GetIPByID(ipID string) (*models.IntellectualProperty, error) {
-	var ip models.IntellectualProperty
+func (r *IntellectualPropertyRepo) GetIPByID(ipID string) (*models.IntellectualProperties, error) {
+	var ip models.IntellectualProperties
 	err := r.DB.Where("id = ?", ipID).First(&ip).Error
 	if err != nil {
 		return nil, err
@@ -36,8 +36,8 @@ func (r *IntellectualPropertyRepo) GetIPByID(ipID string) (*models.IntellectualP
 }
 
 // 🟢 GetIPByCaseID
-func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.IntellectualProperty, error) {
-	var ip models.IntellectualProperty
+func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.IntellectualProperties, error) {
+	var ip models.IntellectualProperties
 	err := r.DB.Where("case_id = ?", caseID).First(&ip).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -49,7 +49,7 @@ func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) (*models.Intelle
 }
 
 // 🟢 CreateIP - auto generate ID IP-<UUID>
-func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperty) error {
+func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperties) error {
 	ip.ID = utils.GenerateID("IP")
 	now := time.Now()
 	ip.CreatedAt = now
@@ -61,5 +61,5 @@ func (r *IntellectualPropertyRepo) CreateIP(ip *models.IntellectualProperty) err
 // 🟢 UpdateIPByID
 func (r *IntellectualPropertyRepo) UpdateIPByID(ipID string, data map[string]interface{}) error {
 	data["updated_at"] = time.Now()
-	return r.DB.Model(&models.IntellectualProperty{}).Where("id = ?", ipID).Updates(data).Error
+	return r.DB.Model(&models.IntellectualProperties{}).Where("id = ?", ipID).Updates(data).Error
 }

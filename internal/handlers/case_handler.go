@@ -64,7 +64,7 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 
 	// 1. Handle Multipart/Form-Data (File Upload)
 	if contentType != "" && (contentType == "multipart/form-data" || len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
-		var req models.CaseInfo
+		var req models.Cases
 		// Bind form fields to struct
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
@@ -106,7 +106,7 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 
 		// Add paths to request model
 		jsonData, _ := json.Marshal(uploadedPaths)
-		req.CaseAttachments = datatypes.JSON(jsonData)
+		req.Attachments = datatypes.JSON(jsonData)
 
 		// Save Case
 		if err := h.Repo.CreateCase(&req); err != nil {
@@ -119,7 +119,7 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 	}
 
 	// 2. Fallback to JSON (Existing Logic)
-	var req models.CaseInfo
+	var req models.Cases
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

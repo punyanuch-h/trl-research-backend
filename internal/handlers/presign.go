@@ -14,7 +14,7 @@ type PresignHandler struct {
 }
 
 type PresignRequest struct {
-	FileName    string `json:"file_name"`
+	Name        string `json:"name"`
 	ContentType string `json:"content_type"`
 }
 
@@ -44,7 +44,7 @@ func (h *PresignHandler) PresignUpload(c *gin.Context) {
 	}
 	
 	today := time.Now().Format("2006-01-02")
-	objectPath := fmt.Sprintf("pdf/%s/%s/%s",  today, userID, req.FileName)
+	objectPath := fmt.Sprintf("pdf/%s/%s/%s",  today, userID, req.Name)
 
 	// generate URL
 	url, err := h.GCS.GenerateUploadSignedURL(objectPath, req.ContentType, 15)

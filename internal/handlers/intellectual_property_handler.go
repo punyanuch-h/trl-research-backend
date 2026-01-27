@@ -57,7 +57,7 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 
 	// 1. Handle Multipart/Form-Data
 	if contentType != "" && (len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
-		var req models.IntellectualProperty
+		var req models.IntellectualProperties
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
 			return
@@ -87,7 +87,7 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 		}
 
 		jsonData, _ := json.Marshal(uploadedPaths)
-		req.IPAttachments = datatypes.JSON(jsonData)
+		req.Attachments = datatypes.JSON(jsonData)
 
 		if err := h.Repo.CreateIP(&req); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -99,7 +99,7 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 	}
 
 	// 2. Fallback to JSON
-	var req models.IntellectualProperty
+	var req models.IntellectualProperties
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

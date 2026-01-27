@@ -20,15 +20,15 @@ func main() {
 
 	// AutoMigrate all models
 	err := database.DB.AutoMigrate(
-		&models.AdminInfo{},
-		&models.ResearcherInfo{},
-		&models.CoordinatorInfo{},
-		&models.CaseInfo{},
-		&models.Supporter{},
-		&models.Appointment{},
-		&models.IntellectualProperty{},
-		&models.AssessmentTrl{},
-		&models.FileMetadata{},
+		&models.Admins{},
+		&models.Researchers{},
+		&models.Coordinators{},
+		&models.Cases{},
+		&models.Supportments{},
+		&models.Appointments{},
+		&models.IntellectualProperties{},
+		&models.Assessments{},
+		&models.Files{},
 	)
 
 	if err != nil {
