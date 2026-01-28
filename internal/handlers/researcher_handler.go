@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
 	"strings"
@@ -97,6 +98,14 @@ func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	req.Password = string(hashedPassword)
 
 	if err := h.Repo.CreateResearcher(&req); err != nil {
 		log.Println("Create Researcher error:", err)

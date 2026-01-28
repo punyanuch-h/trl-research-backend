@@ -73,16 +73,17 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 	// ✅ Public Auth
 	r.POST("/auth/login", loginHandler.Login)
 	r.POST("/auth/forgot-password", forgotHandler.ForgotPassword)
-	r.POST("/auth/reset-password", resetHandler.ResetPassword)
-	r.POST("/admin", adminHandler.CreateAdmin)
 
 	// ✅ Protected APIs
 	api := r.Group("/trl")
 	// api.Use(auth.AuthMiddleware())
 	{
+		api.POST("/auth/reset-password", resetHandler.ResetPassword)
+
 		api.GET("/admins", adminHandler.GetAllAdmins)
 		api.GET("/admin/:id", adminHandler.GetAdminByID)
 		api.GET("/admin/profile", adminHandler.GetAdminProfile)
+		api.POST("/admin", adminHandler.CreateAdmin)
 		api.PATCH("/admin/:id", adminHandler.UpdateAdminProfileByID)
 
 		api.GET("/researchers", researcherHandler.GetResearcherAll)

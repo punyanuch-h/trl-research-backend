@@ -13,6 +13,7 @@ import (
 	"trl-research-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminHandler struct {
@@ -87,6 +88,14 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	req.Password = string(hashedPassword)
 
 	if err := h.Repo.CreateAdmin(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
