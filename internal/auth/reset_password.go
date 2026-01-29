@@ -25,7 +25,7 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-	if req.Email == "" || req.OldPassword == "" || len(req.NewPassword) < 8 {
+	if req.Email == "" || req.OldPassword == "" || len(req.NewPassword) < 7 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
