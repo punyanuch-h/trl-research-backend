@@ -33,7 +33,6 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("🔍 Login attempt: %s\n", req.Email)
 
 	var userID, userEmail, userRole string
 

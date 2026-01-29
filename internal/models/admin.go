@@ -14,7 +14,7 @@ type Admins struct {
 	Department       string    `gorm:"column:department;not null" json:"department"`
 	PhoneNumber      string    `gorm:"column:phone_number;not null" json:"phone_number"`
 	Email            string    `gorm:"column:email;not null;unique" json:"email"`
-	Password         string    `gorm:"column:password;not null" json:"-"`
+	Password         string    `gorm:"column:password;not null" json:"password"`
 	CreatedAt        time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt        time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
