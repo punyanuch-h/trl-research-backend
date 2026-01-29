@@ -6,11 +6,11 @@ import (
 	"trl-research-backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type ResetHandler struct {
 	AdminRepo repository.AdminRepository
+	ResearcherRepo repository.ResearcherRepository
 }
 
 type ResetReq struct {
@@ -30,21 +30,25 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// verify
-	if _, err := h.AdminRepo.Login(req.Email, req.OldPassword); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		return
-	}
+	// Verify and update for admin
+    if _, err := h.AdminRepo.Login(req.Email, req.OldPassword); err == nil {
+        if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, req.NewPassword); err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+            return
+        }
+        c.JSON(http.StatusOK, gin.H{"message": "password updated"})
+        return
+    }
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-		return
-	}
-	if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(hash)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-		return
-	}
+    // Verify and update for researcher
+    if _, err := h.ResearcherRepo.Login(req.Email, req.OldPassword); err == nil {
+        if err := h.ResearcherRepo.UpdatePasswordByEmail(req.Email, req.NewPassword); err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+            return
+        }
+        c.JSON(http.StatusOK, gin.H{"message": "password updated"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"message": "password updated"})
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 }

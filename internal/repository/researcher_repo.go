@@ -39,6 +39,23 @@ func (r *ResearcherRepo) Login(email string, password string) (*models.Researche
 	return &researcher, nil
 }
 
+// 🟢 Update password
+func (r *ResearcherRepo) UpdatePasswordByEmail(email string, password string) error {
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        return fmt.Errorf("failed to hash password: %w", err)
+    }
+    result := r.DB.Model(&models.Researchers{}).Where("email = ?", email).Update("password", string(hashedPassword))
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+
+}
+
 // 🟢 GetResearcherAll - fetch all researchers
 func (r *ResearcherRepo) GetResearcherAll() ([]models.Researchers, error) {
 	var researchers []models.Researchers

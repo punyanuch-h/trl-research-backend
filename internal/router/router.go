@@ -63,7 +63,10 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 		ResearcherRepo: researcherRepo,
 	}
 	forgotHandler := &auth.ForgotHandler{AdminRepo: adminRepo}
-	resetHandler := &auth.ResetHandler{AdminRepo: adminRepo}
+	resetHandler := &auth.ResetHandler{
+		AdminRepo:      adminRepo,
+		ResearcherRepo: researcherRepo,
+	}
 
 	// ✅ Health check
 	r.GET("/health", func(c *gin.Context) {
