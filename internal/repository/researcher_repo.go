@@ -45,7 +45,15 @@ func (r *ResearcherRepo) UpdatePasswordByEmail(email string, password string) er
     if err != nil {
         return fmt.Errorf("failed to hash password: %w", err)
     }
-    return r.DB.Model(&models.Researchers{}).Where("email = ?", email).Update("password", string(hashedPassword)).Error
+    result := r.DB.Model(&models.Researchers{}).Where("email = ?", email).Update("password", string(hashedPassword))
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+
 }
 
 // 🟢 GetResearcherAll - fetch all researchers

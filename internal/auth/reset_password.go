@@ -50,5 +50,5 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
         return
     }
 
-	c.JSON(http.StatusOK, gin.H{"message": "password updated"})
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 }
