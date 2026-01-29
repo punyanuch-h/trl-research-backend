@@ -72,7 +72,7 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 
 	// ✅ Public Auth
 	r.POST("/auth/login", loginHandler.Login)
-	r.POST("/auth/forgot-password", forgotHandler.ForgotPassword)
+	r.POST("/auth/forget-password", forgotHandler.ForgetPassword)
 
 	// ✅ Protected APIs
 	api := r.Group("/trl")
