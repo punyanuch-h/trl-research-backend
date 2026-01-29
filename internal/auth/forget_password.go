@@ -22,13 +22,13 @@ type ForgotReq struct {
 	Email string `json:"email"`
 }
 
-func (h *ForgotHandler) ForgotPassword(c *gin.Context) {
+func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 	var req ForgotReq
 	if err := c.ShouldBindJSON(&req); err != nil || req.Email == "" {
 		if err != nil {
-			log.Printf("ForgotPassword Bind Error: %v", err)
+			log.Printf("ForgetPassword Bind Error: %v", err)
 		} else {
-			log.Println("ForgotPassword Error: Email is empty")
+			log.Println("ForgetPassword Error: Email is empty")
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid request",
