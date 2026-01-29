@@ -31,8 +31,7 @@ func (h *ForgotHandler) ForgotPassword(c *gin.Context) {
 			log.Println("ForgotPassword Error: Email is empty")
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid request",
-			"details": fmt.Sprintf("bind_err: %v, email: %s", err, req.Email),
+			"error": "invalid request",
 		})
 		return
 	}
@@ -42,20 +41,26 @@ func (h *ForgotHandler) ForgotPassword(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Temporary password has been sent"})
 		return
 	}
-	fmt.Println("check admins")
 
 	// temp password
-	tempPass := utils.GenerateTempPassword(24)
-	fmt.Println("tempPass", tempPass)
+	tempPass, err := utils.GenerateTempPassword(24)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
 	if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
-	fmt.Println("update password success")
 
 	// send email
 	host := os.Getenv("EMAIL_HOST")
-	port, _ := strconv.Atoi(os.Getenv("EMAIL_PORT"))
+	port, err := strconv.Atoi(os.Getenv("EMAIL_PORT"))
+	if err != nil || port <= 0 {
+		log.Printf("ForgotPassword Error: invalid EMAIL_PORT configuration")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
 	user := os.Getenv("EMAIL_SENDER")
 	pass := os.Getenv("EMAIL_PASSWORD")
 
@@ -64,11 +69,9 @@ func (h *ForgotHandler) ForgotPassword(c *gin.Context) {
 	msg := []byte("Subject: Temporary Password\r\n\r\nYour temporary password is: " + tempPass)
 	if err := smtp.SendMail(addr, auth, user, []string{req.Email}, msg); err != nil {
 		// prevent leak
-		fmt.Println("send email error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
-	fmt.Println("send email success")
 
 	c.JSON(http.StatusOK, gin.H{"message": "Temporary password has been sent"})
 }
