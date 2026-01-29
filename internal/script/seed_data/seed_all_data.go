@@ -204,7 +204,7 @@ func main() {
 		{
 			ID: "CS-00005", ResearcherID: "RS-00005", CoordinatorID: "CO-00005",
 			Title: "Probiotic Durian Bites", Type: "Food Tech", Description: "Freeze-dried product.", Keywords: "Food, Export",
-			TrlScore: nil, Status: true, IsUrgent: false,
+			TrlScore: ptrInt16(9), Status: true, IsUrgent: false,
 			CreatedAt: now.AddDate(-1, 0, 0), UpdatedAt: now,
 		},
 	}
