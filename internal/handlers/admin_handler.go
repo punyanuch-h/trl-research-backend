@@ -102,7 +102,7 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, req)
+	c.JSON(http.StatusOK, req.ToResponse())
 }
 
 // update password
