@@ -18,6 +18,7 @@ type AdminRepository interface {
 
 type ResearcherRepository interface {
 	Login(email string, password string) (*models.Researchers, error)
+	UpdatePasswordByEmail(email string, password string) error
 	GetResearcherAll() ([]models.Researchers, error)
 	GetResearcherByID(researcherID string) (*models.Researchers, error)
 	GetResearcherByCaseID(caseID string) (*models.Researchers, error)
