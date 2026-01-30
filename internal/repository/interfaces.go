@@ -70,7 +70,7 @@ type AssessmentRepository interface {
 type IntellectualPropertyRepository interface {
 	GetIPAll() ([]models.IntellectualProperties, error)
 	GetIPByID(ipID string) (*models.IntellectualProperties, error)
-	GetIPByCaseID(caseID string) (*models.IntellectualProperties, error)
+	GetIPByCaseID(caseID string) ([]models.IntellectualProperties, error)
 	CreateIP(ip *models.IntellectualProperties) error
 	UpdateIPByID(ipID string, data map[string]interface{}) error
 }
