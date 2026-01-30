@@ -46,6 +46,7 @@ type SupportmentRepository interface {
 type AppointmentRepository interface {
 	GetAppointmentAll() ([]models.Appointments, error)
 	GetAppointmentByID(appointmentID string) (*models.Appointments, error)
+	GetAppointmentWithDetails(appointmentID string) (*models.Appointments, error)
 	GetAppointmentByCaseID(caseID string) ([]models.Appointments, error)
 	CreateAppointment(ap *models.Appointments) error
 	UpdateAppointmentByID(appointmentID string, data map[string]interface{}) error

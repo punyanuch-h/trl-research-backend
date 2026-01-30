@@ -11,6 +11,7 @@ type Appointments struct {
 	Location  string    `gorm:"column:location" json:"location"`
 	Detail    string    `gorm:"column:detail" json:"detail"`
 	Summary   string    `gorm:"column:summary" json:"summary"`
+	IsNotify  bool      `gorm:"column:is_notify" json:"is_notify"`
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
