@@ -10,6 +10,7 @@ import (
 	"trl-research-backend/internal/handlers"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/storage"
+	"trl-research-backend/internal/cron"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -141,6 +142,10 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.POST("/file/upload", fileHandler.FileUploaded)
 		api.GET("/file/download-url/:fileID", fileDownloadHandler.GetDownloadURL)
 	}
+
+	// ✅ Start Cron Jobs
+	reminderCron := cron.NewReminderCron(appointmentRepo, adminRepo, cfg)
+	reminderCron.Start()
 
 	return r
 }

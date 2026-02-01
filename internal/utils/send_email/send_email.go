@@ -63,14 +63,6 @@ func SendEmail(details AppointmentDetails, emailService EmailService) (*SendEmai
     var wg sync.WaitGroup
     var mu sync.Mutex
     
-    findCoordinatorName := func(email string) string {
-        for _, c := range details.Coordinators {
-            if strings.EqualFold(c.Email, email) {
-                return c.Name
-            }
-        }
-        return ""
-    }
 
     // Get coordinator name for researcher emails
     var coordinatorName string
@@ -83,7 +75,7 @@ func SendEmail(details AppointmentDetails, emailService EmailService) (*SendEmai
         wg.Add(1)
         go func(r Recipient) {
             defer wg.Done()
-            content := templateCreate(r, details, true, coordinatorName)
+            content := TemplateCreate(r, details, true, coordinatorName)
             subject := GenerateEmailSubject(details.ResearchTitle)
             err := emailService(r.Email, subject, content)
             
@@ -98,7 +90,7 @@ func SendEmail(details AppointmentDetails, emailService EmailService) (*SendEmai
         wg.Add(1)
         go func(c Recipient) {
             defer wg.Done()
-            content := templateCreate(c, details, false, "")
+            content := TemplateCreate(c, details, false, "")
             subject := GenerateEmailSubject(details.ResearchTitle)
             err := emailService(c.Email, subject, content)
             

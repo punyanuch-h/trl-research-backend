@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 	"trl-research-backend/internal/models"
 )
 
@@ -50,6 +51,8 @@ type AppointmentRepository interface {
 	GetAppointmentByCaseID(caseID string) ([]models.Appointments, error)
 	CreateAppointment(ap *models.Appointments) error
 	UpdateAppointmentByID(appointmentID string, data map[string]interface{}) error
+	GetUpcomingAppointments(start, end time.Time) ([]models.Appointments, error)
+	UpdateNotifyStatus(appointmentID string, isNotify bool) error
 }
 
 type CoordinatorRepository interface {

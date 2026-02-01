@@ -94,8 +94,8 @@ func GenerateEmailSubject(title string) string {
 	return fmt.Sprintf("New Appointment Scheduled: %s", title)
 }
 
-// Template for new appointments
-func templateCreate(recipient Recipient, details AppointmentDetails, isResearcher bool, coordinatorName string) string {
+// TemplateCreate for new appointments
+func TemplateCreate(recipient Recipient, details AppointmentDetails, isResearcher bool, coordinatorName string) string {
 	content := fmt.Sprintf("Dear %s,\n\n", recipient.Name)
 	content += fmt.Sprintf("A new appointment has been scheduled for the research project: \"%s\"\n\n", details.ResearchTitle)
 	content += "Appointment Details:\n"
@@ -115,8 +115,8 @@ func templateCreate(recipient Recipient, details AppointmentDetails, isResearche
 	return content
 }
 
-// Template for reminders
-func templateReminder(details AppointmentDetails, professor Professor, researcher Recipient, coordinator *Recipient) string {
+// TemplateReminder for reminders
+func TemplateReminder(details AppointmentDetails, professor Professor, researcher Recipient, coordinator *Recipient) string {
 	content := fmt.Sprintf("Reminder: Upcoming Appointment for \"%s\"\n\n", details.ResearchTitle)
 	content += "This is a reminder for your upcoming appointment:\n"
 	content += fmt.Sprintf("- Date: %s\n", details.Date)

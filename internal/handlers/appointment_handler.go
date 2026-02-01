@@ -71,15 +71,7 @@ func (h *AppointmentHandler) CreateAppointment(c *gin.Context) {
 		}
 
 		details, _ := send_email.GatherAppointmentEmailData(fullAp)
-		smtpConfig := send_email.SMTPConfig{
-			Host:     h.Cfg.EmailHost,
-			Port:     h.Cfg.EmailPort,
-			Username: h.Cfg.EmailSender,
-			Password: h.Cfg.EmailPassword,
-			From:     h.Cfg.EmailSender,
-		}
-
-		emailService := send_email.CreateSMTPEmailService(smtpConfig)
+		emailService := send_email.CreateSMTPEmailService(h.Cfg.GetSMTPConfig())
 		results, err := send_email.SendEmail(details, emailService)
 		if err != nil {
 			log.Printf("Failed to send email: %v", err)
