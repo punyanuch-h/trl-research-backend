@@ -15,6 +15,7 @@ type ReminderCron struct {
 	AppointmentRepo repository.AppointmentRepository
 	AdminRepo       repository.AdminRepository
 	Cfg             config.Config
+	Location        *time.Location
 }
 
 func NewReminderCron(apRepo repository.AppointmentRepository, adRepo repository.AdminRepository, cfg config.Config) *ReminderCron {
@@ -32,6 +33,7 @@ func (c *ReminderCron) Start() {
 		log.Printf("⚠️ Could not load Asia/Bangkok location, falling back to local: %v", err)
 		jakartaTime = time.Local
 	}
+	c.Location = jakartaTime
 	
 	cr := cron.New(cron.WithLocation(jakartaTime))
 
@@ -51,7 +53,11 @@ func (c *ReminderCron) Start() {
 
 func (c *ReminderCron) HandleReminders() {
 	// 1. Calculate the target time: Current Time + 1 Hour
-	now := time.Now()
+	loc := c.Location
+	if loc == nil {
+		loc = time.Local
+	}
+	now := time.Now().In(loc)
 	targetTime := now.Add(1 * time.Hour)
 
 	// 2. Query Logic: Window range of +/- 5 minutes
@@ -118,13 +124,25 @@ func (c *ReminderCron) HandleReminders() {
 		content := send_email.TemplateReminder(details, professor, researcherRecipient, coordinatorRecipient)
 		subject := fmt.Sprintf("Reminder: Upcoming Appointment for %s", details.ResearchTitle)
 
+		if len(recipientEmails) == 0 {
+			log.Printf("⚠️ No recipients found for appointment %s", ap.ID)
+			continue
+		}
+
 		// Send the email to unique recipients
+		allSent := true
 		for email, name := range recipientEmails {
 			log.Printf("📤 Sending reminder to %s (%s)", name, email)
 			err := emailService(email, subject, content)
 			if err != nil {
 				log.Printf("❌ Failed to send email to %s: %v", email, err)
+				allSent = false
 			}
+		}
+
+		if !allSent {
+			log.Printf("⚠️ Not all reminders sent for appointment %s; leaving IsNotify=false for retry", ap.ID)
+			continue
 		}
 
 		// Update Database: Immediately update IsNotify to TRUE

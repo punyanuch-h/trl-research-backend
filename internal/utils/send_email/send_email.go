@@ -63,14 +63,6 @@ func SendEmail(details AppointmentDetails, emailService EmailService) (*SendEmai
     var wg sync.WaitGroup
     var mu sync.Mutex
     
-    findCoordinatorName := func(email string) string {
-        for _, c := range details.Coordinators {
-            if strings.EqualFold(c.Email, email) {
-                return c.Name
-            }
-        }
-        return ""
-    }
 
     // Get coordinator name for researcher emails
     var coordinatorName string
