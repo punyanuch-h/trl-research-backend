@@ -85,3 +85,22 @@ func (r *AppointmentRepo) UpdateAppointmentByID(appointmentID string, data map[s
 	data["updated_at"] = time.Now()
 	return r.DB.Model(&models.Appointments{}).Where("id = ?", appointmentID).Updates(data).Error
 }
+
+// 🟢 GetUpcomingAppointments
+func (r *AppointmentRepo) GetUpcomingAppointments(start, end time.Time) ([]models.Appointments, error) {
+	var appointments []models.Appointments
+	err := r.DB.Preload("Case").
+		Preload("Case.Researcher").
+		Preload("Case.Coordinator").
+		Where("date BETWEEN ? AND ?", start, end).
+		Where("is_notify = ?", false).
+		Find(&appointments).Error
+	return appointments, err
+}
+
+// 🟢 UpdateNotifyStatus
+func (r *AppointmentRepo) UpdateNotifyStatus(appointmentID string, isNotify bool) error {
+	return r.DB.Model(&models.Appointments{}).
+		Where("id = ?", appointmentID).
+		Update("is_notify", isNotify).Error
+}

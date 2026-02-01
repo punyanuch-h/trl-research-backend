@@ -83,7 +83,7 @@ func SendEmail(details AppointmentDetails, emailService EmailService) (*SendEmai
         wg.Add(1)
         go func(r Recipient) {
             defer wg.Done()
-            content := templateCreate(r, details, true, coordinatorName)
+            content := TemplateCreate(r, details, true, coordinatorName)
             subject := GenerateEmailSubject(details.ResearchTitle)
             err := emailService(r.Email, subject, content)
             
@@ -98,7 +98,7 @@ func SendEmail(details AppointmentDetails, emailService EmailService) (*SendEmai
         wg.Add(1)
         go func(c Recipient) {
             defer wg.Done()
-            content := templateCreate(c, details, false, "")
+            content := TemplateCreate(c, details, false, "")
             subject := GenerateEmailSubject(details.ResearchTitle)
             err := emailService(c.Email, subject, content)
             

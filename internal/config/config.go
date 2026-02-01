@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"trl-research-backend/internal/utils/send_email"
+
 	"github.com/joho/godotenv"
 )
 
@@ -14,6 +16,16 @@ type Config struct {
 	EmailPort     string
 	EmailSender   string
 	EmailPassword string
+}
+
+func (c Config) GetSMTPConfig() send_email.SMTPConfig {
+	return send_email.SMTPConfig{
+		Host:     c.EmailHost,
+		Port:     c.EmailPort,
+		Username: c.EmailSender,
+		Password: c.EmailPassword,
+		From:     c.EmailSender,
+	}
 }
 
 func LoadConfig() Config {
