@@ -13,7 +13,7 @@ import (
 
 func main() {
 	// Load environment variables (.env)
-	config.LoadConfig()
+	cfg := config.LoadConfig()
 
 	// Initialize Postgres (Neon)
 	database.InitPostgres()
@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// pass gcsClient here
-	r := router.SetupRouter(gcsClient)
+	r := router.SetupRouter(gcsClient, cfg)
 
 	// Run server
 	port := os.Getenv("PORT")

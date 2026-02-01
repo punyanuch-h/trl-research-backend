@@ -8,8 +8,12 @@ import (
 )
 
 type Config struct {
-	DBUrl string
-	Port  string
+	DBUrl         string
+	Port          string
+	EmailHost     string
+	EmailPort     string
+	EmailSender   string
+	EmailPassword string
 }
 
 func LoadConfig() Config {
@@ -28,7 +32,11 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		DBUrl: dbURL,
-		Port:  os.Getenv("PORT"),
+		DBUrl:         dbURL,
+		Port:          os.Getenv("PORT"),
+		EmailHost:     os.Getenv("EMAIL_HOST"),
+		EmailPort:     os.Getenv("EMAIL_PORT"),
+		EmailSender:   os.Getenv("EMAIL_SENDER"),
+		EmailPassword: os.Getenv("EMAIL_PASSWORD"),
 	}
 }

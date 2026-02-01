@@ -35,6 +35,16 @@ func (r *AppointmentRepo) GetAppointmentByID(appointmentID string) (*models.Appo
 	return &ap, nil
 }
 
+// 🟢 GetAppointmentWithDetails
+func (r *AppointmentRepo) GetAppointmentWithDetails(appointmentID string) (*models.Appointments, error) {
+	var ap models.Appointments
+	err := r.DB.Preload("Case").Preload("Case.Researcher").Preload("Case.Coordinator").Where("id = ?", appointmentID).First(&ap).Error
+	if err != nil {
+		return nil, err
+	}
+	return &ap, nil
+}
+
 // 🟢 GetAppointmentByCaseID
 func (r *AppointmentRepo) GetAppointmentByCaseID(caseID string) ([]models.Appointments, error) {
 	var appointments []models.Appointments
@@ -49,10 +59,11 @@ func (r *AppointmentRepo) CreateAppointment(ap *models.Appointments) error {
 		return err
 	}
 	ap.ID = id
+	ap.IsNotify = false
 	now := time.Now()
 	ap.CreatedAt = now
 	ap.UpdatedAt = now
-
+	
 	return r.DB.Create(ap).Error
 }
 

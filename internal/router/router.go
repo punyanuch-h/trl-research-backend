@@ -5,6 +5,7 @@ import (
 	"time"
 
 	auth "trl-research-backend/internal/auth"
+	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
 	"trl-research-backend/internal/repository"
@@ -14,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
+func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode) // ปิด debug log ของ Gin
 	r := gin.Default()
 	r.SetTrustedProxies([]string{"0.0.0.0/0"})
@@ -45,7 +46,10 @@ func SetupRouter(gcsClient *storage.GCSClient) *gin.Engine {
 	researcherHandler := &handlers.ResearcherHandler{Repo: researcherRepo}
 	coordinatorHandler := &handlers.CoordinatorHandler{Repo: coordinatorRepo}
 	supportmentHandler := &handlers.SupportmentHandler{Repo: supportmentRepo}
-	appointmentHandler := &handlers.AppointmentHandler{Repo: appointmentRepo}
+	appointmentHandler := &handlers.AppointmentHandler{
+		Repo: appointmentRepo,
+		Cfg:  cfg,
+	}
 	caseHandler := &handlers.CaseHandler{
 		Repo:     caseRepo,
 		FileRepo: fileRepo,
