@@ -71,13 +71,18 @@ func SendEmail(details AppointmentDetails, emailService EmailService) (*SendEmai
         }
         return ""
     }
+
+    // Get coordinator name for researcher emails
+    var coordinatorName string
+    if len(details.Coordinators) > 0 {
+        coordinatorName = details.Coordinators[0].Name
+    }
     
     // Send to Researchers
     for _, researcher := range verified.Researchers {
         wg.Add(1)
         go func(r Recipient) {
             defer wg.Done()
-            coordinatorName := findCoordinatorName(r.Email)
             content := templateCreate(r, details, true, coordinatorName)
             subject := GenerateEmailSubject(details.ResearchTitle)
             err := emailService(r.Email, subject, content)
