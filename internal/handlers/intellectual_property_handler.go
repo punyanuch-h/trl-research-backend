@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/storage"
+	"trl-research-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
@@ -55,17 +57,18 @@ func (h *IntellectualPropertyHandler) GetIPByCaseID(c *gin.Context) {
 func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 	contentType := c.GetHeader("Content-Type")
 
+	var req models.IntellectualProperties
+	var attachments []string
+
 	// 1. Handle Multipart/Form-Data
-	if contentType != "" && (len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
-		var req models.IntellectualProperties
+	if contentType != "" && (strings.Contains(contentType, "multipart/form-data")) {
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
 			return
 		}
 
 		form, _ := c.MultipartForm()
-		files := form.File["ip_attachment"]
-		var uploadedPaths []string
+		files := form.File["ips_attachments"]
 
 		today := time.Now().Format("2006-01-02")
 		userID := c.GetString("userID")
@@ -80,29 +83,37 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 			}
 			defer file.Close()
 
-			objectPath := fmt.Sprintf("ip_attachments/%s/%s/%s", today, userID, fileHeader.Filename)
+			objectPath := fmt.Sprintf("attachments/ips/%s/%s/%s", userID, today, fileHeader.Filename)
 			if err := h.GCS.UploadFile(objectPath, fileHeader.Header.Get("Content-Type"), file); err == nil {
-				uploadedPaths = append(uploadedPaths, objectPath)
+				attachments = append(attachments, objectPath)
 			}
 		}
-
-		jsonData, _ := json.Marshal(uploadedPaths)
-		req.Attachments = datatypes.JSON(jsonData)
-
-		if err := h.Repo.CreateIP(&req); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	} else {
+		// 2. Handle JSON
+		var body map[string]interface{}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, req)
-		return
+		// Use dynamic mapping to populate the struct
+		bodyJSON, _ := json.Marshal(body)
+		if err := json.Unmarshal(bodyJSON, &req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request body"})
+			return
+		}
+
+		// Extract semantic attachments using utility
+		attachmentsMap := utils.ExtractAttachments(body)
+		if paths, ok := attachmentsMap["ips"]; ok {
+			attachments = paths
+		}
 	}
 
-	// 2. Fallback to JSON
-	var req models.IntellectualProperties
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	// Save attachments if any
+	if len(attachments) > 0 {
+		jsonData, _ := json.Marshal(attachments)
+		req.Attachments = datatypes.JSON(jsonData)
 	}
 
 	if err := h.Repo.CreateIP(&req); err != nil {
@@ -121,6 +132,17 @@ func (h *IntellectualPropertyHandler) UpdateIPByID(c *gin.Context) {
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Extract semantic attachments using utility
+	attachmentsMap := utils.ExtractAttachments(updateData)
+	if paths, ok := attachmentsMap["ips"]; ok {
+		jsonData, _ := json.Marshal(paths)
+		updateData["attachments"] = string(jsonData)
+		// Remove semantic keys
+		for key := range utils.AttachmentKeys {
+			delete(updateData, key)
+		}
 	}
 
 	if err := h.Repo.UpdateIPByID(id, updateData); err != nil {

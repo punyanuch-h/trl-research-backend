@@ -21,13 +21,11 @@ func main() {
 
 	// Initialize GCSClient
 	bucket := os.Getenv("GCS_BUCKET_NAME")
-	saEmail := os.Getenv("SA_EMAIL")
 	log.Println("GCS_BUCKET_NAME:", bucket)
-	log.Println("SA_EMAIL:", saEmail)
 
 	var gcsClient *storage.GCSClient
 	if bucket != "" {
-		client, err := storage.NewGCSClient(bucket, saEmail)
+		client, err := storage.NewGCSClient(bucket)
 		if err != nil {
 			log.Println("⚠️ GCS init failed, continue without GCS:", err)
 		} else {
