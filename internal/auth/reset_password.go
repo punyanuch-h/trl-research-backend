@@ -20,35 +20,62 @@ type ResetReq struct {
 }
 
 func (h *ResetHandler) ResetPassword(c *gin.Context) {
+	// 1. Get authenticated user info from context
+	userEmail := c.GetString("userEmail")
+	userRole := c.GetString("role")
+
+	if userEmail == "" || userRole == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var req ResetReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-	if req.Email == "" || req.OldPassword == "" || len(req.NewPassword) < 7 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+
+	// 2. Validate email if provided in request matches the authenticated user
+	if req.Email != "" && req.Email != userEmail {
+		c.JSON(http.StatusForbidden, gin.H{"error": "email does not match authenticated user"})
 		return
 	}
 
-	// Verify and update for admin
-    if _, err := h.AdminRepo.Login(req.Email, req.OldPassword); err == nil {
-        if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, req.NewPassword); err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-            return
-        }
-        c.JSON(http.StatusOK, gin.H{"message": "password updated"})
-        return
-    }
+	// Use authenticated email for consistency
+	emailToUse := userEmail
 
-    // Verify and update for researcher
-    if _, err := h.ResearcherRepo.Login(req.Email, req.OldPassword); err == nil {
-        if err := h.ResearcherRepo.UpdatePasswordByEmail(req.Email, req.NewPassword); err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-            return
-        }
-        c.JSON(http.StatusOK, gin.H{"message": "password updated"})
-        return
-    }
+	if req.OldPassword == "" || len(req.NewPassword) < 7 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body or password too short"})
+		return
+	}
 
-	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+	// 3. Reset password based on role
+	if userRole == "admin" {
+		if _, err := h.AdminRepo.Login(emailToUse, req.OldPassword); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
+			return
+		}
+		if err := h.AdminRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "password updated"})
+		return
+	}
+
+	if userRole == "researcher" {
+		if _, err := h.ResearcherRepo.Login(emailToUse, req.OldPassword); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
+			return
+		}
+		if err := h.ResearcherRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "password updated"})
+		return
+	}
+
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid role or unauthorized access"})
 }
+

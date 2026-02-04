@@ -22,9 +22,7 @@ func NewGCSClient(bucketName string) (*GCSClient, error) {
 	}, nil
 }
 
-//
-// ---------- DIRECT UPLOAD (BACKEND → GCS) ----------
-//
+// Direct Upload (BACKEND → GCS)
 func (c *GCSClient) UploadFile(
 	objectPath string,
 	contentType string,
@@ -52,10 +50,8 @@ func (c *GCSClient) UploadFile(
 	return nil
 }
 
-//
-// ---------- SIGNED URL (UPLOAD) ----------
+// Generate Upload Signed URL
 // ✅ IAM / ADC compatible
-//
 func (c *GCSClient) GenerateUploadSignedURL(
 	objectPath string,
 	expireMinutes int,
@@ -75,9 +71,6 @@ func (c *GCSClient) GenerateUploadSignedURL(
 		Scheme:  storage.SigningSchemeV4,
 	}
 
-	fmt.Println("Bucket:", c.BucketName)
-	fmt.Println("Object:", objectPath)
-
 	url, err := client.
 		Bucket(c.BucketName).
 		SignedURL(objectPath, opts)
@@ -88,10 +81,8 @@ func (c *GCSClient) GenerateUploadSignedURL(
 	return url, nil
 }
 
-//
-// ---------- SIGNED URL (DOWNLOAD) ----------
+// Generate Download Signed URL
 // ✅ IAM / ADC compatible
-//
 func (c *GCSClient) GenerateDownloadSignedURL(
 	objectPath string,
 	expireMinutes int,

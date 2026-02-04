@@ -4,7 +4,12 @@
             "http://localhost:3000"
         ],
         "method": [
+            "GET",
+            "POST",
+            "HEAD",
             "PUT",
+            "PATCH",
+            "DELETE",
             "OPTIONS"
         ],
         "responseHeader": [

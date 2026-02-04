@@ -67,7 +67,12 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 			return
 		}
 
-		form, _ := c.MultipartForm()
+		form, err := c.MultipartForm()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
+			return
+		}
+
 		files := form.File["ips_attachments"]
 
 		today := time.Now().Format("2006-01-02")
