@@ -102,7 +102,11 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 		}
 
 		// Use dynamic mapping to populate the struct
-		bodyJSON, _ := json.Marshal(body)
+		bodyJSON, err := json.Marshal(body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request body"})
+			return
+		}
 		if err := json.Unmarshal(bodyJSON, &req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request body"})
 			return
@@ -110,14 +114,30 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 
 		// Extract semantic attachments using utility
 		attachmentsMap := utils.ExtractAttachments(body)
+		_, ipKeyPresent := updateData["ips_attachments"]
 		if paths, ok := attachmentsMap["ips"]; ok {
-			attachments = paths
+			jsonData, err := json.Marshal(paths)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "failed to serialize attachments"})
+				return
+			}
+			updateData["attachments"] = string(jsonData)
+		} else if ipKeyPresent {
+			updateData["attachments"] = "[]"
+		}
+		// Remove semantic keys regardless of attachment contents
+		for key := range utils.AttachmentKeys {
+			delete(updateData, key)
 		}
 	}
 
 	// Save attachments if any
 	if len(attachments) > 0 {
-		jsonData, _ := json.Marshal(attachments)
+		jsonData, err := json.Marshal(attachments)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse attachments"})
+			return
+		}
 		req.Attachments = datatypes.JSON(jsonData)
 	}
 

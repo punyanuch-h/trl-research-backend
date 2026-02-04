@@ -14,13 +14,12 @@ type ResetHandler struct {
 }
 
 type ResetReq struct {
-	Email       string `json:"email"`
 	OldPassword string `json:"old_password"`
 	NewPassword string `json:"new_password"`
 }
 
 func (h *ResetHandler) ResetPassword(c *gin.Context) {
-	// 1. Get authenticated user info from context
+	// Get authenticated user info from context
 	userEmail := c.GetString("userEmail")
 	userRole := c.GetString("role")
 
@@ -35,12 +34,6 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// 2. Validate email if provided in request matches the authenticated user
-	if req.Email != "" && req.Email != userEmail {
-		c.JSON(http.StatusForbidden, gin.H{"error": "email does not match authenticated user"})
-		return
-	}
-
 	// Use authenticated email for consistency
 	emailToUse := userEmail
 
@@ -49,7 +42,7 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// 3. Reset password based on role
+	// Reset password based on role
 	if userRole == "admin" {
 		if _, err := h.AdminRepo.Login(emailToUse, req.OldPassword); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
