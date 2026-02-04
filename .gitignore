@@ -21,6 +21,7 @@ vendor/
 .env.local
 .env.*.local
 localServiceAccountKey.json
+storageLocal.json
 
 # IDEs
 .vscode/

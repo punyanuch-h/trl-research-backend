@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/storage"
+	"trl-research-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
@@ -59,23 +61,20 @@ func (h *CaseHandler) GetCaseByID(c *gin.Context) {
 
 // 🟢 POST /case
 func (h *CaseHandler) CreateCase(c *gin.Context) {
-	// Check Content-Type to determine how to parse
 	contentType := c.GetHeader("Content-Type")
 
-	// 1. Handle Multipart/Form-Data (File Upload)
-	if contentType != "" && (contentType == "multipart/form-data" || len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
-		var req models.Cases
-		// Bind form fields to struct
+	var req models.Cases
+	var attachments []string
+
+	// 1. Handle Multipart/Form-Data
+	if contentType != "" && (strings.Contains(contentType, "multipart/form-data")) {
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
 			return
 		}
 
-		// Handle Multiple Files Upload (key: "case_attachments")
 		form, _ := c.MultipartForm()
-		files := form.File["case_attachments"]
-
-		var uploadedPaths []string
+		files := form.File["cases_attachments"]
 
 		userID := req.ResearcherID
 		if userID == "" {
@@ -89,40 +88,43 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 		for _, fileHeader := range files {
 			file, err := fileHeader.Open()
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open file: " + err.Error()})
-				return
+				continue
 			}
 			defer file.Close()
 
-			objectPath := fmt.Sprintf("case_attachments/%s/%s/%s", today, userID, fileHeader.Filename)
+			// Build path: attachments/cases/{userID}/{date}/{filename}
+			objectPath := fmt.Sprintf("attachments/cases/%s/%s/%s", userID, today, fileHeader.Filename)
 
-			// Upload to GCS
-			if err := h.GCS.UploadFile(objectPath, fileHeader.Header.Get("Content-Type"), file); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload file: " + err.Error()})
-				return
+			if err := h.GCS.UploadFile(objectPath, fileHeader.Header.Get("Content-Type"), file); err == nil {
+				attachments = append(attachments, objectPath)
 			}
-			uploadedPaths = append(uploadedPaths, objectPath)
 		}
-
-		// Add paths to request model
-		jsonData, _ := json.Marshal(uploadedPaths)
-		req.Attachments = datatypes.JSON(jsonData)
-
-		// Save Case
-		if err := h.Repo.CreateCase(&req); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create case: " + err.Error()})
+	} else {
+		// 2. Handle JSON
+		var body map[string]interface{}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, req)
-		return
+		// Use dynamic mapping to populate the struct
+		bodyJSON, _ := json.Marshal(body)
+		if err := json.Unmarshal(bodyJSON, &req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request body"})
+			return
+		}
+
+		// Extract semantic attachments using utility
+		attachmentsMap := utils.ExtractAttachments(body)
+		if paths, ok := attachmentsMap["cases"]; ok {
+			attachments = paths
+		}
 	}
 
-	// 2. Fallback to JSON (Existing Logic)
-	var req models.Cases
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	// Save attachments if any
+	if len(attachments) > 0 {
+		jsonData, _ := json.Marshal(attachments)
+		req.Attachments = datatypes.JSON(jsonData)
 	}
 
 	if err := h.Repo.CreateCase(&req); err != nil {
@@ -141,6 +143,22 @@ func (h *CaseHandler) UpdateCaseByID(c *gin.Context) {
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Extract semantic attachments using utility
+	attachmentsMap := utils.ExtractAttachments(updateData)
+	_, caseKeyPresent := updateData["cases_attachments"]
+
+	if paths, ok := attachmentsMap["cases"]; ok {
+		jsonData, _ := json.Marshal(paths)
+		updateData["attachments"] = string(jsonData)
+	} else if caseKeyPresent {
+		updateData["attachments"] = "[]"
+	}
+
+	// Always remove semantic keys to avoid passing them to repository/DB
+	for key := range utils.AttachmentKeys {
+		delete(updateData, key)
 	}
 
 	if err := h.Repo.UpdateCaseByID(id, updateData); err != nil {

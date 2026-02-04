@@ -84,7 +84,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 
 	// ✅ Protected APIs
 	api := r.Group("/trl")
-	// api.Use(auth.AuthMiddleware())
+	api.Use(auth.AuthMiddleware())
 	{
 		api.POST("/auth/reset-password", resetHandler.ResetPassword)
 

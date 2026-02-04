@@ -4,36 +4,34 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/option"
 )
 
 type GCSClient struct {
 	BucketName string
-	SAEmail    string
 }
 
-// NewGCSClient returns a new client struct
-func NewGCSClient(bucketName, serviceAccountEmail string) (*GCSClient, error) {
+func NewGCSClient(bucketName string) (*GCSClient, error) {
+	if bucketName == "" {
+		return nil, fmt.Errorf("bucket name is required")
+	}
 	return &GCSClient{
 		BucketName: bucketName,
-		SAEmail:    serviceAccountEmail,
 	}, nil
 }
 
-// UploadFile uploads a file to GCS
-func (c *GCSClient) UploadFile(objectPath, contentType string, file io.Reader) error {
+// Direct Upload (BACKEND → GCS)
+func (c *GCSClient) UploadFile(
+	objectPath string,
+	contentType string,
+	file io.Reader,
+) error {
+
 	ctx := context.Background()
 
-	creds := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if creds == "" {
-		return fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS not set")
-	}
-
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(creds))
+	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("storage.NewClient: %w", err)
 	}
@@ -48,66 +46,67 @@ func (c *GCSClient) UploadFile(objectPath, contentType string, file io.Reader) e
 	if err := wc.Close(); err != nil {
 		return fmt.Errorf("Writer.Close: %w", err)
 	}
+
 	return nil
 }
 
-// GenerateUploadSignedURL creates a signed URL for uploading a file (PUT)
-func (c *GCSClient) GenerateUploadSignedURL(objectPath, contentType string, expireMinutes int) (string, error) {
+// Generate Upload Signed URL
+// ✅ IAM / ADC compatible
+func (c *GCSClient) GenerateUploadSignedURL(
+	objectPath string,
+	expireMinutes int,
+) (string, error) {
 
-	// path to JSON file
-	creds := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if creds == "" {
-		return "", fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS not set")
-	}
+	ctx := context.Background()
 
-	// load private key from JSON
-	privateKey, err := loadPrivateKeyFromCredentials(creds)
+	client, err := storage.NewClient(ctx)
 	if err != nil {
-		return "", fmt.Errorf("loading private key: %w", err)
+		return "", fmt.Errorf("storage.NewClient: %w", err)
 	}
+	defer client.Close()
 
-	// set signed URL options
 	opts := &storage.SignedURLOptions{
-		Method:         "PUT",
-		Expires:        time.Now().Add(time.Duration(expireMinutes) * time.Minute),
-		Scheme:         storage.SigningSchemeV4,
-		GoogleAccessID: c.SAEmail,
-		PrivateKey:     privateKey,
-		ContentType:    contentType,
+		Method:  "PUT",
+		Expires: time.Now().Add(time.Duration(expireMinutes) * time.Minute),
+		Scheme:  storage.SigningSchemeV4,
 	}
 
-	// create signed url
-	url, err := storage.SignedURL(c.BucketName, objectPath, opts)
+	url, err := client.
+		Bucket(c.BucketName).
+		SignedURL(objectPath, opts)
 	if err != nil {
-		return "", fmt.Errorf("cannot generate signed url: %w", err)
+		return "", fmt.Errorf("failed to generate upload signed url: %w", err)
 	}
 
 	return url, nil
 }
 
-func (c *GCSClient) GenerateDownloadSignedURL(objectPath string, expireMinutes int) (string, error) {
+// Generate Download Signed URL
+// ✅ IAM / ADC compatible
+func (c *GCSClient) GenerateDownloadSignedURL(
+	objectPath string,
+	expireMinutes int,
+) (string, error) {
 
-	creds := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if creds == "" {
-		return "", fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS not set")
-	}
+	ctx := context.Background()
 
-	privateKey, err := loadPrivateKeyFromCredentials(creds)
+	client, err := storage.NewClient(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to load private key: %w", err)
+		return "", fmt.Errorf("storage.NewClient: %w", err)
 	}
+	defer client.Close()
 
 	opts := &storage.SignedURLOptions{
-		Method:         "GET",
-		Expires:        time.Now().Add(time.Duration(expireMinutes) * time.Minute),
-		Scheme:         storage.SigningSchemeV4,
-		GoogleAccessID: c.SAEmail,
-		PrivateKey:     privateKey,
+		Method:  "GET",
+		Expires: time.Now().Add(time.Duration(expireMinutes) * time.Minute),
+		Scheme:  storage.SigningSchemeV4,
 	}
 
-	url, err := storage.SignedURL(c.BucketName, objectPath, opts)
+	url, err := client.
+		Bucket(c.BucketName).
+		SignedURL(objectPath, opts)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate signed download URL: %w", err)
+		return "", fmt.Errorf("failed to generate download signed url: %w", err)
 	}
 
 	return url, nil
