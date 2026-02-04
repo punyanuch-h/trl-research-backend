@@ -15,7 +15,7 @@ type PresignHandler struct {
 }
 
 type PresignUploadRequest struct {
-	FileName string `json:"name"`
+	FileName string `json:"file_name"`
 }
 
 type PresignUploadResponse struct {

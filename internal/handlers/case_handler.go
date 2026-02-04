@@ -147,13 +147,18 @@ func (h *CaseHandler) UpdateCaseByID(c *gin.Context) {
 
 	// Extract semantic attachments using utility
 	attachmentsMap := utils.ExtractAttachments(updateData)
+	_, caseKeyPresent := updateData["cases_attachments"]
+
 	if paths, ok := attachmentsMap["cases"]; ok {
 		jsonData, _ := json.Marshal(paths)
 		updateData["attachments"] = string(jsonData)
-		// Remove the semantic key from updateData
-		for key := range utils.AttachmentKeys {
-			delete(updateData, key)
-		}
+	} else if caseKeyPresent {
+		updateData["attachments"] = "[]"
+	}
+
+	// Always remove semantic keys to avoid passing them to repository/DB
+	for key := range utils.AttachmentKeys {
+		delete(updateData, key)
 	}
 
 	if err := h.Repo.UpdateCaseByID(id, updateData); err != nil {

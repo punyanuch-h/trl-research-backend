@@ -114,20 +114,8 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 
 		// Extract semantic attachments using utility
 		attachmentsMap := utils.ExtractAttachments(body)
-		_, ipKeyPresent := updateData["ips_attachments"]
 		if paths, ok := attachmentsMap["ips"]; ok {
-			jsonData, err := json.Marshal(paths)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "failed to serialize attachments"})
-				return
-			}
-			updateData["attachments"] = string(jsonData)
-		} else if ipKeyPresent {
-			updateData["attachments"] = "[]"
-		}
-		// Remove semantic keys regardless of attachment contents
-		for key := range utils.AttachmentKeys {
-			delete(updateData, key)
+			attachments = paths
 		}
 	}
 
@@ -161,13 +149,18 @@ func (h *IntellectualPropertyHandler) UpdateIPByID(c *gin.Context) {
 
 	// Extract semantic attachments using utility
 	attachmentsMap := utils.ExtractAttachments(updateData)
+	_, ipKeyPresent := updateData["ips_attachments"]
+
 	if paths, ok := attachmentsMap["ips"]; ok {
 		jsonData, _ := json.Marshal(paths)
 		updateData["attachments"] = string(jsonData)
-		// Remove semantic keys
-		for key := range utils.AttachmentKeys {
-			delete(updateData, key)
-		}
+	} else if ipKeyPresent {
+		updateData["attachments"] = "[]"
+	}
+
+	// Always remove semantic keys to avoid passing them to repository/DB
+	for key := range utils.AttachmentKeys {
+		delete(updateData, key)
 	}
 
 	if err := h.Repo.UpdateIPByID(id, updateData); err != nil {
