@@ -41,7 +41,7 @@ func (r *SupportmentRepo) GetSupportmentByCaseID(caseID string) (*models.Support
 	err := r.DB.Where("case_id = ?", caseID).First(&supportment).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("supportment with case_id %s not found", caseID)
+			return nil, nil
 		}
 		return nil, err
 	}
