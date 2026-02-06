@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"time"
 
 	"trl-research-backend/internal/models"
@@ -38,14 +37,8 @@ func (r *IntellectualPropertyRepo) GetIPByID(ipID string) (*models.IntellectualP
 // 🟢 GetIPByCaseID
 func (r *IntellectualPropertyRepo) GetIPByCaseID(caseID string) ([]models.IntellectualProperties, error) {
 	var ip []models.IntellectualProperties
-	err := r.DB.Where("case_id = ?", caseID).Find(&ip)
-	if err.Error != nil {
-		return nil, err.Error
-	}
-	if err.RowsAffected == 0 {
-		return nil, fmt.Errorf("intellectual property with case_id %s not found", caseID)
-	}
-	return ip, nil
+	err := r.DB.Where("case_id = ?", caseID).Find(&ip).Error
+	return ip, err
 }
 
 // 🟢 CreateIP - auto generate ID IP-00001
