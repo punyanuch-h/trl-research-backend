@@ -42,6 +42,11 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 		return
 	}
 
+	if _,err := h.ResearcherRepo.GetResearcherByEmail(req.Email); err != nil {
+		c.JSON(http.StatusOK, gin.H{"message": "Temporary password has been sent"})
+		return
+	}
+
 	// temp password
 	tempPass, err := utils.GenerateTempPassword(24)
 	if err != nil {
@@ -67,6 +72,7 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 	addr := fmt.Sprintf("%s:%d", host, port)
 	auth := smtp.PlainAuth("", user, pass, host)
 	msg := []byte("Subject: Temporary Password\r\n\r\nYour temporary password is: " + tempPass)
+	fmt.Println(msg)
 	if err := smtp.SendMail(addr, auth, user, []string{req.Email}, msg); err != nil {
 		// prevent leak
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})

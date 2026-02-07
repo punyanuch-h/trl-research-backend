@@ -103,3 +103,14 @@ func (r *ResearcherRepo) UpdateResearcherByID(researcherID string, data *models.
 	data.UpdatedAt = time.Now()
 	return r.DB.Model(&models.Researchers{}).Where("id = ?", researcherID).Updates(data).Error
 }
+
+// 🟢 Get researcher by email
+func (r *ResearcherRepo) GetResearcherByEmail(email string) (*models.Researchers, error) {
+	var researcher models.Researchers
+	err := r.DB.Where("email = ?", email).First(&researcher).Error
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(err)
+	return &researcher, nil
+}

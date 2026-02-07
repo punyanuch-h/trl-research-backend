@@ -81,6 +81,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	// ✅ Public Auth
 	r.POST("/auth/login", loginHandler.Login)
 	r.POST("/auth/forget-password", forgotHandler.ForgetPassword)
+	r.POST("/researcher", researcherHandler.CreateResearcher)
 
 	// ✅ Protected APIs
 	api := r.Group("/trl")
@@ -97,7 +98,6 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.GET("/researchers", researcherHandler.GetResearcherAll)
 		api.GET("/researcher/:id", researcherHandler.GetResearcherByID)
 		api.GET("/researcher/case/:id", researcherHandler.GetResearcherByCaseID)
-		api.POST("/researcher", researcherHandler.CreateResearcher)
 		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherProfileByID)
 		api.GET("/researcher/profile", researcherHandler.GetResearcherProfile)
 

@@ -43,6 +43,7 @@ func (r *AdminRepo) GetAdminByEmail(email string) (*models.Admins, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(err)
 	return &admin, nil
 }
 
