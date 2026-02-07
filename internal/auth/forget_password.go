@@ -15,7 +15,8 @@ import (
 )
 
 type ForgotHandler struct {
-	AdminRepo repository.AdminRepository
+	AdminRepo      repository.AdminRepository
+	ResearcherRepo repository.ResearcherRepository
 }
 
 type ForgotReq struct {
@@ -36,45 +37,76 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 		return
 	}
 
-	// prevent enumeration
-	if _, err := h.AdminRepo.GetAdminByEmail(req.Email); err != nil {
+	var userRole string
+
+	// 1. Check if user is an Admin
+	_, err := h.AdminRepo.GetAdminByEmail(req.Email)
+	if err == nil {
+		userRole = "admin"
+	}
+
+	// 2. If not admin, check if user is a Researcher
+	if userRole == "" {
+		_, err := h.ResearcherRepo.GetResearcherByEmail(req.Email)
+		if err == nil {
+			userRole = "researcher"
+		}
+	}
+
+	// 3. If no user found in either, return success to prevent email enumeration
+	if userRole == "" {
 		c.JSON(http.StatusOK, gin.H{"message": "Temporary password has been sent"})
 		return
 	}
 
-	if _,err := h.ResearcherRepo.GetResearcherByEmail(req.Email); err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "Temporary password has been sent"})
-		return
-	}
-
-	// temp password
+	// 4. Generate temp password
 	tempPass, err := utils.GenerateTempPassword(24)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
-		return
-	}
-	if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
+		log.Printf("ForgotPassword Error: failed to generate password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
-	// send email
+	// 5. Update password in the correct repo
+	if userRole == "admin" {
+		if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
+			log.Printf("ForgotPassword Error (Admin): %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+	} else if userRole == "researcher" {
+		if err := h.ResearcherRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
+			log.Printf("ForgotPassword Error (Researcher): %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+	}
+
+	// 6. Send email
 	host := os.Getenv("EMAIL_HOST")
-	port, err := strconv.Atoi(os.Getenv("EMAIL_PORT"))
+	portStr := os.Getenv("EMAIL_PORT")
+	port, err := strconv.Atoi(portStr)
 	if err != nil || port <= 0 {
-		log.Printf("ForgotPassword Error: invalid EMAIL_PORT configuration")
+		log.Printf("ForgotPassword Error: invalid EMAIL_PORT configuration: %v", portStr)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
-	user := os.Getenv("EMAIL_SENDER")
+	sender := os.Getenv("EMAIL_SENDER")
 	pass := os.Getenv("EMAIL_PASSWORD")
 
+	if host == "" || sender == "" || pass == "" {
+		log.Printf("ForgotPassword Error: missing email SMTP configuration")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
 	addr := fmt.Sprintf("%s:%d", host, port)
-	auth := smtp.PlainAuth("", user, pass, host)
+	auth := smtp.PlainAuth("", sender, pass, host)
 	msg := []byte("Subject: Temporary Password\r\n\r\nYour temporary password is: " + tempPass)
-	fmt.Println(msg)
-	if err := smtp.SendMail(addr, auth, user, []string{req.Email}, msg); err != nil {
-		// prevent leak
+
+	if err := smtp.SendMail(addr, auth, sender, []string{req.Email}, msg); err != nil {
+		log.Printf("ForgotPassword Error: SMTP failed: %v", err)
+		// We could return success here too to avoid leaking info, but for debugging let's keep it
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
