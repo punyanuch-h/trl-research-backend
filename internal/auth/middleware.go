@@ -10,6 +10,7 @@ import (
 	"trl-research-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -55,7 +56,14 @@ func AuthMiddleware() gin.HandlerFunc {
         )
         if err != nil {
             log.Printf("❌ JWT validation failed: %v", err)
-            c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("invalid token: %v", err)})
+            
+            // Check if error is token expired, return 498
+            if errors.Is(err, jwt.ErrTokenExpired) {
+                c.JSON(498, gin.H{"error": "token expired"})
+            } else {
+                c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("invalid token: %v", err)})
+            }
+            
             c.Abort()
             return
         }

@@ -53,7 +53,13 @@ type AppointmentRepository interface {
 	CreateAppointment(ap *models.Appointments) error
 	UpdateAppointmentByID(appointmentID string, data map[string]interface{}) error
 	GetUpcomingAppointments(start, end time.Time) ([]models.Appointments, error)
+	GetAppointmentByResearcherID(researcherID string) ([]models.Appointments, error)
 	UpdateNotifyStatus(appointmentID string, isNotify bool) error
+	// Notification methods
+	GetNotificationsByRole(role string, userID string) ([]models.Appointments, error)
+	GetUnreadNotificationCountByRole(role string, userID string) (int64, error)
+	MarkNotificationAsRead(id string, role string, userID string) (*models.Appointments, error)
+	MarkAllNotificationsAsRead(role string, userID string) error
 }
 
 type CoordinatorRepository interface {
