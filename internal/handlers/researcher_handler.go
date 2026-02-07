@@ -4,8 +4,6 @@ import (
 	"log"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"trl-research-backend/internal/entity"
@@ -56,25 +54,17 @@ func (h *ResearcherHandler) GetResearcherByCaseID(c *gin.Context) {
 
 // 🟢 GET /researcher/profile
 func (h *ResearcherHandler) GetResearcherProfile(c *gin.Context) {
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
-		log.Printf("❌ [GetResearcherProfile] Missing Authorization header")
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+	// Retrieve claims from context (set by AuthMiddleware)
+	val, ok := c.Get("authCtx")
+	if !ok {
+		log.Printf("❌ [GetResearcherProfile] Missing auth context")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	// Validate and decode JWT
-	kp, err := utils.NewEnvKeyProvider()
-	if err != nil {
-		log.Printf("❌ [GetResearcherProfile] Key provider error: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Key provider error"})
-		return
-	}
-	claims, err := utils.ValidateJWT(tokenString, os.Getenv("JWT_ISSUER"), os.Getenv("JWT_AUDIENCE"), *kp)
-	if err != nil {
-		log.Printf("❌ [GetResearcherProfile] Invalid token: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+	claims, ok := val.(*utils.Claims)
+	if !ok {
+		log.Printf("❌ [GetResearcherProfile] Invalid auth context type")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 

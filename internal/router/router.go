@@ -122,6 +122,11 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.POST("/appointment", appointmentHandler.CreateAppointment)
 		api.PATCH("/appointment/:id", appointmentHandler.UpdateAppointmentByID)
 
+		// 🟢 Appointment Notifications
+		api.GET("/notifications/appointments", appointmentHandler.GetNotifications)
+		api.PATCH("/notifications/appointments/read-all", appointmentHandler.MarkAllAsRead)
+		api.PATCH("/notifications/appointments/:id/read", appointmentHandler.MarkAsRead)
+
 		api.GET("/cases", caseHandler.GetCaseAll)
 		api.GET("/case/researcher/:id", caseHandler.GetCaseAllByResearcherID)
 		api.GET("/case/:id", caseHandler.GetCaseByID)

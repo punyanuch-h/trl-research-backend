@@ -49,7 +49,7 @@ func GatherAppointmentEmailData(ap *models.Appointments) (AppointmentDetails, Pr
 		Date:     ap.Date.Format("02 January 2006"),
 		Time:     ap.Date.Format("15:04"),
 		Location: ap.Location,
-		Detail:   ap.Detail,
+		Detail:   ap.Details,
 	}
 
 	if ap.Case != nil {

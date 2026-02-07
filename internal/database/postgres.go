@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"trl-research-backend/internal/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -30,7 +32,23 @@ func InitPostgres() {
 	})
 
 	if err != nil {
-		log.Println("❌ Failed to connect to database: %v", err)
+		log.Fatal("❌ Failed to connect to database:", err)
+	}
+
+	// ✅ Auto Migrate models
+	err = DB.AutoMigrate(
+		&models.Admins{},
+		&models.Researchers{},
+		&models.Coordinators{},
+		&models.Supportments{},
+		&models.Cases{},
+		&models.Appointments{},
+		&models.IntellectualProperties{},
+		&models.Assessments{},
+		&models.Files{},
+	)
+	if err != nil {
+		log.Printf("⚠️ AutoMigrate error: %v", err)
 	}
 
 	sqlDB, err := DB.DB()

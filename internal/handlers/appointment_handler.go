@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"trl-research-backend/internal/utils/send_email"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AppointmentHandler struct {
@@ -19,7 +21,26 @@ type AppointmentHandler struct {
 
 // 🟢 GET /appointments
 func (h *AppointmentHandler) GetAppointmentAll(c *gin.Context) {
-	appointments, err := h.Repo.GetAppointmentAll()
+	role, _ := c.Get("role")
+	userID, _ := c.Get("userID")
+
+	var appointments []models.Appointments
+	var err error
+
+	if role == "admin" {
+		appointments, err = h.Repo.GetAppointmentAll()
+	} else if role == "researcher" {
+		uid, ok := userID.(string)
+		if !ok || uid == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: invalid user ID"})
+			return
+		}
+		appointments, err = h.Repo.GetAppointmentByResearcherID(uid)
+	} else {
+		// Other roles see no appointments by default
+		appointments = []models.Appointments{}
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -105,4 +126,71 @@ func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, updatedAppointment)
+}
+
+// 🟢 GET /trl/notifications/appointments
+func (h *AppointmentHandler) GetNotifications(c *gin.Context) {
+	userID := c.GetString("userID")
+	role := c.GetString("role")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	notifications, err := h.Repo.GetNotificationsByRole(role, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	unreadCount, err := h.Repo.GetUnreadNotificationCountByRole(role, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"unread_count": unreadCount,
+		"data":         notifications,
+	})
+}
+
+// 🟢 PATCH /trl/notifications/appointments/:id/read
+func (h *AppointmentHandler) MarkAsRead(c *gin.Context) {
+	id := c.Param("id")
+	userID := c.GetString("userID")
+	role := c.GetString("role")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	ap, err := h.Repo.MarkNotificationAsRead(id, role, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found or access denied"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, ap)
+}
+
+// 🟢 PATCH /trl/notifications/appointments/read-all
+func (h *AppointmentHandler) MarkAllAsRead(c *gin.Context) {
+	userID := c.GetString("userID")
+	role := c.GetString("role")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	if err := h.Repo.MarkAllNotificationsAsRead(role, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "All notifications marked as read"})
 }

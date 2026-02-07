@@ -218,15 +218,15 @@ func main() {
 	// ==========================================
 	appointments := []models.Appointments{
 		// Case 1
-		{ID: "AP-00001", CaseID: "CS-00001", Date: now.AddDate(0, 0, -5), Status: "completed", Location: "Zoom", Detail: "MOU Signing", Summary: "Signed successfully"},
+		{ID: "AP-00001", CaseID: "CS-00001", Date: now.AddDate(0, 0, -5), Status: "completed", Location: "Zoom", Details: "MOU Signing", Summary: "Signed successfully", IsNotify: true},
 		// Case 2
-		{ID: "AP-00002", CaseID: "CS-00002", Date: now.AddDate(0, 0, 2), Status: "scheduled", Location: "Innovation Lab", Detail: "Budget Review", Summary: ""},
+		{ID: "AP-00002", CaseID: "CS-00002", Date: now.AddDate(0, 0, 2), Status: "scheduled", Location: "Innovation Lab", Details: "Budget Review", Summary: ""},
 		// Case 3
-		{ID: "AP-00003", CaseID: "CS-00003", Date: now.AddDate(0, -1, 0), Status: "completed", Location: "Research Office", Detail: "Initial Consultation", Summary: "Discussed research plan"},
+		{ID: "AP-00003", CaseID: "CS-00003", Date: now.AddDate(0, -1, 0), Status: "completed", Location: "Research Office", Details: "Initial Consultation", Summary: "Discussed research plan", IsNotify: true},
 		// Case 4
-		{ID: "AP-00004", CaseID: "CS-00004", Date: now.AddDate(0, 0, 7), Status: "scheduled", Location: "Site Visit", Detail: "Witness Stress Test", Summary: ""},
+		{ID: "AP-00004", CaseID: "CS-00004", Date: now.AddDate(0, 0, 7), Status: "scheduled", Location: "Site Visit", Details: "Witness Stress Test", Summary: ""},
 		// Case 5
-		{ID: "AP-00005", CaseID: "CS-00005", Date: now.AddDate(0, -2, 0), Status: "completed", Location: "Factory", Detail: "Final Inspection", Summary: "Passed"},
+		{ID: "AP-00005", CaseID: "CS-00005", Date: now.AddDate(0, -2, 0), Status: "completed", Location: "Factory", Details: "Final Inspection", Summary: "Passed", IsNotify: true},
 	}
 	if err := db.CreateInBatches(&appointments, 5).Error; err != nil {
 		log.Fatalf("❌ Failed to seed appointments: %v", err)
