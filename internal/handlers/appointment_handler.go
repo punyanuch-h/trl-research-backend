@@ -132,20 +132,23 @@ func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 func (h *AppointmentHandler) GetNotifications(c *gin.Context) {
 	userID := c.GetString("userID")
 	role := c.GetString("role")
-	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	if userID == "" || role == "" {
+		log.Printf("❌ [GetNotifications] Error fetching notifications: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
 	}
 
 	notifications, err := h.Repo.GetNotificationsByRole(role, userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("❌ [GetNotifications] Error fetching notifications: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
 	}
 
 	unreadCount, err := h.Repo.GetUnreadNotificationCountByRole(role, userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("❌ [GetNotifications] Error fetching notifications: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
 	}
 
@@ -160,7 +163,7 @@ func (h *AppointmentHandler) MarkAsRead(c *gin.Context) {
 	id := c.Param("id")
 	userID := c.GetString("userID")
 	role := c.GetString("role")
-	if userID == "" {
+	if userID == "" || role == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -171,7 +174,8 @@ func (h *AppointmentHandler) MarkAsRead(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found or access denied"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("❌ [MarkAsRead] Error fetching notifications: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
 	}
 
@@ -182,13 +186,14 @@ func (h *AppointmentHandler) MarkAsRead(c *gin.Context) {
 func (h *AppointmentHandler) MarkAllAsRead(c *gin.Context) {
 	userID := c.GetString("userID")
 	role := c.GetString("role")
-	if userID == "" {
+	if userID == "" || role == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	if err := h.Repo.MarkAllNotificationsAsRead(role, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("❌ [MarkAllAsRead] Error fetching notifications: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
 	}
 

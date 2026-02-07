@@ -160,7 +160,7 @@ func (r *AppointmentRepo) GetUnreadNotificationCountByRole(role string, userID s
 // 🟢 MarkNotificationAsRead
 func (r *AppointmentRepo) MarkNotificationAsRead(id string, role string, userID string) (*models.Appointments, error) {
 	var ap models.Appointments
-	query := r.DB.Where("appointments.id = ?", id)
+	query := r.DB.Where("appointments.id = ? AND is_notify = ?", id, true)
 	
 	if role == "admin" {
 		// Admin can mark any as read
