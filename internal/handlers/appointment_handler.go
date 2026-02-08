@@ -133,7 +133,7 @@ func (h *AppointmentHandler) GetNotifications(c *gin.Context) {
 	userID := c.GetString("userID")
 	role := c.GetString("role")
 	if userID == "" || role == "" {
-		log.Printf("❌ [GetNotifications] Error fetching notifications: %v", err)
+		log.Printf("❌ [GetNotifications] Error fetching notifications")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
 	}

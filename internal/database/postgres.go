@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"trl-research-backend/internal/models"
+	// "trl-research-backend/internal/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -36,20 +36,20 @@ func InitPostgres() {
 	}
 
 	// ✅ Auto Migrate models
-	err = DB.AutoMigrate(
-		&models.Admins{},
-		&models.Researchers{},
-		&models.Coordinators{},
-		&models.Supportments{},
-		&models.Cases{},
-		&models.Appointments{},
-		&models.IntellectualProperties{},
-		&models.Assessments{},
-		&models.Files{},
-	)
-	if err != nil {
-		log.Printf("⚠️ AutoMigrate error: %v", err)
-	}
+	// err = DB.AutoMigrate(
+	// 	&models.Admins{},
+	// 	&models.Researchers{},
+	// 	&models.Coordinators{},
+	// 	&models.Supportments{},
+	// 	&models.Cases{},
+	// 	&models.Appointments{},
+	// 	&models.IntellectualProperties{},
+	// 	&models.Assessments{},
+	// 	&models.Files{},
+	// )
+	// if err != nil {
+	// 	log.Printf("⚠️ AutoMigrate error: %v", err)
+	// }
 
 	sqlDB, err := DB.DB()
 	if err != nil {
