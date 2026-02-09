@@ -175,36 +175,36 @@ func main() {
 		// Case 1: TRL 8. Finished (Status=True). No Urgent. Has Admin.
 		{
 			ID: "CS-00001", ResearcherID: "RS-00001", CoordinatorID: "CO-00001",
-			Title: "AI Screening for Retinopathy", Type: "Software/Medical", Description: "Deep learning model.", Keywords: "AI, Retina",
+			Title: "AI Screening for Retinopathy", Type: "Software", Description: "Deep learning model.", Keywords: "AI, Retina",
 			TrlScore: ptrInt16(8), Status: true, IsUrgent: false,
 			CreatedAt: now.AddDate(0, -6, 0), UpdatedAt: now,
 		},
 		// Case 2: TRL 4. In Progress. Urgent (Funding). Has Admin.
 		{
 			ID: "CS-00002", ResearcherID: "RS-00002", CoordinatorID: "CO-00002",
-			Title: "Smart PM2.5 Grid Sensor", Type: "Hardware/IoT", Description: "LoRaWAN sensor.", Keywords: "IoT, Environment",
+			Title: "Smart PM2.5 Grid Sensor", Type: "Medical Devices", Description: "LoRaWAN sensor.", Keywords: "IoT, Environment",
 			TrlScore: ptrInt16(4), Status: false, IsUrgent: false, UrgentReason: "Submit for NRCT funding", UrgentFeedback: "Please revise budget",
 			CreatedAt: now.AddDate(0, -2, 0), UpdatedAt: now,
 		},
 		// Case 3: TRL 2. In Progress. No Urgent. NO Admin (New Case).
 		{
 			ID: "CS-00003", ResearcherID: "RS-00003", CoordinatorID: "CO-00003",
-			Title: "Nano-Curcumin Extraction", Type: "Process/Pharma", Description: "New extraction method.", Keywords: "Herb, Nano",
+			Title: "Nano-Curcumin Extraction", Type: "Medical Devices", Description: "New extraction method.", Keywords: "Herb, Nano",
 			TrlScore: ptrInt16(2), Status: false, IsUrgent: true, UrgentReason: "Submit for NRCT funding",
 			CreatedAt: now.AddDate(0, 0, -10), UpdatedAt: now,
 		},
 		// Case 4: TRL 5. In Progress. Urgent (Contest). Has Admin.
 		{
 			ID: "CS-00004", ResearcherID: "RS-00004", CoordinatorID: "CO-00004",
-			Title: "Self-Healing Bio-Concrete", Type: "Material", Description: "Bacteria concrete.", Keywords: "Bio, Construction",
-			TrlScore: ptrInt16(5), Status: false, IsUrgent: true, UrgentReason: "Competition deadline",
+			Title: "Self-Healing Bio-Concrete", Type: "Medicines Vaccines Stem Cells", Description: "Bacteria concrete.", Keywords: "Bio, Construction",
+			TrlScore: ptrInt16(4), Status: false, IsUrgent: true, UrgentReason: "Competition deadline",
 			CreatedAt: now.AddDate(0, -4, 0), UpdatedAt: now,
 		},
 		// Case 5: TRL 9. Finished. No Urgent. Has Admin.
 		{
 			ID: "CS-00005", ResearcherID: "RS-00005", CoordinatorID: "CO-00005",
-			Title: "Probiotic Durian Bites", Type: "Food Tech", Description: "Freeze-dried product.", Keywords: "Food, Export",
-			TrlScore: ptrInt16(9), Status: true, IsUrgent: false,
+			Title: "Probiotic Durian Bites", Type: "Plant/Animal Breeds", Description: "Freeze-dried product.", Keywords: "Food, Export",
+			TrlScore: ptrInt16(1), Status: true, IsUrgent: false,
 			CreatedAt: now.AddDate(-1, 0, 0), UpdatedAt: now,
 		},
 	}
@@ -218,15 +218,15 @@ func main() {
 	// ==========================================
 	appointments := []models.Appointments{
 		// Case 1
-		{ID: "AP-00001", CaseID: "CS-00001", Date: now.AddDate(0, 0, -5), Status: "completed", Location: "Zoom", Detail: "MOU Signing", Summary: "Signed successfully", IsNotify: true},
+		{ID: "AP-00001", CaseID: "CS-00001", Date: now.AddDate(0, 0, -5), Status: "pending", Location: "Zoom", Detail: "MOU Signing", Summary: "Signed successfully", IsNotify: true},
 		// Case 2
-		{ID: "AP-00002", CaseID: "CS-00002", Date: now.AddDate(0, 0, 2), Status: "scheduled", Location: "Innovation Lab", Detail: "Budget Review", Summary: ""},
+		{ID: "AP-00002", CaseID: "CS-00002", Date: now.AddDate(0, 0, 2), Status: "pending", Location: "Innovation Lab", Detail: "Budget Review", Summary: ""},
 		// Case 3
-		{ID: "AP-00003", CaseID: "CS-00003", Date: now.AddDate(0, -1, 0), Status: "completed", Location: "Research Office", Detail: "Initial Consultation", Summary: "Discussed research plan", IsNotify: true},
+		{ID: "AP-00003", CaseID: "CS-00003", Date: now.AddDate(0, -1, 0), Status: "attended", Location: "Research Office", Detail: "Initial Consultation", Summary: "Discussed research plan", IsNotify: true},
 		// Case 4
-		{ID: "AP-00004", CaseID: "CS-00004", Date: now.AddDate(0, 0, 7), Status: "scheduled", Location: "Site Visit", Detail: "Witness Stress Test", Summary: ""},
+		{ID: "AP-00004", CaseID: "CS-00004", Date: now.AddDate(0, 0, 7), Status: "absent", Location: "Site Visit", Detail: "Witness Stress Test", Summary: ""},
 		// Case 5
-		{ID: "AP-00005", CaseID: "CS-00005", Date: now.AddDate(0, -2, 0), Status: "completed", Location: "Factory", Detail: "Final Inspection", Summary: "Passed", IsNotify: true},
+		{ID: "AP-00005", CaseID: "CS-00005", Date: now.AddDate(0, -2, 0), Status: "attended", Location: "Factory", Detail: "Final Inspection", Summary: "Passed", IsNotify: true},
 	}
 	if err := db.CreateInBatches(&appointments, 5).Error; err != nil {
 		log.Fatalf("❌ Failed to seed appointments: %v", err)
