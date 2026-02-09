@@ -13,7 +13,6 @@ type Appointments struct {
 	Summary         string    `gorm:"column:summary" json:"summary"`
 	IsNotify        bool      `gorm:"column:is_notify" json:"is_notify"`
 	IsRead          bool      `gorm:"column:is_read;default:false" json:"is_read"`
-	UserID          string    `gorm:"column:user_id" json:"user_id"`
 	CreatedAt       time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt       time.Time `gorm:"column:updated_at" json:"updated_at"`
 }

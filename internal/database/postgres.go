@@ -25,7 +25,10 @@ func InitPostgres() {
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+	DB, err = gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true, // Use simple protocol to avoid issues with PgBouncer/Neon
+	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 
