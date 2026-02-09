@@ -9,7 +9,7 @@ type Appointments struct {
 	Date            time.Time `gorm:"column:date;not null" json:"date"`
 	Status          string    `gorm:"column:status;not null" json:"status"`
 	Location        string    `gorm:"column:location" json:"location"`
-	Details         string    `gorm:"column:details" json:"details"`
+	Detail          string    `gorm:"column:detail" json:"detail"`
 	Summary         string    `gorm:"column:summary" json:"summary"`
 	IsNotify        bool      `gorm:"column:is_notify" json:"is_notify"`
 	IsRead          bool      `gorm:"column:is_read;default:false" json:"is_read"`

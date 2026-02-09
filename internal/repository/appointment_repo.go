@@ -93,7 +93,7 @@ func (r *AppointmentRepo) UpdateAppointmentByID(appointmentID string, data map[s
 		data["date"] = parsedDate
 	}
 
-	data["updated_at"] = time.Now()
+	// Note: updated_at is now managed by the caller (handler) to allow anti-spam logic
 	return r.DB.Model(&models.Appointments{}).Where("id = ?", appointmentID).Updates(data).Error
 }
 
@@ -176,7 +176,7 @@ func (r *AppointmentRepo) MarkNotificationAsRead(id string, role string, userID 
 		return nil, err
 	}
 	
-	err = r.DB.Model(&ap).Update("is_read", true).Error
+	err = r.DB.Model(&ap).UpdateColumns(map[string]interface{}{"is_read": true}).Error
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (r *AppointmentRepo) MarkAllNotificationsAsRead(role string, userID string)
 		
 		return r.DB.Model(&models.Appointments{}).
 			Where("id IN (?)", subQuery).
-			Update("is_read", true).Error
+			UpdateColumns(map[string]interface{}{"is_read": true}).Error
 	}
 
 	return nil
