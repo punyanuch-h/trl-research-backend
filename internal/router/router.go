@@ -40,7 +40,6 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	caseRepo := repository.NewCaseRepo(database.DB)
 	ipRepo := repository.NewIntellectualPropertyRepo(database.DB)
 	assessmentRepo := repository.NewAssessmentRepo(database.DB)
-	fileRepo := repository.NewFileRepo(database.DB)
 
 	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
@@ -52,15 +51,13 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		Cfg:  cfg,
 	}
 	caseHandler := &handlers.CaseHandler{
-		Repo:     caseRepo,
-		FileRepo: fileRepo,
-		GCS:      gcsClient,
+		Repo: caseRepo,
+		GCS:  gcsClient,
 	}
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo, GCS: gcsClient}
 	assessmentHandler := &handlers.AssessmentHandler{Repo: assessmentRepo, GCS: gcsClient}
 	presignHandler := &handlers.PresignHandler{GCS: gcsClient}
-	fileHandler := &handlers.FileHandler{Repo: fileRepo}
-	fileDownloadHandler := &handlers.FileDownloadHandler{FileRepo: fileRepo, GCS: gcsClient}
+	fileDownloadHandler := &handlers.FileDownloadHandler{GCS: gcsClient}
 
 	// ✅ Auth Handlers
 	loginHandler := &auth.LoginHandler{
@@ -147,8 +144,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.PATCH("/assessment/:id", auth.RequireRoles("admin"), assessmentHandler.UpdateAssessmentByID)
 		// 🟢 File Management
 		api.POST("/presign/upload", presignHandler.PresignUpload)
-		api.POST("/file/upload", fileHandler.FileUploaded)
-		api.GET("/file/download-url/:fileID", fileDownloadHandler.GetDownloadURL)
+		api.GET("/file/download", fileDownloadHandler.GetDownloadURL)
 	}
 
 	// ✅ Start Cron Jobs
