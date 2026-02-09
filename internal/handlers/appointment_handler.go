@@ -128,7 +128,8 @@ func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 		// Attempt to parse date from common formats
 		newDate, parseErr := time.Parse(time.RFC3339, newDateStr)
 		if parseErr != nil {
-			newDate, parseErr = time.Parse("2006-01-02T15:04:05Z07:00", newDateStr)
+			// Try RFC3339Nano as a secondary fallback
+			newDate, parseErr = time.Parse(time.RFC3339Nano, newDateStr)
 		}
 
 		if parseErr == nil {
@@ -206,14 +207,15 @@ func (h *AppointmentHandler) ProcessUpdateNotification(oldAp *models.Appointment
 
 	log.Printf("[Notification] Meaningful changes detected for %s: %+v", newAp.ID, changedFields)
 
-	// B. Anti-spam Protection (Cooldown 1 minute for easier testing - change back to 15 later)
+	// B. Anti-spam Protection
 	now := time.Now()
 	diff := now.Sub(oldAp.UpdatedAt)
-	if diff < 1*time.Minute {
-		log.Printf("[Notification] Anti-spam: Skipping email for %s. Last meaningful update was only %v ago (diff: %v)", newAp.ID, oldAp.UpdatedAt.Format("15:04:05"), diff)
+	cooldown := h.Cfg.GetAntiSpamCooldown()
+	if diff < cooldown {
+		log.Printf("[Notification] Anti-spam: Skipping email for %s. Last meaningful update was only %v ago (limit: %v)", newAp.ID, diff.Round(time.Second), cooldown)
 		return
 	}
-	log.Printf("[Notification] Anti-spam cleared for %s. Last update: %v (diff: %v)", newAp.ID, oldAp.UpdatedAt.Format("15:04:05"), diff)
+	log.Printf("[Notification] Anti-spam cleared for %s. Last update: %v (diff: %v, limit: %v)", newAp.ID, oldAp.UpdatedAt.Format("15:04:05"), diff.Round(time.Minute), cooldown)
 
 	// C. Prepare Email Data
 	details, _ := send_email.GatherAppointmentEmailData(newAp)
