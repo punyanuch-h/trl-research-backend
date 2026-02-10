@@ -147,7 +147,7 @@ func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 			}
 		}
 	} else if _, ok := updateData["is_notify"]; !ok {
-		// If date didn't change, but other fields did and we are within 1h, 
+		// If date didn't change, but other fields did and we are within 1h,
 		// the update email will act as a reminder, so we can mark as notified.
 		now := time.Now()
 		if oldAp.Date.Sub(now) < time.Hour && oldAp.Date.After(now) {

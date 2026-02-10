@@ -10,10 +10,24 @@ import (
 	"os"
 )
 
+// IKeyProvider defines the interface for key management
+type IKeyProvider interface {
+	GetPrivateKey(kid string) (*rsa.PrivateKey, error)
+	GetPublicKey(kid string) (*rsa.PublicKey, error)
+}
+
 // KeyProvider จัดการ private/public key ที่ใช้เซ็นและตรวจสอบ JWT
 type KeyProvider struct {
 	privateKeys map[string]*rsa.PrivateKey
 	publicKeys  map[string]*rsa.PublicKey
+}
+
+// NewManualKeyProvider creates a KeyProvider with explicitly provided keys (useful for testing)
+func NewManualKeyProvider(kid string, priv *rsa.PrivateKey, pub *rsa.PublicKey) *KeyProvider {
+	return &KeyProvider{
+		privateKeys: map[string]*rsa.PrivateKey{kid: priv},
+		publicKeys:  map[string]*rsa.PublicKey{kid: pub},
+	}
 }
 
 // NewEnvKeyProvider โหลด key จาก Environment Variables (ไม่ใช้ไฟล์)

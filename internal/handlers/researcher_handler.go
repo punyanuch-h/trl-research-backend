@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"log"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"trl-research-backend/internal/entity"
 	"trl-research-backend/internal/models"

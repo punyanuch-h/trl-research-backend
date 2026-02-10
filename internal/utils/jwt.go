@@ -8,30 +8,30 @@ import (
 )
 
 type Claims struct {
-	UserID    string `json:"user_id"`
-	UserEmail string `json:"user_email"`
-	Role             string `json:"role"`
-	ClientID         string `json:"client_id"`
-	ClientName       string `json:"client_name"`
+	UserID     string `json:"user_id"`
+	UserEmail  string `json:"user_email"`
+	Role       string `json:"role"`
+	ClientID   string `json:"client_id"`
+	ClientName string `json:"client_name"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT
-func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid string, ttl time.Duration, kp KeyProvider) (string, error) {
+func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid string, ttl time.Duration, kp IKeyProvider) (string, error) {
 	now := time.Now()
 
 	claims := Claims{
-		UserID:    userID,
-		UserEmail: userEmail,
-		Role:             role,
-		ClientID:         clientID,
-		ClientName:       clientName,
+		UserID:     userID,
+		UserEmail:  userEmail,
+		Role:       role,
+		ClientID:   clientID,
+		ClientName: clientName,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    issuer,
 			Audience:  []string{audience},
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now.Add(-30 * time.Second)), // leeway
-			ExpiresAt: jwt.NewNumericDate(now.Add(ttl * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
 		},
 	}
 
@@ -46,7 +46,7 @@ func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience
 }
 
 // ValidateJWT
-func ValidateJWT(tokenString, expectedIssuer, expectedAudience string, kp KeyProvider) (*Claims, error) {
+func ValidateJWT(tokenString, expectedIssuer, expectedAudience string, kp IKeyProvider) (*Claims, error) {
 	parser := jwt.NewParser(
 		jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Name}),
 		jwt.WithIssuer(expectedIssuer),

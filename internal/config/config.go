@@ -12,11 +12,11 @@ import (
 )
 
 type Config struct {
-	DBUrl         string
-	Port          string
-	EmailHost     string
-	EmailPort     string
-	EmailSender   string
+	DBUrl            string
+	Port             string
+	EmailHost        string
+	EmailPort        string
+	EmailSender      string
 	EmailPassword    string
 	AntiSpamCooldown string
 }
@@ -55,12 +55,12 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		DBUrl:         dbURL,
-		Port:          os.Getenv("PORT"),
-		EmailHost:     os.Getenv("EMAIL_HOST"),
-		EmailPort:     os.Getenv("EMAIL_PORT"),
-		EmailSender:   os.Getenv("EMAIL_SENDER"),
-		EmailPassword: os.Getenv("EMAIL_PASSWORD"),
+		DBUrl:            dbURL,
+		Port:             os.Getenv("PORT"),
+		EmailHost:        os.Getenv("EMAIL_HOST"),
+		EmailPort:        os.Getenv("EMAIL_PORT"),
+		EmailSender:      os.Getenv("EMAIL_SENDER"),
+		EmailPassword:    os.Getenv("EMAIL_PASSWORD"),
 		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
 	}
 }

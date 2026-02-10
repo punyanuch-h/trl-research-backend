@@ -6,11 +6,11 @@ import (
 
 	auth "trl-research-backend/internal/auth"
 	"trl-research-backend/internal/config"
+	"trl-research-backend/internal/cron"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/storage"
-	"trl-research-backend/internal/cron"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,7 @@ import (
 func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode) // ปิด debug log ของ Gin
 	r := gin.Default()
-	r.SetTrustedProxies([]string{"0.0.0.0/0"})
+	_ = r.SetTrustedProxies([]string{"0.0.0.0/0"})
 
 	// ✅ CORS config
 	r.Use(cors.New(cors.Config{
