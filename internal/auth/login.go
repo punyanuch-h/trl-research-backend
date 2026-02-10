@@ -17,6 +17,7 @@ import (
 type LoginHandler struct {
 	AdminRepo      repository.AdminRepository
 	ResearcherRepo repository.ResearcherRepository
+	KeyProvider    utils.IKeyProvider
 }
 
 // LoginRequest รับข้อมูลจาก frontend
@@ -66,12 +67,16 @@ func (h *LoginHandler) Login(c *gin.Context) {
 
 	fmt.Printf("✅ Verified user: %s (role: %s)\n", userEmail, userRole)
 
-	// 4️⃣ โหลด key provider จาก environment
-	kp, err := utils.NewEnvKeyProvider()
-	if err != nil {
-		fmt.Println("❌ key provider init failed:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal key provider error"})
-		return
+	// 4️⃣ โหลด key provider
+	kp := h.KeyProvider
+	if kp == nil {
+		var err error
+		kp, err = utils.NewEnvKeyProvider()
+		if err != nil {
+			fmt.Println("❌ key provider init failed:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal key provider error"})
+			return
+		}
 	}
 
 	// 5️⃣ สร้าง JWT token
@@ -89,7 +94,7 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		os.Getenv("JWT_AUDIENCE"),
 		"v1", // key id
 		time.Duration(expH),
-		*kp,
+		kp,
 	)
 	if err != nil {
 		fmt.Println("❌ failed to generate token:", err)

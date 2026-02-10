@@ -17,7 +17,7 @@ type Claims struct {
 }
 
 // GenerateJWT
-func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid string, ttl time.Duration, kp KeyProvider) (string, error) {
+func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid string, ttl time.Duration, kp IKeyProvider) (string, error) {
 	now := time.Now()
 
 	claims := Claims{
@@ -46,7 +46,7 @@ func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience
 }
 
 // ValidateJWT
-func ValidateJWT(tokenString, expectedIssuer, expectedAudience string, kp KeyProvider) (*Claims, error) {
+func ValidateJWT(tokenString, expectedIssuer, expectedAudience string, kp IKeyProvider) (*Claims, error) {
 	parser := jwt.NewParser(
 		jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Name}),
 		jwt.WithIssuer(expectedIssuer),

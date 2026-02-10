@@ -1,0 +1,29 @@
+linters:
+  enable:
+    - unused
+    - gosimple
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - typecheck
+    - unused
+    - govet
+    - unparam
+    - misspell
+    - revive
+    - goimports
+
+linters-settings:
+  revive:
+    rules:
+      - name: unused-parameter
+        disabled: true
+  govet:
+    check-shadowing: true
+  unused:
+    check-exported: false
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

@@ -52,7 +52,7 @@ func AuthMiddleware() gin.HandlerFunc {
             tokenString,
             jwtIssuer,
             jwtAudience,
-            *kp,
+            kp,
         )
         if err != nil {
             log.Printf("❌ JWT validation failed: %v", err)
