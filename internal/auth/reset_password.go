@@ -9,7 +9,7 @@ import (
 )
 
 type ResetHandler struct {
-	AdminRepo repository.AdminRepository
+	AdminRepo      repository.AdminRepository
 	ResearcherRepo repository.ResearcherRepository
 }
 
@@ -71,4 +71,3 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 
 	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid role or unauthorized access"})
 }
-

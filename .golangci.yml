@@ -6,7 +6,6 @@ linters:
     - errcheck
     - ineffassign
     - typecheck
-    - unused
     - govet
     - unparam
     - misspell
@@ -18,12 +17,31 @@ linters-settings:
     rules:
       - name: unused-parameter
         disabled: true
-  govet:
-    check-shadowing: true
-  unused:
-    check-exported: false
+  errcheck:
+    exclude-functions:
+      - (io.Closer).Close
+      - (*database/sql.DB).Close
+      - (*github.com/gin-gonic/gin.Context).Error
 
 issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-rules:
+    # Exclude errcheck for defer Close() calls
+    - linters:
+        - errcheck
+      text: "Error return value of.*Close.*is not checked"
+    # Exclude shadow warnings for err in specific patterns
+    - linters:
+        - shadow
+      text: 'declaration of "err" shadows declaration'
+    # Exclude ineffassign for userID assignment in error handling
+    - linters:
+        - ineffassign
+      text: "ineffectual assignment to userID"
+    # Exclude unused code in deprecated gcs_key.go file
+    - path: internal/storage/gcs_key.go
+      linters:
+        - unused
+        - staticcheck

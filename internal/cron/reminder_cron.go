@@ -34,7 +34,7 @@ func (c *ReminderCron) Start() {
 		jakartaTime = time.Local
 	}
 	c.Location = jakartaTime
-	
+
 	cr := cron.New(cron.WithLocation(jakartaTime))
 
 	// Scheduling: Run every 5 minutes

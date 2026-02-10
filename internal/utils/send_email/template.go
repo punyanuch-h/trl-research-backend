@@ -104,7 +104,7 @@ func TemplateCreate(recipient Recipient, details AppointmentDetails, isResearche
 	content += fmt.Sprintf("- Date: %s\n", details.Date)
 	content += fmt.Sprintf("- Time: %s\n", details.Time)
 	content += fmt.Sprintf("- Location: %s\n", details.Location)
-	
+
 	if details.Detail != "" {
 		content += fmt.Sprintf("- Note: %s\n", details.Detail)
 	}
@@ -126,7 +126,7 @@ func TemplateUpdate(recipient Recipient, details AppointmentDetails, appointment
 	content += fmt.Sprintf("- Research: %s\n\n", details.ResearchTitle)
 
 	content += "Updated Details:\n"
-	
+
 	// Date/Time
 	dateLine := fmt.Sprintf("- Date: %s", details.Date)
 	if changedFields["date"] || changedFields["time"] {

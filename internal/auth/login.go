@@ -34,7 +34,6 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		return
 	}
 
-
 	var userID, userEmail, userRole string
 
 	// 1️⃣ ตรวจสอบในตาราง Admin ก่อน
@@ -93,7 +92,7 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		os.Getenv("JWT_ISSUER"),
 		os.Getenv("JWT_AUDIENCE"),
 		"v1", // key id
-		time.Duration(expH),
+		time.Duration(expH)*time.Hour,
 		kp,
 	)
 	if err != nil {

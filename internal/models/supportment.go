@@ -3,9 +3,9 @@ package models
 import "time"
 
 type Supportments struct {
-	ID                     			string    `gorm:"primaryKey;column:id" json:"id"`
+	ID                              string    `gorm:"primaryKey;column:id" json:"id"`
 	CaseID                          string    `gorm:"column:case_id;not null" json:"case_id"`
-	Case 						    *Cases    `gorm:"foreignKey:CaseID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"case"`
+	Case                            *Cases    `gorm:"foreignKey:CaseID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"case"`
 	SupportResearch                 bool      `gorm:"column:support_research;not null" json:"support_research"`
 	SupportVDC                      bool      `gorm:"column:support_vdc;not null" json:"support_vdc"`
 	SupportSiEIC                    bool      `gorm:"column:support_sieic;not null" json:"support_sieic"`

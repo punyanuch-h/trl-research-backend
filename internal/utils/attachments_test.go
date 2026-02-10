@@ -16,7 +16,7 @@ func TestExtractAttachments(t *testing.T) {
 			body: map[string]interface{}{
 				"cases_attachments": []interface{}{"file1.pdf", "file2.jpg"},
 				"ips_attachments":   []string{"file3.png"},
-				"other_field":        "value",
+				"other_field":       "value",
 			},
 			expected: map[string][]string{
 				"cases": {"file1.pdf", "file2.jpg"},

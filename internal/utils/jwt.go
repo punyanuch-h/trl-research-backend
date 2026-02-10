@@ -8,11 +8,11 @@ import (
 )
 
 type Claims struct {
-	UserID    string `json:"user_id"`
-	UserEmail string `json:"user_email"`
-	Role             string `json:"role"`
-	ClientID         string `json:"client_id"`
-	ClientName       string `json:"client_name"`
+	UserID     string `json:"user_id"`
+	UserEmail  string `json:"user_email"`
+	Role       string `json:"role"`
+	ClientID   string `json:"client_id"`
+	ClientName string `json:"client_name"`
 	jwt.RegisteredClaims
 }
 
@@ -21,17 +21,17 @@ func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience
 	now := time.Now()
 
 	claims := Claims{
-		UserID:    userID,
-		UserEmail: userEmail,
-		Role:             role,
-		ClientID:         clientID,
-		ClientName:       clientName,
+		UserID:     userID,
+		UserEmail:  userEmail,
+		Role:       role,
+		ClientID:   clientID,
+		ClientName: clientName,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    issuer,
 			Audience:  []string{audience},
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now.Add(-30 * time.Second)), // leeway
-			ExpiresAt: jwt.NewNumericDate(now.Add(ttl * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
 		},
 	}
 

@@ -22,13 +22,13 @@ type MockAdminRepository struct {
 	mock.Mock
 }
 
-func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error) { return nil, nil }
-func (m *MockAdminRepository) GetAdminByID(id string) (*models.Admins, error) { return nil, nil }
-func (m *MockAdminRepository) GetAdminByEmail(email string) (*models.Admins, error) { return nil, nil }
-func (m *MockAdminRepository) CreateAdmin(admin *models.Admins) error { return nil }
+func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error)                     { return nil, nil }
+func (m *MockAdminRepository) GetAdminByID(id string) (*models.Admins, error)            { return nil, nil }
+func (m *MockAdminRepository) GetAdminByEmail(email string) (*models.Admins, error)      { return nil, nil }
+func (m *MockAdminRepository) CreateAdmin(admin *models.Admins) error                    { return nil }
 func (m *MockAdminRepository) UpdatePasswordByEmail(email string, password string) error { return nil }
 func (m *MockAdminRepository) UpdateAdminByID(adminID string, data *models.Admins) error { return nil }
-func (m *MockAdminRepository) DeleteAdmin(email string) error { return nil }
+func (m *MockAdminRepository) DeleteAdmin(email string) error                            { return nil }
 
 func (m *MockAdminRepository) Login(email, password string) (*models.Admins, error) {
 	args := m.Called(email, password)
@@ -43,13 +43,23 @@ type MockResearcherRepository struct {
 	mock.Mock
 }
 
-func (m *MockResearcherRepository) GetResearcherByEmail(email string) (*models.Researchers, error) { return nil, nil }
-func (m *MockResearcherRepository) UpdatePasswordByEmail(email string, password string) error { return nil }
+func (m *MockResearcherRepository) GetResearcherByEmail(email string) (*models.Researchers, error) {
+	return nil, nil
+}
+func (m *MockResearcherRepository) UpdatePasswordByEmail(email string, password string) error {
+	return nil
+}
 func (m *MockResearcherRepository) GetResearcherAll() ([]models.Researchers, error) { return nil, nil }
-func (m *MockResearcherRepository) GetResearcherByID(id string) (*models.Researchers, error) { return nil, nil }
-func (m *MockResearcherRepository) GetResearcherByCaseID(id string) (*models.Researchers, error) { return nil, nil }
+func (m *MockResearcherRepository) GetResearcherByID(id string) (*models.Researchers, error) {
+	return nil, nil
+}
+func (m *MockResearcherRepository) GetResearcherByCaseID(id string) (*models.Researchers, error) {
+	return nil, nil
+}
 func (m *MockResearcherRepository) CreateResearcher(r *models.Researchers) error { return nil }
-func (m *MockResearcherRepository) UpdateResearcherByID(id string, data *models.Researchers) error { return nil }
+func (m *MockResearcherRepository) UpdateResearcherByID(id string, data *models.Researchers) error {
+	return nil
+}
 
 func (m *MockResearcherRepository) Login(email, password string) (*models.Researchers, error) {
 	args := m.Called(email, password)
@@ -117,8 +127,8 @@ func TestLogin(t *testing.T) {
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{
-			name: "Error: Empty request",
-			requestBody: map[string]interface{}{},
+			name:           "Error: Empty request",
+			requestBody:    map[string]interface{}{},
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
@@ -150,7 +160,7 @@ func TestLogin(t *testing.T) {
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			if tt.expectedStatus == http.StatusOK {
 				var resp map[string]interface{}
-				json.Unmarshal(w.Body.Bytes(), &resp)
+				_ = json.Unmarshal(w.Body.Bytes(), &resp)
 				assert.Equal(t, tt.expectedRole, resp["role"])
 				assert.NotEmpty(t, resp["token"])
 			}

@@ -54,7 +54,7 @@ func InitPostgres() {
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		log.Println("❌ Failed to get database instance: %v", err)
+		log.Printf("❌ Failed to get database instance: %v", err)
 	}
 
 	// Set connection pool settings

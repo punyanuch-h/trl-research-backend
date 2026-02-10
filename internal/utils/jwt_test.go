@@ -16,10 +16,7 @@ func TestJWT(t *testing.T) {
 	publicKey := &privateKey.PublicKey
 
 	kid := "test-key"
-	kp := KeyProvider{
-		privateKeys: map[string]*rsa.PrivateKey{kid: privateKey},
-		publicKeys:  map[string]*rsa.PublicKey{kid: publicKey},
-	}
+	kp := NewManualKeyProvider(kid, privateKey, publicKey)
 
 	userID := "user-123"
 	userEmail := "test@example.com"
@@ -28,7 +25,7 @@ func TestJWT(t *testing.T) {
 	clientName := "Test Client"
 	issuer := "test-issuer"
 	audience := "test-audience"
-	ttl := time.Duration(1) // 1 hour
+	ttl := time.Hour // 1 hour
 
 	t.Run("Generate and Validate JWT", func(t *testing.T) {
 		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, ttl, kp)
@@ -66,7 +63,7 @@ func TestJWT(t *testing.T) {
 		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, ttl, kp)
 		assert.NoError(t, err)
 
-		kpWrong := KeyProvider{
+		kpWrong := &KeyProvider{
 			privateKeys: map[string]*rsa.PrivateKey{},
 			publicKeys:  map[string]*rsa.PublicKey{},
 		}

@@ -12,7 +12,9 @@ import (
 func TestGenerateID(t *testing.T) {
 	dbMock, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer dbMock.Close()
+	defer func() {
+		_ = dbMock.Close()
+	}()
 
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: dbMock,
@@ -20,11 +22,11 @@ func TestGenerateID(t *testing.T) {
 	assert.NoError(t, err)
 
 	tests := []struct {
-		name       string
-		tableName  string
-		prefix     string
-		mockSetup  func()
-		expected   string
+		name        string
+		tableName   string
+		prefix      string
+		mockSetup   func()
+		expected    string
 		expectError bool
 	}{
 		{
