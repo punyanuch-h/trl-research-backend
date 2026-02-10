@@ -142,6 +142,10 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.GET("/assessment/case/:id", assessmentHandler.GetAssessmentByCaseID)
 		api.POST("/assessment", assessmentHandler.CreateAssessment)
 		api.PATCH("/assessment/:id", auth.RequireRoles("admin"), assessmentHandler.UpdateAssessmentByID)
+		// 🟢 PDF Generation
+		pdfHandler := &handlers.PDFHandler{Cfg: cfg}
+		api.POST("/generate-pdf", pdfHandler.GeneratePDF)
+
 		// 🟢 File Management
 		api.POST("/presign/upload", presignHandler.PresignUpload)
 		api.GET("/file/download", fileDownloadHandler.GetDownloadURL)

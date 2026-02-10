@@ -19,6 +19,7 @@ type Config struct {
 	EmailSender      string
 	EmailPassword    string
 	AntiSpamCooldown string
+	PDFServiceURL    string
 }
 
 func (c Config) GetSMTPConfig() send_email.SMTPConfig {
@@ -62,6 +63,7 @@ func LoadConfig() Config {
 		EmailSender:      os.Getenv("EMAIL_SENDER"),
 		EmailPassword:    os.Getenv("EMAIL_PASSWORD"),
 		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
+		PDFServiceURL:    getEnv("PDF_SERVICE_URL", "http://localhost:3001"),
 	}
 }
 
