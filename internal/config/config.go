@@ -4,18 +4,22 @@ import (
 	"log"
 	"os"
 
+	"time"
+
 	"trl-research-backend/internal/utils/send_email"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DBUrl         string
-	Port          string
-	EmailHost     string
-	EmailPort     string
-	EmailSender   string
-	EmailPassword string
+	DBUrl            string
+	Port             string
+	EmailHost        string
+	EmailPort        string
+	EmailSender      string
+	EmailPassword    string
+	AntiSpamCooldown string
+	PDFServiceURL    string
 }
 
 func (c Config) GetSMTPConfig() send_email.SMTPConfig {
@@ -26,6 +30,14 @@ func (c Config) GetSMTPConfig() send_email.SMTPConfig {
 		Password: c.EmailPassword,
 		From:     c.EmailSender,
 	}
+}
+
+func (c Config) GetAntiSpamCooldown() time.Duration {
+	d, err := time.ParseDuration(c.AntiSpamCooldown)
+	if err != nil {
+		return 15 * time.Minute // Default fall back
+	}
+	return d
 }
 
 func LoadConfig() Config {
@@ -44,11 +56,20 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		DBUrl:         dbURL,
-		Port:          os.Getenv("PORT"),
-		EmailHost:     os.Getenv("EMAIL_HOST"),
-		EmailPort:     os.Getenv("EMAIL_PORT"),
-		EmailSender:   os.Getenv("EMAIL_SENDER"),
-		EmailPassword: os.Getenv("EMAIL_PASSWORD"),
+		DBUrl:            dbURL,
+		Port:             os.Getenv("PORT"),
+		EmailHost:        os.Getenv("EMAIL_HOST"),
+		EmailPort:        os.Getenv("EMAIL_PORT"),
+		EmailSender:      os.Getenv("EMAIL_SENDER"),
+		EmailPassword:    os.Getenv("EMAIL_PASSWORD"),
+		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
+		PDFServiceURL:    getEnv("PDF_SERVICE_URL", "http://localhost:3001"),
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }

@@ -6,11 +6,11 @@ import (
 
 	auth "trl-research-backend/internal/auth"
 	"trl-research-backend/internal/config"
+	"trl-research-backend/internal/cron"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/handlers"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/storage"
-	"trl-research-backend/internal/cron"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,7 @@ import (
 func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode) // ปิด debug log ของ Gin
 	r := gin.Default()
-	r.SetTrustedProxies([]string{"0.0.0.0/0"})
+	_ = r.SetTrustedProxies([]string{"0.0.0.0/0"})
 
 	// ✅ CORS config
 	r.Use(cors.New(cors.Config{
@@ -40,7 +40,6 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	caseRepo := repository.NewCaseRepo(database.DB)
 	ipRepo := repository.NewIntellectualPropertyRepo(database.DB)
 	assessmentRepo := repository.NewAssessmentRepo(database.DB)
-	fileRepo := repository.NewFileRepo(database.DB)
 
 	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
@@ -52,15 +51,13 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		Cfg:  cfg,
 	}
 	caseHandler := &handlers.CaseHandler{
-		Repo:     caseRepo,
-		FileRepo: fileRepo,
-		GCS:      gcsClient,
+		Repo: caseRepo,
+		GCS:  gcsClient,
 	}
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo, GCS: gcsClient}
 	assessmentHandler := &handlers.AssessmentHandler{Repo: assessmentRepo, GCS: gcsClient}
 	presignHandler := &handlers.PresignHandler{GCS: gcsClient}
-	fileHandler := &handlers.FileHandler{Repo: fileRepo}
-	fileDownloadHandler := &handlers.FileDownloadHandler{FileRepo: fileRepo, GCS: gcsClient}
+	fileDownloadHandler := &handlers.FileDownloadHandler{GCS: gcsClient}
 
 	// ✅ Auth Handlers
 	loginHandler := &auth.LoginHandler{
@@ -92,35 +89,35 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	{
 		api.POST("/auth/reset-password", resetHandler.ResetPassword)
 
-		api.GET("/admins", adminHandler.GetAllAdmins)
-		api.GET("/admin/:id", adminHandler.GetAdminByID)
-		api.GET("/admin/profile", adminHandler.GetAdminProfile)
-		api.POST("/admin", adminHandler.CreateAdmin)
-		api.PATCH("/admin/:id", adminHandler.UpdateAdminProfileByID)
+		api.GET("/admins", auth.RequireRoles("admin"), adminHandler.GetAllAdmins)
+		api.GET("/admin/:id", auth.RequireRoles("admin"), adminHandler.GetAdminByID)
+		api.GET("/admin/profile", auth.RequireRoles("admin"), adminHandler.GetAdminProfile)
+		api.POST("/admin", auth.RequireRoles("admin"), adminHandler.CreateAdmin)
+		api.PATCH("/admin/:id", auth.RequireRoles("admin"), adminHandler.UpdateAdminProfileByID)
 
 		api.GET("/researchers", researcherHandler.GetResearcherAll)
 		api.GET("/researcher/:id", researcherHandler.GetResearcherByID)
 		api.GET("/researcher/case/:id", researcherHandler.GetResearcherByCaseID)
-		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherProfileByID)
+		api.PATCH("/researcher/:id", auth.RequireRoles("admin"), researcherHandler.UpdateResearcherProfileByID)
 		api.GET("/researcher/profile", researcherHandler.GetResearcherProfile)
 
 		api.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
 		api.GET("/coordinator/:id", coordinatorHandler.GetCoordinatorByEmail)
 		api.GET("/coordinator/case/:id", coordinatorHandler.GetCoordinatorByCaseID)
 		api.POST("/coordinator", coordinatorHandler.CreateCoordinator)
-		api.PATCH("/coordinator/:id", coordinatorHandler.UpdateCoordinatorByEmail)
+		api.PATCH("/coordinator/:id", auth.RequireRoles("admin"), coordinatorHandler.UpdateCoordinatorByEmail)
 
 		api.GET("/supportments", supportmentHandler.GetSupportmentAll)
 		api.GET("/supportment/:id", supportmentHandler.GetSupportmentByID)
 		api.GET("/supportment/case/:id", supportmentHandler.GetSupportmentByCaseID)
 		api.POST("/supportment", supportmentHandler.CreateSupportment)
-		api.PATCH("/supportment/:id", supportmentHandler.UpdateSupportmentByID)
+		api.PATCH("/supportment/:id", auth.RequireRoles("admin"), supportmentHandler.UpdateSupportmentByID)
 
 		api.GET("/appointments", appointmentHandler.GetAppointmentAll)
 		api.GET("/appointment/:id", appointmentHandler.GetAppointmentByID)
 		api.GET("/appointment/case/:id", appointmentHandler.GetAppointmentByCaseID)
-		api.POST("/appointment", appointmentHandler.CreateAppointment)
-		api.PATCH("/appointment/:id", appointmentHandler.UpdateAppointmentByID)
+		api.POST("/appointment", auth.RequireRoles("admin"), appointmentHandler.CreateAppointment)
+		api.PATCH("/appointment/:id", auth.RequireRoles("admin"), appointmentHandler.UpdateAppointmentByID)
 
 		// 🟢 Appointment Notifications
 		api.GET("/notifications/appointments", appointmentHandler.GetNotifications)
@@ -131,24 +128,27 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.GET("/case/researcher/:id", caseHandler.GetCaseAllByResearcherID)
 		api.GET("/case/:id", caseHandler.GetCaseByID)
 		api.POST("/case", caseHandler.CreateCase)
-		api.PATCH("/case/:id", caseHandler.UpdateCaseByID)
-		api.PATCH("/case/update-status/:id", caseHandler.UpdateCaseStatusByID)
+		api.PATCH("/case/:id", auth.RequireRoles("admin"), caseHandler.UpdateCaseByID)
+		api.PATCH("/case/update-status/:id", auth.RequireRoles("admin"), caseHandler.UpdateCaseStatusByID)
 
 		api.GET("/ips", ipHandler.GetIPAll)
 		api.GET("/ip/:id", ipHandler.GetIPByID)
 		api.GET("/ip/case/:id", ipHandler.GetIPByCaseID)
 		api.POST("/ip", ipHandler.CreateIP)
-		api.PATCH("/ip/:id", ipHandler.UpdateIPByID)
+		api.PATCH("/ip/:id", auth.RequireRoles("admin"), ipHandler.UpdateIPByID)
 
 		api.GET("/assessments", assessmentHandler.GetAssessmentAll)
 		api.GET("/assessment/:id", assessmentHandler.GetAssessmentByID)
 		api.GET("/assessment/case/:id", assessmentHandler.GetAssessmentByCaseID)
 		api.POST("/assessment", assessmentHandler.CreateAssessment)
-		api.PATCH("/assessment/:id", assessmentHandler.UpdateAssessmentByID)
+		api.PATCH("/assessment/:id", auth.RequireRoles("admin"), assessmentHandler.UpdateAssessmentByID)
+		// 🟢 PDF Generation
+		pdfHandler := &handlers.PDFHandler{Cfg: cfg}
+		api.POST("/generate-pdf", pdfHandler.GeneratePDF)
+
 		// 🟢 File Management
 		api.POST("/presign/upload", presignHandler.PresignUpload)
-		api.POST("/file/upload", fileHandler.FileUploaded)
-		api.GET("/file/download-url/:fileID", fileDownloadHandler.GetDownloadURL)
+		api.GET("/file/download", fileDownloadHandler.GetDownloadURL)
 	}
 
 	// ✅ Start Cron Jobs

@@ -12,12 +12,51 @@ gcloud run deploy trl-research-backend \
 Service URL: https://trl-research-backend-325350196988.asia-southeast1.run.app
 
 
-## run backend on local
-1. put file trl-research-service-account.json, private_key_v1.pem, public_key_v1.pem on same layer as Dckerfile
+## Running Backend Locally
+1. Place `storageLocal.json` and create `.env` file from `.env.example`.
+2. Run the server: `go run cmd/api-server/main.go`
+3. Log in before calling any API.
 
-2. go run cmd/api-server/main.go
+## Development & Quality Control
+To ensure code quality and prevent CI failures, please run linting and tests locally before creating a Pull Request.
 
-3. login before call any API - looking for admin account in file internal/script/seed_admins.go
+### Prerequisites
+1. **Go 1.24.3**
+2. **golangci-lint**: 
+   - Windows: `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`
+   - Others: [Installation Guide](https://golangci-lint.run/usage/install/)
+3. **C compiler (Optional)**: Needed for the `-race` flag. If you don't have one, our script will automatically run tests without it.
+
+### Quick Check Script
+We provide scripts to run all checks in one command:
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\check.ps1
+```
+
+**macOS/Linux (Bash):**
+```bash
+./scripts/check.sh
+```
+
+### Using Makefile (macOS/Linux)
+- **Run all checks**: `make all`
+- **Run Unit Tests**: `make test`
+- **Run Linter**: `make lint`
+
+### Manual Commands (Cross-platform)
+If you don't have `make` or want to run specific steps:
+- **Run Everything**: `golangci-lint run; go test -v -race ./...`
+- **Unit Tests Only**: `go test -p 4 -v -race ./...`
+- **Linter Only**: `golangci-lint run`
+
+### PR Workflow
+1. Develop features and add unit tests.
+2. Run the check script for your platform:
+   - Windows: `.\scripts\check.ps1`
+   - macOS/Linux: `./scripts/check.sh` or `make all`
+3. Push changes and create a PR (CI will verify again).
 
 <!-- Deploy on cloud -->
 gcloud run deploy trl-research-backend \

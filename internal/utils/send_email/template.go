@@ -23,6 +23,7 @@ type AppointmentDetails struct {
 	Time          string
 	Location      string
 	Detail        string
+	Summary       string
 	Researchers   []Recipient
 	Coordinators  []Recipient
 }
@@ -49,7 +50,8 @@ func GatherAppointmentEmailData(ap *models.Appointments) (AppointmentDetails, Pr
 		Date:     ap.Date.Format("02 January 2006"),
 		Time:     ap.Date.Format("15:04"),
 		Location: ap.Location,
-		Detail:   ap.Details,
+		Detail:   ap.Detail,
+		Summary:  ap.Summary,
 	}
 
 	if ap.Case != nil {
@@ -102,7 +104,7 @@ func TemplateCreate(recipient Recipient, details AppointmentDetails, isResearche
 	content += fmt.Sprintf("- Date: %s\n", details.Date)
 	content += fmt.Sprintf("- Time: %s\n", details.Time)
 	content += fmt.Sprintf("- Location: %s\n", details.Location)
-	
+
 	if details.Detail != "" {
 		content += fmt.Sprintf("- Note: %s\n", details.Detail)
 	}
@@ -112,6 +114,56 @@ func TemplateCreate(recipient Recipient, details AppointmentDetails, isResearche
 	}
 
 	content += "\nPlease be on time.\n\nBest regards,\nREA System"
+	return content
+}
+
+// TemplateUpdate handles notifications when appointment details are modified
+func TemplateUpdate(recipient Recipient, details AppointmentDetails, appointmentID string, updatedAt string, changedFields map[string]bool) string {
+	content := fmt.Sprintf("Dear %s,\n\n", recipient.Name)
+	content += "[URGENT] The details for your appointment have been updated.\n\n"
+	content += "Appointment Information:\n"
+	content += fmt.Sprintf("- Update Timestamp: %s\n", updatedAt)
+	content += fmt.Sprintf("- Research: %s\n\n", details.ResearchTitle)
+
+	content += "Updated Details:\n"
+
+	// Date/Time
+	dateLine := fmt.Sprintf("- Date: %s", details.Date)
+	if changedFields["date"] || changedFields["time"] {
+		dateLine += " (UPDATED)"
+	}
+	content += dateLine + "\n"
+
+	timeLine := fmt.Sprintf("- Time: %s", details.Time)
+	if changedFields["date"] || changedFields["time"] {
+		timeLine += " (UPDATED)"
+	}
+	content += timeLine + "\n"
+
+	// Location
+	locationLine := fmt.Sprintf("- Location: %s", details.Location)
+	if changedFields["location"] {
+		locationLine += " (UPDATED)"
+	}
+	content += locationLine + "\n"
+
+	// Detail/Summary
+	detailsLine := fmt.Sprintf("- Detail: %s", details.Detail)
+	if changedFields["detail"] {
+		detailsLine += " (UPDATED)"
+	}
+	content += detailsLine + "\n"
+
+	if details.Summary != "" {
+		summaryLine := fmt.Sprintf("- Summary: %s", details.Summary)
+		if changedFields["summary"] {
+			summaryLine += " (UPDATED)"
+		}
+		content += summaryLine + "\n"
+	}
+
+	content += "\nPlease review these changes carefully and adjust your schedule accordingly.\n"
+	content += "\nBest regards,\nREA System"
 	return content
 }
 

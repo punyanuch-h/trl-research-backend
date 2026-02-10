@@ -6,7 +6,7 @@ import (
 )
 
 type Researchers struct {
-	ID     			 string    `gorm:"primaryKey;column:id" json:"id"`
+	ID               string    `gorm:"primaryKey;column:id" json:"id"`
 	Prefix           string    `gorm:"column:prefix;not null" json:"prefix"`
 	AcademicPosition string    `gorm:"column:academic_position" json:"academic_position"`
 	FirstName        string    `gorm:"column:first_name;not null" json:"first_name"`

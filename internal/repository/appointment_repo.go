@@ -74,7 +74,7 @@ func (r *AppointmentRepo) CreateAppointment(ap *models.Appointments) error {
 	now := time.Now()
 	ap.CreatedAt = now
 	ap.UpdatedAt = now
-	
+
 	return r.DB.Create(ap).Error
 }
 
@@ -93,7 +93,7 @@ func (r *AppointmentRepo) UpdateAppointmentByID(appointmentID string, data map[s
 		data["date"] = parsedDate
 	}
 
-	data["updated_at"] = time.Now()
+	// Note: updated_at is now managed by the caller (handler) to allow anti-spam logic
 	return r.DB.Model(&models.Appointments{}).Where("id = ?", appointmentID).Updates(data).Error
 }
 
@@ -132,7 +132,7 @@ func (r *AppointmentRepo) GetNotificationsByRole(role string, userID string) ([]
 	}
 
 	err := query.Select("appointments.*").
-		Order("is_read ASC").    // unread first
+		Order("is_read ASC").     // unread first
 		Order("created_at DESC"). // newest first
 		Find(&appointments).Error
 	return appointments, err
@@ -161,7 +161,7 @@ func (r *AppointmentRepo) GetUnreadNotificationCountByRole(role string, userID s
 func (r *AppointmentRepo) MarkNotificationAsRead(id string, role string, userID string) (*models.Appointments, error) {
 	var ap models.Appointments
 	query := r.DB.Where("appointments.id = ? AND is_notify = ?", id, true)
-	
+
 	if role == "admin" {
 		// Admin can mark any as read
 	} else if role == "researcher" {
@@ -170,17 +170,17 @@ func (r *AppointmentRepo) MarkNotificationAsRead(id string, role string, userID 
 	} else {
 		return nil, gorm.ErrRecordNotFound
 	}
-	
+
 	err := query.Select("appointments.*").First(&ap).Error
 	if err != nil {
 		return nil, err
 	}
-	
-	err = r.DB.Model(&ap).Update("is_read", true).Error
+
+	err = r.DB.Model(&ap).UpdateColumns(map[string]interface{}{"is_read": true}).Error
 	if err != nil {
 		return nil, err
 	}
-	
+
 	ap.IsRead = true
 	return &ap, nil
 }
@@ -198,10 +198,10 @@ func (r *AppointmentRepo) MarkAllNotificationsAsRead(role string, userID string)
 			Joins("JOIN cases ON cases.id = appointments.case_id").
 			Where("cases.researcher_id = ?", userID).
 			Where("appointments.is_notify = ?", true)
-		
+
 		return r.DB.Model(&models.Appointments{}).
 			Where("id IN (?)", subQuery).
-			Update("is_read", true).Error
+			UpdateColumns(map[string]interface{}{"is_read": true}).Error
 	}
 
 	return nil

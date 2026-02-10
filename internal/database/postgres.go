@@ -6,8 +6,6 @@ import (
 	"os"
 	"time"
 
-	// "trl-research-backend/internal/models"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -27,7 +25,10 @@ func InitPostgres() {
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+	DB, err = gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true, // Use simple protocol to avoid issues with PgBouncer/Neon
+	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 
@@ -53,7 +54,7 @@ func InitPostgres() {
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		log.Println("❌ Failed to get database instance: %v", err)
+		log.Printf("❌ Failed to get database instance: %v", err)
 	}
 
 	// Set connection pool settings

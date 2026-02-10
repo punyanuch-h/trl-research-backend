@@ -6,8 +6,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"trl-research-backend/internal/storage"
+
+	"github.com/gin-gonic/gin"
 )
 
 type PresignHandler struct {

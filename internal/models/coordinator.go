@@ -5,8 +5,8 @@ import (
 )
 
 type Coordinators struct {
-	ID    			 string    `gorm:"primaryKey;column:id" json:"id"`
-	Prefix 			 string    `gorm:"column:prefix;not null" json:"prefix"`
+	ID               string    `gorm:"primaryKey;column:id" json:"id"`
+	Prefix           string    `gorm:"column:prefix;not null" json:"prefix"`
 	AcademicPosition string    `gorm:"column:academic_position" json:"academic_position"`
 	FirstName        string    `gorm:"column:first_name;not null" json:"first_name"`
 	LastName         string    `gorm:"column:last_name;not null" json:"last_name"`
