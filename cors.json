@@ -1,7 +1,8 @@
 [
     {
         "origin": [
-            "http://localhost:3000"
+            "http://localhost:3000",
+            "https://punyanuch-h.github.io"
         ],
         "method": [
             "GET",
@@ -14,7 +15,8 @@
         ],
         "responseHeader": [
             "Content-Type",
-            "Access-Control-Allow-Origin"
+            "Access-Control-Allow-Origin",
+            "x-goog-resumable"
         ],
         "maxAgeSeconds": 3600
     }
