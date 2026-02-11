@@ -98,7 +98,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.GET("/researchers", researcherHandler.GetResearcherAll)
 		api.GET("/researcher/:id", researcherHandler.GetResearcherByID)
 		api.GET("/researcher/case/:id", researcherHandler.GetResearcherByCaseID)
-		api.PATCH("/researcher/:id", auth.RequireRoles("admin"), researcherHandler.UpdateResearcherProfileByID)
+		api.PATCH("/researcher/:id", researcherHandler.UpdateResearcherProfileByID)
 		api.GET("/researcher/profile", researcherHandler.GetResearcherProfile)
 
 		api.GET("/coordinators", coordinatorHandler.GetCoordinatorAll)
