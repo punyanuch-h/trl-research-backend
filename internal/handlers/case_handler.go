@@ -19,7 +19,6 @@ import (
 
 type CaseHandler struct {
 	Repo     repository.CaseRepository
-	FileRepo repository.FileRepository
 	GCS      *storage.GCSClient
 }
 

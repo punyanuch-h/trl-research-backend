@@ -28,7 +28,6 @@ func main() {
 		&models.Appointments{},
 		&models.IntellectualProperties{},
 		&models.Assessments{},
-		&models.Files{},
 	)
 
 	if err != nil {
