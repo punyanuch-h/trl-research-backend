@@ -152,7 +152,7 @@ func (h *IntellectualPropertyHandler) CreateIP(c *gin.Context) {
 		return
 	}
 
-	log.Printf("[CreateIP] Successfully created IP record with ID: %d\n", req.ID)
+	log.Printf("[CreateIP] Successfully created IP record with ID: %s\n", req.ID)
 	c.JSON(http.StatusOK, req)
 }
 

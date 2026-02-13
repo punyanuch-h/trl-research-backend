@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-
 	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/router"

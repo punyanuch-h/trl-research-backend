@@ -147,7 +147,7 @@ func (h *CaseHandler) CreateCase(c *gin.Context) {
 		return
 	}
 
-	log.Printf("[CreateCase] Successfully created case ID: %d\n", req.ID)
+	log.Printf("[CreateCase] Successfully created case ID: %s\n", req.ID)
 	c.JSON(http.StatusOK, req)
 }
 

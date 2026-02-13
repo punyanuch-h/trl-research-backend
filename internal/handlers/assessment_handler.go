@@ -151,7 +151,7 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 			return
 		}
 
-		log.Printf("[CreateAssessment] Successfully created Assessment ID: %d\n", req.ID)
+		log.Printf("[CreateAssessment] Successfully created Assessment ID: %s\n", req.ID)
 		c.JSON(http.StatusOK, req)
 		return
 	}
@@ -171,7 +171,7 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 		return
 	}
 
-	log.Printf("[CreateAssessment] Successfully created Assessment ID: %d (from JSON)\n", req.ID)
+	log.Printf("[CreateAssessment] Successfully created Assessment ID: %s (from JSON)\n", req.ID)
 	c.JSON(http.StatusOK, req)
 }
 
