@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -54,30 +55,38 @@ func (c *GCSClient) UploadFile(
 // ✅ IAM / ADC compatible
 func (c *GCSClient) GenerateUploadSignedURL(
 	objectPath string,
+	contentType string,
 	expireMinutes int,
 ) (string, error) {
+	log.Printf("[GCSClient] Generating Upload Signed URL for bucket: %s, object: %s, contentType: %s\n", c.BucketName, objectPath, contentType)
 
 	ctx := context.Background()
 
 	client, err := storage.NewClient(ctx)
 	if err != nil {
+		log.Printf("[GCSClient] Error creating storage client: %v\n", err)
 		return "", fmt.Errorf("storage.NewClient: %w", err)
 	}
 	defer client.Close()
 
 	opts := &storage.SignedURLOptions{
-		Method:  "PUT",
-		Expires: time.Now().Add(time.Duration(expireMinutes) * time.Minute),
-		Scheme:  storage.SigningSchemeV4,
+		Method:      "PUT",
+		ContentType: contentType,
+		Expires:     time.Now().Add(time.Duration(expireMinutes) * time.Minute),
+		Scheme:      storage.SigningSchemeV4,
 	}
+
+	log.Printf("[GCSClient] SignedURL Options: Method=%s, ContentType=%s, Expires=%v, Scheme=V4\n", opts.Method, opts.ContentType, opts.Expires)
 
 	url, err := client.
 		Bucket(c.BucketName).
 		SignedURL(objectPath, opts)
 	if err != nil {
+		log.Printf("[GCSClient] Error from SignedURL: %v\n", err)
 		return "", fmt.Errorf("failed to generate upload signed url: %w", err)
 	}
 
+	log.Printf("[GCSClient] Successfully generated Signed URL length: %d\n", len(url))
 	return url, nil
 }
 
@@ -87,11 +96,13 @@ func (c *GCSClient) GenerateDownloadSignedURL(
 	objectPath string,
 	expireMinutes int,
 ) (string, error) {
+	log.Printf("[GCSClient] Generating Download Signed URL for bucket: %s, object: %s\n", c.BucketName, objectPath)
 
 	ctx := context.Background()
 
 	client, err := storage.NewClient(ctx)
 	if err != nil {
+		log.Printf("[GCSClient] Error creating storage client: %v\n", err)
 		return "", fmt.Errorf("storage.NewClient: %w", err)
 	}
 	defer client.Close()
@@ -102,12 +113,16 @@ func (c *GCSClient) GenerateDownloadSignedURL(
 		Scheme:  storage.SigningSchemeV4,
 	}
 
+	log.Printf("[GCSClient] SignedURL Options: Method=%s, Expires=%v, Scheme=V4\n", opts.Method, opts.Expires)
+
 	url, err := client.
 		Bucket(c.BucketName).
 		SignedURL(objectPath, opts)
 	if err != nil {
+		log.Printf("[GCSClient] Error from SignedURL: %v\n", err)
 		return "", fmt.Errorf("failed to generate download signed url: %w", err)
 	}
 
+	log.Printf("[GCSClient] Successfully generated Signed URL length: %d\n", len(url))
 	return url, nil
 }

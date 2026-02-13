@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -53,12 +54,15 @@ func (h *AssessmentHandler) GetAssessmentByCaseID(c *gin.Context) {
 
 // 🟢 POST /assessment
 func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
+	log.Println("[CreateAssessment] Incoming request")
 	contentType := c.GetHeader("Content-Type")
 
 	// 1. Handle Multipart/Form-Data
 	if contentType != "" && (len(contentType) > 19 && contentType[:19] == "multipart/form-data") {
+		log.Println("[CreateAssessment] Handling multipart/form-data upload")
 		var req models.Assessments
 		if err := c.ShouldBind(&req); err != nil {
+			log.Printf("[CreateAssessment] Form bind error: %v\n", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data: " + err.Error()})
 			return
 		}
@@ -77,13 +81,18 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 			for _, fileHeader := range files {
 				file, err := fileHeader.Open()
 				if err != nil {
+					log.Printf("[CreateAssessment] Error opening file %s in key %s: %v\n", fileHeader.Filename, key, err)
 					continue
 				}
 				defer file.Close()
 
 				objectPath := fmt.Sprintf("assessment_attachments/%s/%s/%s/%s", today, req.CaseID, key, fileHeader.Filename)
+				log.Printf("[CreateAssessment] Uploading file to GCS: %s\n", objectPath)
 				if err := h.GCS.UploadFile(objectPath, fileHeader.Header.Get("Content-Type"), file); err == nil {
+					log.Printf("[CreateAssessment] Successfully uploaded %s\n", objectPath)
 					paths = append(paths, objectPath)
+				} else {
+					log.Printf("[CreateAssessment] Failed to upload %s: %v\n", objectPath, err)
 				}
 			}
 			jsonData, _ := json.Marshal(paths)
@@ -106,6 +115,7 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 		}
 
 		// Process all attachments
+		log.Println("[CreateAssessment] Processing attachments...")
 		req.Rq1Attachments = uploadFiles("rq1_attachments")
 		req.Rq2Attachments = uploadFiles("rq2_attachments")
 		req.Rq3Attachments = uploadFiles("rq3_attachments")
@@ -136,26 +146,32 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 		req.Cq9Attachments = uploadFiles("cq9_attachments")
 
 		if err := h.Repo.CreateAssessment(&req); err != nil {
+			log.Printf("[CreateAssessment] Repo creation error: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		log.Printf("[CreateAssessment] Successfully created Assessment ID: %d\n", req.ID)
 		c.JSON(http.StatusOK, req)
 		return
 	}
 
 	// 2. Fallback to JSON
+	log.Println("[CreateAssessment] Handling JSON request (likely using pre-signed URL paths)")
 	var req models.Assessments
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[CreateAssessment] JSON bind error: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := h.Repo.CreateAssessment(&req); err != nil {
+		log.Printf("[CreateAssessment] Repo creation error: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	log.Printf("[CreateAssessment] Successfully created Assessment ID: %d (from JSON)\n", req.ID)
 	c.JSON(http.StatusOK, req)
 }
 

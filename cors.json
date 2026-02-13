@@ -17,7 +17,8 @@
         "responseHeader": [
             "Content-Type",
             "Access-Control-Allow-Origin",
-            "x-goog-resumable"
+            "x-goog-resumable",
+            "Authorization"
         ],
         "maxAgeSeconds": 3600
     }
