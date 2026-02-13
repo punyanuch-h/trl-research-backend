@@ -2,7 +2,8 @@
     {
         "origin": [
             "http://localhost:3000",
-            "https://punyanuch-h.github.io"
+            "https://punyanuch-h.github.io",
+            "https://trl-research-frontend.vercel.app"
         ],
         "method": [
             "GET",
