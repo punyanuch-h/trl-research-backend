@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/gin-contrib/cors"
-
 	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/database"
 	"trl-research-backend/internal/router"
