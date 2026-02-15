@@ -38,7 +38,7 @@ func main() {
 	// 🧹 CLEANUP (Truncate all tables)
 	// ==========================================
 	tables := []string{
-		"supportments", "intellectual_properties", "files", "assessments",
+		"supportments", "intellectual_properties", "assessments",
 		"appointments", "cases", "coordinators", "researchers", "admins",
 	}
 	for _, table := range tables {
@@ -353,22 +353,7 @@ func main() {
 	fmt.Println("✅ IPs seeded")
 
 	// ==========================================
-	// 📂 8. FILES
-	// ==========================================
-	files := []models.Files{
-		{ID: "F-00001", CaseID: "CS-00001", Name: "clinical_protocol.pdf", ObjectPath: "cases/cs00001/protocol.pdf", ContentType: "application/pdf", UploadedBy: "RS-00001", UploadedAt: now},
-		{ID: "F-00002", CaseID: "CS-00002", Name: "circuit_design_v2.png", ObjectPath: "cases/cs00002/circuit.png", ContentType: "image/png", UploadedBy: "RS-00002", UploadedAt: now},
-		{ID: "F-00003", CaseID: "CS-00003", Name: "lab_notes_week1.docx", ObjectPath: "cases/cs00003/notes.docx", ContentType: "application/msword", UploadedBy: "RS-00003", UploadedAt: now},
-		{ID: "F-00004", CaseID: "CS-00004", Name: "stress_test_data.csv", ObjectPath: "cases/cs00004/data.csv", ContentType: "text/csv", UploadedBy: "RS-00004", UploadedAt: now},
-		{ID: "F-00005", CaseID: "CS-00005", Name: "fda_certificate.pdf", ObjectPath: "cases/cs00005/cert.pdf", ContentType: "application/pdf", UploadedBy: "RS-00005", UploadedAt: now},
-	}
-	if err := db.CreateInBatches(&files, 5).Error; err != nil {
-		log.Fatalf("❌ Failed to seed files: %v", err)
-	}
-	fmt.Println("✅ Files seeded")
-
-	// ==========================================
-	// 🆘 9. SUPPORTMENTS
+	// 🆘 8. SUPPORTMENTS
 	// ==========================================
 	supportments := []models.Supportments{
 		{ID: "SP-00001", CaseID: "CS-00001", NeedPartners: true, NeedCapital: true, Need: "Looking for private hospital partners."},

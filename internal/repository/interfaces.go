@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"time"
 	"trl-research-backend/internal/models"
 )
@@ -84,9 +83,4 @@ type IntellectualPropertyRepository interface {
 	GetIPByCaseID(caseID string) ([]models.IntellectualProperties, error)
 	CreateIP(ip *models.IntellectualProperties) error
 	UpdateIPByID(ipID string, data map[string]interface{}) error
-}
-
-type FileRepository interface {
-	SaveFile(ctx context.Context, file *models.Files) error
-	GetFileByID(ctx context.Context, fileID string) (*models.Files, error)
 }

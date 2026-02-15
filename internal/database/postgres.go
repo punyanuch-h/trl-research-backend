@@ -46,7 +46,6 @@ func InitPostgres() {
 	// 	&models.Appointments{},
 	// 	&models.IntellectualProperties{},
 	// 	&models.Assessments{},
-	// 	&models.Files{},
 	// )
 	// if err != nil {
 	// 	log.Printf("⚠️ AutoMigrate error: %v", err)
