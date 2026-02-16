@@ -40,6 +40,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	caseRepo := repository.NewCaseRepo(database.DB)
 	ipRepo := repository.NewIntellectualPropertyRepo(database.DB)
 	assessmentRepo := repository.NewAssessmentRepo(database.DB)
+	chatLogRepo := repository.NewChatLogRepo(database.DB)
 
 	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
@@ -58,6 +59,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	assessmentHandler := &handlers.AssessmentHandler{Repo: assessmentRepo, GCS: gcsClient}
 	presignHandler := &handlers.PresignHandler{GCS: gcsClient}
 	fileDownloadHandler := &handlers.FileDownloadHandler{GCS: gcsClient}
+	chatLogHandler := &handlers.ChatLogHandler{Repo: chatLogRepo}
 
 	// ✅ Auth Handlers
 	loginHandler := &auth.LoginHandler{
@@ -142,9 +144,13 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 		api.GET("/assessment/case/:id", assessmentHandler.GetAssessmentByCaseID)
 		api.POST("/assessment", assessmentHandler.CreateAssessment)
 		api.PATCH("/assessment/:id", auth.RequireRoles("admin"), assessmentHandler.UpdateAssessmentByID)
+
 		// 🟢 File Management
 		api.POST("/presign/upload", presignHandler.PresignUpload)
 		api.GET("/file/download", fileDownloadHandler.GetDownloadURL)
+
+		// 🟢 Chat Logs
+		api.POST("/chat-log", chatLogHandler.CreateChatLog)
 	}
 
 	// ✅ Start Cron Jobs

@@ -28,6 +28,7 @@ func main() {
 		&models.Appointments{},
 		&models.IntellectualProperties{},
 		&models.Assessments{},
+		&models.ChatLogs{},
 	)
 
 	if err != nil {
