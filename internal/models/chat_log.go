@@ -12,7 +12,7 @@ type ChatLogs struct {
 	Admin        *Admins        `gorm:"foreignKey:AdminID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"admin,omitempty"`
 	ResearcherID *string        `gorm:"column:researcher_id;index" json:"researcher_id,omitempty"`
 	Researcher   *Researchers   `gorm:"foreignKey:ResearcherID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"researcher,omitempty"`
-	History      datatypes.JSON `gorm:"column:history;type:text;not null" json:"history"`
+	History      datatypes.JSON `gorm:"column:history;type:jsonb;not null" json:"history"`
 	CreatedAt    time.Time      `gorm:"column:created_at" json:"created_at"`
 }
 
