@@ -2,6 +2,8 @@ package send_email
 
 import (
 	"fmt"
+	"html"
+	"time"
 	"trl-research-backend/internal/models"
 )
 
@@ -46,9 +48,16 @@ type SendEmailResults struct {
 
 // GatherAppointmentEmailData helper function to gather and format information from models
 func GatherAppointmentEmailData(ap *models.Appointments) (AppointmentDetails, Professor) {
+	// Convert time to Asia/Bangkok (UTC+7)
+	loc, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+		loc = time.FixedZone("ICT", 7*60*60)
+	}
+	localTime := ap.Date.In(loc)
+
 	details := AppointmentDetails{
-		Date:     ap.Date.Format("02 January 2006"),
-		Time:     ap.Date.Format("15:04"),
+		Date:     localTime.Format("02 January 2006"),
+		Time:     localTime.Format("15:04"),
 		Location: ap.Location,
 		Detail:   ap.Detail,
 		Summary:  ap.Summary,
@@ -96,92 +105,158 @@ func GenerateEmailSubject(title string) string {
 	return fmt.Sprintf("New Appointment Scheduled: %s", title)
 }
 
+// getHTMLTemplate wraps content in a beautiful, formal HTML structure
+func getHTMLTemplate(title string, bodyContent string) string {
+	return fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 30px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { background-color: #00C1D6; color: #ffffff; padding: 25px; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }
+        .content { padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; }
+        .footer { background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; color: #888; border: 1px solid #eee; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+        .info-table { width: 100%%; border-collapse: collapse; margin: 20px 0; }
+        .info-table td { padding: 12px 5px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+        .label { font-weight: 600; width: 30%%; color: #555; }
+        .value { color: #222; }
+        .highlight { color: #d9534f; font-weight: bold; font-size: 0.9em; background-color: #fdf0f0; padding: 2px 6px; border-radius: 4px; }
+        p { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>%s</h1>
+        </div>
+        <div class="content">
+            %s
+        </div>
+        <div class="footer">
+            <p>This is an automated message from the TRL Research Administration System.<br>Please do not reply to this email.</p>
+            <p style="color: #ccc; font-size: 10px;">Ref: %s</p>
+        </div>
+    </div>
+</body>
+</html>`, title, bodyContent, time.Now().Format("20060102-150405"))
+}
+
 // TemplateCreate for new appointments
 func TemplateCreate(recipient Recipient, details AppointmentDetails, isResearcher bool, coordinatorName string) string {
-	content := fmt.Sprintf("Dear %s,\n\n", recipient.Name)
-	content += fmt.Sprintf("A new appointment has been scheduled for the research project: \"%s\"\n\n", details.ResearchTitle)
-	content += "Appointment Details:\n"
-	content += fmt.Sprintf("- Date: %s\n", details.Date)
-	content += fmt.Sprintf("- Time: %s\n", details.Time)
-	content += fmt.Sprintf("- Location: %s\n", details.Location)
+	body := fmt.Sprintf("<p>Dear <strong>%s</strong>,</p>", html.EscapeString(recipient.Name))
+	body += fmt.Sprintf("<p>We are writing to inform you that a new appointment has been scheduled for the research project: <strong>%s</strong>.</p>", html.EscapeString(details.ResearchTitle))
+
+	body += "<table class='info-table'>"
+	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Date))
+	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Time))
+	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Location))
 
 	if details.Detail != "" {
-		content += fmt.Sprintf("- Note: %s\n", details.Detail)
+		body += fmt.Sprintf("<tr><td class='label'>Note:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Detail))
 	}
 
 	if isResearcher && coordinatorName != "" {
-		content += fmt.Sprintf("\nYour coordinator for this session will be: %s\n", coordinatorName)
+		body += fmt.Sprintf("<tr><td class='label'>Coordinator:</td><td class='value'>%s</td></tr>", html.EscapeString(coordinatorName))
 	}
+	body += "</table>"
 
-	content += "\nPlease be on time.\n\nBest regards,\nREA System"
-	return content
+	body += "<p>We kindly request your punctual attendance.</p>"
+	body += "<p>Sincerely,<br>TRL Research Administration System</p>"
+
+	return getHTMLTemplate("New Appointment Scheduled", body)
 }
 
 // TemplateUpdate handles notifications when appointment details are modified
 func TemplateUpdate(recipient Recipient, details AppointmentDetails, appointmentID string, updatedAt string, changedFields map[string]bool) string {
-	content := fmt.Sprintf("Dear %s,\n\n", recipient.Name)
-	content += "[URGENT] The details for your appointment have been updated.\n\n"
-	content += "Appointment Information:\n"
-	content += fmt.Sprintf("- Update Timestamp: %s\n", updatedAt)
-	content += fmt.Sprintf("- Research: %s\n\n", details.ResearchTitle)
+	body := fmt.Sprintf("<p>Dear <strong>%s</strong>,</p>", html.EscapeString(recipient.Name))
+	body += "<p><strong style='color: #d9534f;'>[URGENT]</strong> The details for your appointment have been updated.</p>"
 
-	content += "Updated Details:\n"
+	body += "<table class='info-table'>"
+	body += fmt.Sprintf("<tr><td class='label'>Project:</td><td class='value'>%s</td></tr>", html.EscapeString(details.ResearchTitle))
+	body += fmt.Sprintf("<tr><td class='label'>Last Updated:</td><td class='value'>%s</td></tr>", html.EscapeString(updatedAt))
+	body += "</table>"
 
-	// Date/Time
-	dateLine := fmt.Sprintf("- Date: %s", details.Date)
+	body += "<h3>Updated Details</h3>"
+	body += "<table class='info-table'>"
+
+	// Date
+	dateVal := html.EscapeString(details.Date)
 	if changedFields["date"] || changedFields["time"] {
-		dateLine += " (UPDATED)"
+		dateVal += " <span class='highlight'>(UPDATED)</span>"
 	}
-	content += dateLine + "\n"
+	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", dateVal)
 
-	timeLine := fmt.Sprintf("- Time: %s", details.Time)
+	// Time
+	timeVal := html.EscapeString(details.Time)
 	if changedFields["date"] || changedFields["time"] {
-		timeLine += " (UPDATED)"
+		timeVal += " <span class='highlight'>(UPDATED)</span>"
 	}
-	content += timeLine + "\n"
+	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", timeVal)
 
 	// Location
-	locationLine := fmt.Sprintf("- Location: %s", details.Location)
+	locVal := html.EscapeString(details.Location)
 	if changedFields["location"] {
-		locationLine += " (UPDATED)"
+		locVal += " <span class='highlight'>(UPDATED)</span>"
 	}
-	content += locationLine + "\n"
+	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", locVal)
 
-	// Detail/Summary
-	detailsLine := fmt.Sprintf("- Detail: %s", details.Detail)
+	// Detail
+	detVal := html.EscapeString(details.Detail)
 	if changedFields["detail"] {
-		detailsLine += " (UPDATED)"
+		detVal += " <span class='highlight'>(UPDATED)</span>"
 	}
-	content += detailsLine + "\n"
+	body += fmt.Sprintf("<tr><td class='label'>Note:</td><td class='value'>%s</td></tr>", detVal)
 
 	if details.Summary != "" {
-		summaryLine := fmt.Sprintf("- Summary: %s", details.Summary)
+		sumVal := html.EscapeString(details.Summary)
 		if changedFields["summary"] {
-			summaryLine += " (UPDATED)"
+			sumVal += " <span class='highlight'>(UPDATED)</span>"
 		}
-		content += summaryLine + "\n"
+		body += fmt.Sprintf("<tr><td class='label'>Summary:</td><td class='value'>%s</td></tr>", sumVal)
 	}
+	body += "</table>"
 
-	content += "\nPlease review these changes carefully and adjust your schedule accordingly.\n"
-	content += "\nBest regards,\nREA System"
-	return content
+	body += "<p>Please review these changes carefully and adjust your schedule accordingly.</p>"
+	body += "<p>Sincerely,<br>TRL Research Administration System</p>"
+
+	return getHTMLTemplate("Appointment Update Notification", body)
 }
 
 // TemplateReminder for reminders
 func TemplateReminder(details AppointmentDetails, professor Professor, researcher Recipient, coordinator *Recipient) string {
-	content := fmt.Sprintf("Reminder: Upcoming Appointment for \"%s\"\n\n", details.ResearchTitle)
-	content += "This is a reminder for your upcoming appointment:\n"
-	content += fmt.Sprintf("- Date: %s\n", details.Date)
-	content += fmt.Sprintf("- Time: %s\n", details.Time)
-	content += fmt.Sprintf("- Location: %s\n\n", details.Location)
+	body := fmt.Sprintf("<p>This is a reminder for your upcoming appointment regarding the project: <strong>%s</strong>.</p>", html.EscapeString(details.ResearchTitle))
 
-	content += "Participants:\n"
-	content += fmt.Sprintf("- Professor: %s (%s)\n", professor.Name, professor.Email)
-	content += fmt.Sprintf("- Researcher: %s\n", researcher.Name)
+	body += "<table class='info-table'>"
+	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Date))
+	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Time))
+	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Location))
+	body += "</table>"
+
+	body += "<h3>Participants</h3>"
+	body += "<table class='info-table'>"
+	body += fmt.Sprintf("<tr><td class='label'>Professor:</td><td class='value'>%s (%s)</td></tr>", html.EscapeString(professor.Name), html.EscapeString(professor.Email))
+	body += fmt.Sprintf("<tr><td class='label'>Researcher:</td><td class='value'>%s</td></tr>", html.EscapeString(researcher.Name))
 	if coordinator != nil {
-		content += fmt.Sprintf("- Coordinator: %s\n", coordinator.Name)
+		body += fmt.Sprintf("<tr><td class='label'>Coordinator:</td><td class='value'>%s</td></tr>", html.EscapeString(coordinator.Name))
 	}
+	body += "</table>"
 
-	content += "\nThank you.\nREA System"
-	return content
+	body += "<p>Sincerely,<br>TRL Research Administration System</p>"
+
+	return getHTMLTemplate("Appointment Reminder", body)
+}
+
+// TemplateForgetPassword creates a formal email for temporary password reset
+func TemplateForgetPassword(tempPass string) string {
+	body := "<p>Dear User,</p>"
+	body += "<p>We received a request to reset your password for the TRL Research Administration System.</p>"
+	body += "<p>Your temporary password is:</p>"
+	body += fmt.Sprintf("<div style='text-align: center; margin: 30px 0;'><div style='background-color: #f8f9fa; padding: 15px; font-size: 18px; font-weight: bold; letter-spacing: 1px; color: #00C1D6; border-radius: 6px; border: 1px solid #e9ecef; display: inline-block; max-width: 100%%; word-break: break-all; overflow-wrap: break-word;'>%s</div></div>", html.EscapeString(tempPass))
+	body += "<p>This temporary password will expire in <strong>10 minutes</strong>. Please log in and change your password immediately.</p>"
+	body += "<p>If you did not request a password reset, please contact the administrator immediately.</p>"
+	body += "<p>Sincerely,<br>TRL Research Administration System</p>"
+
+	return getHTMLTemplate("Password Reset Request", body)
 }
