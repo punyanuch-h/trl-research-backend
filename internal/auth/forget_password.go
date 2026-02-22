@@ -10,6 +10,7 @@ import (
 
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/utils"
+	"trl-research-backend/internal/utils/send_email"
 
 	"github.com/gin-gonic/gin"
 )
@@ -102,7 +103,11 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 
 	addr := fmt.Sprintf("%s:%d", host, port)
 	auth := smtp.PlainAuth("", sender, pass, host)
-	msg := []byte("Subject: Temporary Password\r\n\r\nYour temporary password is: " + tempPass)
+
+	subject := "Subject: Password Reset Request\r\n"
+	mime := "MIME-Version: 1.0\r\nContent-Type: text/html; charset=\"utf-8\"\r\n"
+	body := send_email.TemplateForgetPassword(tempPass)
+	msg := []byte(subject + mime + "\r\n" + body)
 
 	if err := smtp.SendMail(addr, auth, sender, []string{req.Email}, msg); err != nil {
 		log.Printf("ForgotPassword Error: SMTP failed: %v", err)
