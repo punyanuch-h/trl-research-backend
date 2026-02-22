@@ -1,10 +1,8 @@
 package auth
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"net/smtp"
 	"os"
 	"strconv"
 
@@ -101,15 +99,16 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 		return
 	}
 
-	addr := fmt.Sprintf("%s:%d", host, port)
-	auth := smtp.PlainAuth("", sender, pass, host)
+	smtpService := send_email.CreateSMTPEmailService(send_email.SMTPConfig{
+		Host:     host,
+		Port:     portStr,
+		Username: sender,
+		Password: pass,
+		From:     sender,
+	})
 
-	subject := "Subject: Password Reset Request\r\n"
-	mime := "MIME-Version: 1.0\r\nContent-Type: text/html; charset=\"utf-8\"\r\n"
-	body := send_email.TemplateForgetPassword(tempPass)
-	msg := []byte(subject + mime + "\r\n" + body)
-
-	if err := smtp.SendMail(addr, auth, sender, []string{req.Email}, msg); err != nil {
+	body := send_email.TemplateForgetPassword(string(tempPass))
+	if err := smtpService(req.Email, "Password Reset Request", body); err != nil {
 		log.Printf("ForgotPassword Error: SMTP failed: %v", err)
 		// We could return success here too to avoid leaking info, but for debugging let's keep it
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
