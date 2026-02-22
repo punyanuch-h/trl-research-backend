@@ -253,7 +253,7 @@ func TemplateForgetPassword(tempPass string) string {
 	body := "<p>Dear User,</p>"
 	body += "<p>We received a request to reset your password for the TRL Research Administration System.</p>"
 	body += "<p>Your temporary password is:</p>"
-	body += fmt.Sprintf("<div style='text-align: center; margin: 30px 0;'><div style='background-color: #f8f9fa; padding: 15px; font-size: 1ุ6px; font-weight: bold; letter-spacing: 1px; color: #00C1D6; border-radius: 6px; border: 1px solid #e9ecef; display: inline-block; max-width: 100%%; word-break: break-all; overflow-wrap: break-word;'>%s</div></div>", html.EscapeString(tempPass))
+	body += fmt.Sprintf("<div style='text-align: center; margin: 30px 0;'><div style='background-color: #f8f9fa; padding: 15px; font-size: 18px; font-weight: bold; letter-spacing: 1px; color: #00C1D6; border-radius: 6px; border: 1px solid #e9ecef; display: inline-block; max-width: 100%%; word-break: break-all; overflow-wrap: break-word;'>%s</div></div>", html.EscapeString(tempPass))
 	body += "<p>This temporary password will expire in <strong>10 minutes</strong>. Please log in and change your password immediately.</p>"
 	body += "<p>If you did not request a password reset, please contact the administrator immediately.</p>"
 	body += "<p>Sincerely,<br>TRL Research Administration System</p>"
