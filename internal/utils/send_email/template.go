@@ -2,6 +2,7 @@ package send_email
 
 import (
 	"fmt"
+	"html"
 	"time"
 	"trl-research-backend/internal/models"
 )
@@ -144,20 +145,20 @@ func getHTMLTemplate(title string, bodyContent string) string {
 
 // TemplateCreate for new appointments
 func TemplateCreate(recipient Recipient, details AppointmentDetails, isResearcher bool, coordinatorName string) string {
-	body := fmt.Sprintf("<p>Dear <strong>%s</strong>,</p>", recipient.Name)
-	body += fmt.Sprintf("<p>We are writing to inform you that a new appointment has been scheduled for the research project: <strong>%s</strong>.</p>", details.ResearchTitle)
+	body := fmt.Sprintf("<p>Dear <strong>%s</strong>,</p>", html.EscapeString(recipient.Name))
+	body += fmt.Sprintf("<p>We are writing to inform you that a new appointment has been scheduled for the research project: <strong>%s</strong>.</p>", html.EscapeString(details.ResearchTitle))
 
 	body += "<table class='info-table'>"
-	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", details.Date)
-	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", details.Time)
-	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", details.Location)
+	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Date))
+	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Time))
+	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Location))
 
 	if details.Detail != "" {
-		body += fmt.Sprintf("<tr><td class='label'>Note:</td><td class='value'>%s</td></tr>", details.Detail)
+		body += fmt.Sprintf("<tr><td class='label'>Note:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Detail))
 	}
 
 	if isResearcher && coordinatorName != "" {
-		body += fmt.Sprintf("<tr><td class='label'>Coordinator:</td><td class='value'>%s</td></tr>", coordinatorName)
+		body += fmt.Sprintf("<tr><td class='label'>Coordinator:</td><td class='value'>%s</td></tr>", html.EscapeString(coordinatorName))
 	}
 	body += "</table>"
 
@@ -169,47 +170,47 @@ func TemplateCreate(recipient Recipient, details AppointmentDetails, isResearche
 
 // TemplateUpdate handles notifications when appointment details are modified
 func TemplateUpdate(recipient Recipient, details AppointmentDetails, appointmentID string, updatedAt string, changedFields map[string]bool) string {
-	body := fmt.Sprintf("<p>Dear <strong>%s</strong>,</p>", recipient.Name)
+	body := fmt.Sprintf("<p>Dear <strong>%s</strong>,</p>", html.EscapeString(recipient.Name))
 	body += "<p><strong style='color: #d9534f;'>[URGENT]</strong> The details for your appointment have been updated.</p>"
 
 	body += "<table class='info-table'>"
-	body += fmt.Sprintf("<tr><td class='label'>Project:</td><td class='value'>%s</td></tr>", details.ResearchTitle)
-	body += fmt.Sprintf("<tr><td class='label'>Last Updated:</td><td class='value'>%s</td></tr>", updatedAt)
+	body += fmt.Sprintf("<tr><td class='label'>Project:</td><td class='value'>%s</td></tr>", html.EscapeString(details.ResearchTitle))
+	body += fmt.Sprintf("<tr><td class='label'>Last Updated:</td><td class='value'>%s</td></tr>", html.EscapeString(updatedAt))
 	body += "</table>"
 
 	body += "<h3>Updated Details</h3>"
 	body += "<table class='info-table'>"
 
 	// Date
-	dateVal := details.Date
+	dateVal := html.EscapeString(details.Date)
 	if changedFields["date"] || changedFields["time"] {
 		dateVal += " <span class='highlight'>(UPDATED)</span>"
 	}
 	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", dateVal)
 
 	// Time
-	timeVal := details.Time
+	timeVal := html.EscapeString(details.Time)
 	if changedFields["date"] || changedFields["time"] {
 		timeVal += " <span class='highlight'>(UPDATED)</span>"
 	}
 	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", timeVal)
 
 	// Location
-	locVal := details.Location
+	locVal := html.EscapeString(details.Location)
 	if changedFields["location"] {
 		locVal += " <span class='highlight'>(UPDATED)</span>"
 	}
 	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", locVal)
 
 	// Detail
-	detVal := details.Detail
+	detVal := html.EscapeString(details.Detail)
 	if changedFields["detail"] {
 		detVal += " <span class='highlight'>(UPDATED)</span>"
 	}
 	body += fmt.Sprintf("<tr><td class='label'>Note:</td><td class='value'>%s</td></tr>", detVal)
 
 	if details.Summary != "" {
-		sumVal := details.Summary
+		sumVal := html.EscapeString(details.Summary)
 		if changedFields["summary"] {
 			sumVal += " <span class='highlight'>(UPDATED)</span>"
 		}
@@ -225,20 +226,20 @@ func TemplateUpdate(recipient Recipient, details AppointmentDetails, appointment
 
 // TemplateReminder for reminders
 func TemplateReminder(details AppointmentDetails, professor Professor, researcher Recipient, coordinator *Recipient) string {
-	body := fmt.Sprintf("<p>This is a reminder for your upcoming appointment regarding the project: <strong>%s</strong>.</p>", details.ResearchTitle)
+	body := fmt.Sprintf("<p>This is a reminder for your upcoming appointment regarding the project: <strong>%s</strong>.</p>", html.EscapeString(details.ResearchTitle))
 
 	body += "<table class='info-table'>"
-	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", details.Date)
-	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", details.Time)
-	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", details.Location)
+	body += fmt.Sprintf("<tr><td class='label'>Date:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Date))
+	body += fmt.Sprintf("<tr><td class='label'>Time:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Time))
+	body += fmt.Sprintf("<tr><td class='label'>Location:</td><td class='value'>%s</td></tr>", html.EscapeString(details.Location))
 	body += "</table>"
 
 	body += "<h3>Participants</h3>"
 	body += "<table class='info-table'>"
-	body += fmt.Sprintf("<tr><td class='label'>Professor:</td><td class='value'>%s (%s)</td></tr>", professor.Name, professor.Email)
-	body += fmt.Sprintf("<tr><td class='label'>Researcher:</td><td class='value'>%s</td></tr>", researcher.Name)
+	body += fmt.Sprintf("<tr><td class='label'>Professor:</td><td class='value'>%s (%s)</td></tr>", html.EscapeString(professor.Name), html.EscapeString(professor.Email))
+	body += fmt.Sprintf("<tr><td class='label'>Researcher:</td><td class='value'>%s</td></tr>", html.EscapeString(researcher.Name))
 	if coordinator != nil {
-		body += fmt.Sprintf("<tr><td class='label'>Coordinator:</td><td class='value'>%s</td></tr>", coordinator.Name)
+		body += fmt.Sprintf("<tr><td class='label'>Coordinator:</td><td class='value'>%s</td></tr>", html.EscapeString(coordinator.Name))
 	}
 	body += "</table>"
 
@@ -252,7 +253,7 @@ func TemplateForgetPassword(tempPass string) string {
 	body := "<p>Dear User,</p>"
 	body += "<p>We received a request to reset your password for the TRL Research Administration System.</p>"
 	body += "<p>Your temporary password is:</p>"
-	body += fmt.Sprintf("<div style='text-align: center; margin: 30px 0;'><div style='background-color: #f8f9fa; padding: 15px; font-size: 1ุ6px; font-weight: bold; letter-spacing: 1px; color: #00C1D6; border-radius: 6px; border: 1px solid #e9ecef; display: inline-block; max-width: 100%%; word-break: break-all; overflow-wrap: break-word;'>%s</div></div>", tempPass)
+	body += fmt.Sprintf("<div style='text-align: center; margin: 30px 0;'><div style='background-color: #f8f9fa; padding: 15px; font-size: 1ุ6px; font-weight: bold; letter-spacing: 1px; color: #00C1D6; border-radius: 6px; border: 1px solid #e9ecef; display: inline-block; max-width: 100%%; word-break: break-all; overflow-wrap: break-word;'>%s</div></div>", html.EscapeString(tempPass))
 	body += "<p>This temporary password will expire in <strong>10 minutes</strong>. Please log in and change your password immediately.</p>"
 	body += "<p>If you did not request a password reset, please contact the administrator immediately.</p>"
 	body += "<p>Sincerely,<br>TRL Research Administration System</p>"
