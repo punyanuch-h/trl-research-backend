@@ -160,6 +160,10 @@ func CreateSMTPEmailService(config SMTPConfig) EmailService {
 			if err = c.StartTLS(tlsConfig); err != nil {
 				return fmt.Errorf("failed to upgrade to TLS: %w", err)
 			}
+		} else if config.Port != "465" {
+			// Neither implicit TLS (465) nor STARTTLS (587): credentials would be
+			// sent in plaintext. Reject the connection rather than leak secrets.
+			return fmt.Errorf("unsupported SMTP port %s: only 465 (SMTPS) and 587 (STARTTLS) are allowed", config.Port)
 		}
 
 		// 3. Authenticate
