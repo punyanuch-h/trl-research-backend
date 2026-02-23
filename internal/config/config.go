@@ -59,8 +59,8 @@ func LoadConfig() Config {
 		Port:             os.Getenv("PORT"),
 		EmailHost:        os.Getenv("EMAIL_HOST"),
 		EmailPort:        os.Getenv("EMAIL_PORT"),
-		EmailSender:      os.Getenv("EMAIL_SENDER"),
-		EmailPassword:    os.Getenv("EMAIL_PASSWORD"),
+		EmailSender:      os.Getenv("EMAIL_USER"),
+		EmailPassword:    os.Getenv("EMAIL_PASS"),
 		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
 	}
 }
