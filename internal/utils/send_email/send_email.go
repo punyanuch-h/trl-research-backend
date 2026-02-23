@@ -120,25 +120,43 @@ func updateResults(results *SendEmailResults, email string, name string, err err
 	}
 }
 
-// CreateSMTPEmailService creates an email service using SMTP with STARTTLS
+// CreateSMTPEmailService creates an email service using SMTP with STARTTLS or Implicit TLS
 func CreateSMTPEmailService(config SMTPConfig) EmailService {
 	return func(to, subject, body string) error {
 		addr := fmt.Sprintf("%s:%s", config.Host, config.Port)
+		var c *smtp.Client
+		var err error
 
-		// 1. Dial the SMTP server
-		c, err := smtp.Dial(addr)
-		if err != nil {
-			return fmt.Errorf("failed to dial SMTP server at %s: %w", addr, err)
+		tlsConfig := &tls.Config{
+			ServerName:         config.Host,
+			InsecureSkipVerify: false, // Explicitly false for production security
+			MinVersion:         tls.VersionTLS12,
+		}
+
+		// 1. Establish initial connection
+		if config.Port == "465" {
+			// Implicit TLS (SMTPS)
+			tlsConn, err := tls.Dial("tcp", addr, tlsConfig)
+			if err != nil {
+				return fmt.Errorf("failed to dial SMTPS server at %s: %w", addr, err)
+			}
+			c, err = smtp.NewClient(tlsConn, config.Host)
+			if err != nil {
+				tlsConn.Close()
+				return fmt.Errorf("failed to create SMTP client over TLS: %w", err)
+			}
+		} else {
+			// Standard SMTP (may upgrade to STARTTLS later)
+			c, err = smtp.Dial(addr)
+			if err != nil {
+				return fmt.Errorf("failed to dial SMTP server at %s: %w", addr, err)
+			}
 		}
 		defer c.Close()
 
 		// 2. StartTLS if the port is 587
 		// Note: smtp.gmail.com on port 587 requires STARTTLS before AUTH
 		if config.Port == "587" {
-			tlsConfig := &tls.Config{
-				ServerName:         config.Host,
-				InsecureSkipVerify: false, // Explicitly false for production security
-			}
 			if err = c.StartTLS(tlsConfig); err != nil {
 				return fmt.Errorf("failed to upgrade to TLS: %w", err)
 			}
