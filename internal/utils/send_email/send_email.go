@@ -1,6 +1,7 @@
 package send_email
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/smtp"
 	"strings"
@@ -119,10 +120,49 @@ func updateResults(results *SendEmailResults, email string, name string, err err
 	}
 }
 
-// CreateSMTPEmailService creates an email service using SMTP
+// CreateSMTPEmailService creates an email service using SMTP with STARTTLS
 func CreateSMTPEmailService(config SMTPConfig) EmailService {
 	return func(to, subject, body string) error {
+		addr := fmt.Sprintf("%s:%s", config.Host, config.Port)
+
+		// 1. Dial the SMTP server
+		c, err := smtp.Dial(addr)
+		if err != nil {
+			return fmt.Errorf("failed to dial SMTP server at %s: %w", addr, err)
+		}
+		defer c.Close()
+
+		// 2. StartTLS if the port is 587
+		// Note: smtp.gmail.com on port 587 requires STARTTLS before AUTH
+		if config.Port == "587" {
+			tlsConfig := &tls.Config{
+				ServerName:         config.Host,
+				InsecureSkipVerify: false, // Explicitly false for production security
+			}
+			if err = c.StartTLS(tlsConfig); err != nil {
+				return fmt.Errorf("failed to upgrade to TLS: %w", err)
+			}
+		}
+
+		// 3. Authenticate
 		auth := smtp.PlainAuth("", config.Username, config.Password, config.Host)
+		if err = c.Auth(auth); err != nil {
+			return fmt.Errorf("failed to authenticate with SMTP: %w", err)
+		}
+
+		// 4. Set the sender and recipient
+		if err = c.Mail(config.From); err != nil {
+			return fmt.Errorf("failed to set sender: %w", err)
+		}
+		if err = c.Rcpt(to); err != nil {
+			return fmt.Errorf("failed to set recipient: %w", err)
+		}
+
+		// 5. Send the email body
+		w, err := c.Data()
+		if err != nil {
+			return fmt.Errorf("failed to get data writer: %w", err)
+		}
 
 		headers := map[string]string{
 			"From":         config.From,
@@ -138,12 +178,14 @@ func CreateSMTPEmailService(config SMTPConfig) EmailService {
 		}
 		message += "\r\n" + body
 
-		addr := fmt.Sprintf("%s:%s", config.Host, config.Port)
-		err := smtp.SendMail(addr, auth, config.From, []string{to}, []byte(message))
-		if err != nil {
-			return fmt.Errorf("failed to send email to %s: %w", to, err)
+		if _, err = w.Write([]byte(message)); err != nil {
+			return fmt.Errorf("failed to write email body: %w", err)
 		}
-		return nil
+		if err = w.Close(); err != nil {
+			return fmt.Errorf("failed to close data writer: %w", err)
+		}
+
+		return c.Quit()
 	}
 }
 

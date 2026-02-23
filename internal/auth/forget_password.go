@@ -90,8 +90,8 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
-	sender := os.Getenv("EMAIL_SENDER")
-	pass := os.Getenv("EMAIL_PASSWORD")
+	sender := os.Getenv("EMAIL_USER")
+	pass := os.Getenv("EMAIL_PASS")
 
 	if host == "" || sender == "" || pass == "" {
 		log.Printf("ForgotPassword Error: missing email SMTP configuration")
