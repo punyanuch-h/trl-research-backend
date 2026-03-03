@@ -104,7 +104,7 @@ func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, req)
+	c.JSON(http.StatusOK, req.ToResponse())
 }
 
 // 🟢 PATCH /researcher/:id
