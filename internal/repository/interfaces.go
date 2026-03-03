@@ -1,9 +1,13 @@
 package repository
 
 import (
+	"errors"
 	"time"
 	"trl-research-backend/internal/models"
 )
+
+var ErrTempPasswordExpired = errors.New("temporary password expired")
+
 
 type AdminRepository interface {
 	GetAdminAll() ([]models.Admins, error)

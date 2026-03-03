@@ -44,28 +44,33 @@ func (c Config) GetAntiSpamCooldown() time.Duration {
 
 func (c Config) GetJWTExpiry() time.Duration {
 	d, err := time.ParseDuration(c.JWTExpiry)
-	if err == nil {
+	if err == nil && d > 0 {
 		return d
 	}
 	// Fallback to integer (now strictly treating as minutes)
 	val, err := strconv.Atoi(c.JWTExpiry)
-	if err != nil {
-		return 480 * time.Minute // Default 8 hours
+	if err == nil && val > 0 {
+		return time.Duration(val) * time.Minute
 	}
-	return time.Duration(val) * time.Minute
+	return 480 * time.Minute // Default 8 hours
 }
 
 func (c Config) GetJWTExpiryTemp() time.Duration {
 	d, err := time.ParseDuration(c.JWTExpiryTemp)
-	if err == nil {
+	if err == nil && d > 0 {
 		return d
 	}
 	// Fallback to integer (strictly treating as minutes)
 	val, err := strconv.Atoi(c.JWTExpiryTemp)
-	if err != nil {
-		return 10 * time.Minute // Default 10 minutes
+	if err == nil && val > 0 {
+		return time.Duration(val) * time.Minute
 	}
-	return time.Duration(val) * time.Minute
+	return 10 * time.Minute // Default 10 minutes
+}
+
+func (c Config) GetTempPasswordExpiry() time.Duration {
+	// For now, we use the same duration as JWT temporary expiry
+	return c.GetJWTExpiryTemp()
 }
 
 func LoadConfig() Config {
@@ -91,7 +96,7 @@ func LoadConfig() Config {
 		EmailSender:      os.Getenv("EMAIL_USER"),
 		EmailPassword:    os.Getenv("EMAIL_PASS"),
 		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
-		JWTExpiry:        getEnv("JWT_EXPIRY", "8"),
+		JWTExpiry:        getEnv("JWT_EXPIRY", "480"),
 		JWTExpiryTemp:    getEnv("JWT_EXPIRY_TEMP", "10"),
 	}
 }

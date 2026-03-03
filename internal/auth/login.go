@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -42,7 +43,7 @@ func (h *LoginHandler) Login(c *gin.Context) {
 	admin, errA := h.AdminRepo.Login(req.Email, req.Password)
 	fmt.Println("admin", admin)
 	fmt.Println("errA", errA)
-	if errA != nil && errA.Error() == "temporary password expired" {
+	if errors.Is(errA, repository.ErrTempPasswordExpired) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "temporary password expired"})
 		return
 	}
@@ -59,7 +60,7 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		researcher, errR = h.ResearcherRepo.Login(req.Email, req.Password)
 		fmt.Println("researcher", researcher)
 		fmt.Println("errR", errR)
-		if errR != nil && errR.Error() == "temporary password expired" {
+		if errors.Is(errR, repository.ErrTempPasswordExpired) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "temporary password expired"})
 			return
 		}
@@ -106,6 +107,12 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		ttl = h.Cfg.GetJWTExpiryTemp()
 	} else {
 		ttl = h.Cfg.GetJWTExpiry()
+	}
+
+	if ttl <= 0 {
+		fmt.Println("❌ invalid ttl detected:", ttl)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid token expiry configuration"})
+		return
 	}
 
 	token, err := utils.GenerateJWT(

@@ -97,7 +97,7 @@ func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 		return
 	}
 	req.Password = string(hashedPassword)
-	
+
 	// Researchers create their own accounts, set PasswordIsTemp = false
 	req.PasswordIsTemp = false
 	req.TempPasswordExpiresAt = nil

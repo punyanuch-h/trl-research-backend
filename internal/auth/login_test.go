@@ -12,6 +12,7 @@ import (
 	"time"
 	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/models"
+	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -24,10 +25,10 @@ type MockAdminRepository struct {
 	mock.Mock
 }
 
-func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error)                     { return nil, nil }
-func (m *MockAdminRepository) GetAdminByID(id string) (*models.Admins, error)            { return nil, nil }
-func (m *MockAdminRepository) GetAdminByEmail(email string) (*models.Admins, error)      { return nil, nil }
-func (m *MockAdminRepository) CreateAdmin(admin *models.Admins) error                    { return nil }
+func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error)                { return nil, nil }
+func (m *MockAdminRepository) GetAdminByID(id string) (*models.Admins, error)       { return nil, nil }
+func (m *MockAdminRepository) GetAdminByEmail(email string) (*models.Admins, error) { return nil, nil }
+func (m *MockAdminRepository) CreateAdmin(admin *models.Admins) error               { return nil }
 func (m *MockAdminRepository) UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error {
 	return nil
 }
@@ -131,6 +132,17 @@ func TestLogin(t *testing.T) {
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{
+			name: "Error: Temporary password expired",
+			requestBody: LoginRequest{
+				Email:    "temp@test.com",
+				Password: "password123",
+			},
+			mockAdmin: func(m *MockAdminRepository) {
+				m.On("Login", "temp@test.com", "password123").Return(nil, repository.ErrTempPasswordExpired)
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
 			name:           "Error: Empty request",
 			requestBody:    map[string]interface{}{},
 			expectedStatus: http.StatusBadRequest,
@@ -153,7 +165,7 @@ func TestLogin(t *testing.T) {
 				ResearcherRepo: researcherRepo,
 				KeyProvider:    mockKP,
 				Cfg: config.Config{
-					JWTExpiry:     "8",
+					JWTExpiry:     "480",
 					JWTExpiryTemp: "10",
 				},
 			}
@@ -171,6 +183,19 @@ func TestLogin(t *testing.T) {
 				_ = json.Unmarshal(w.Body.Bytes(), &resp)
 				assert.Equal(t, tt.expectedRole, resp["role"])
 				assert.NotEmpty(t, resp["token"])
+				assert.Contains(t, resp, "is_temp")
+				assert.Contains(t, resp, "expires_in")
+				assert.Equal(t, "minutes", resp["unit"])
+
+				// Check types
+				_, ok := resp["is_temp"].(bool)
+				assert.True(t, ok, "is_temp should be a boolean")
+				_, ok = resp["expires_in"].(float64) // JSON numbers are float64 in Go map[string]interface{}
+				assert.True(t, ok, "expires_in should be a number")
+			} else if tt.name == "Error: Temporary password expired" {
+				var resp map[string]interface{}
+				_ = json.Unmarshal(w.Body.Bytes(), &resp)
+				assert.Equal(t, "temporary password expired", resp["error"])
 			}
 		})
 	}

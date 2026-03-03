@@ -36,7 +36,7 @@ func (r *ResearcherRepo) Login(email string, password string) (*models.Researche
 			return nil, fmt.Errorf("invalid state: missing expiration")
 		}
 		if time.Now().After(*researcher.TempPasswordExpiresAt) {
-			return nil, fmt.Errorf("temporary password expired")
+			return nil, ErrTempPasswordExpired
 		}
 	}
 
@@ -108,6 +108,7 @@ func (r *ResearcherRepo) CreateResearcher(researcher *models.Researchers) error 
 	researcher.CreatedAt = now
 	researcher.UpdatedAt = now
 	researcher.PasswordIsTemp = false
+	researcher.TempPasswordExpiresAt = nil
 
 	return r.DB.Create(researcher).Error
 }

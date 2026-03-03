@@ -78,7 +78,7 @@ func (r *AdminRepo) Login(email string, password string) (*models.Admins, error)
 			return nil, fmt.Errorf("invalid state: missing expiration")
 		}
 		if time.Now().After(*admin.TempPasswordExpiresAt) {
-			return nil, fmt.Errorf("temporary password expired")
+			return nil, ErrTempPasswordExpired
 		}
 	}
 
@@ -97,11 +97,18 @@ func (r *AdminRepo) UpdatePasswordByEmail(email string, password string, isTemp 
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
-	return r.DB.Model(&models.Admins{}).Where("email = ?", email).Updates(map[string]interface{}{
+	result := r.DB.Model(&models.Admins{}).Where("email = ?", email).Updates(map[string]interface{}{
 		"password":                 string(hashedPassword),
 		"password_is_temp":         isTemp,
 		"temp_password_expires_at": expiresAt,
-	}).Error
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 // 🟢 Update admin by ID
