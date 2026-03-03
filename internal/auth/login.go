@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
+	"trl-research-backend/internal/config"
+	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/utils"
 
@@ -18,6 +19,7 @@ type LoginHandler struct {
 	AdminRepo      repository.AdminRepository
 	ResearcherRepo repository.ResearcherRepository
 	KeyProvider    utils.IKeyProvider
+	Cfg            config.Config
 }
 
 // LoginRequest รับข้อมูลจาก frontend
@@ -40,6 +42,10 @@ func (h *LoginHandler) Login(c *gin.Context) {
 	admin, errA := h.AdminRepo.Login(req.Email, req.Password)
 	fmt.Println("admin", admin)
 	fmt.Println("errA", errA)
+	if errA != nil && errA.Error() == "temporary password expired" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "temporary password expired"})
+		return
+	}
 	if errA == nil && admin != nil {
 		userID = admin.ID
 		userEmail = admin.Email
@@ -47,10 +53,16 @@ func (h *LoginHandler) Login(c *gin.Context) {
 	}
 
 	// 2️⃣ ถ้ายังไม่เจอใน admin ให้ลองเช็ก researcher
+	var researcher *models.Researchers
 	if userRole == "" {
-		researcher, errR := h.ResearcherRepo.Login(req.Email, req.Password)
+		var errR error
+		researcher, errR = h.ResearcherRepo.Login(req.Email, req.Password)
 		fmt.Println("researcher", researcher)
 		fmt.Println("errR", errR)
+		if errR != nil && errR.Error() == "temporary password expired" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "temporary password expired"})
+			return
+		}
 		if errR == nil && researcher != nil {
 			userID = researcher.ID
 			userEmail = researcher.Email
@@ -79,9 +91,21 @@ func (h *LoginHandler) Login(c *gin.Context) {
 	}
 
 	// 5️⃣ สร้าง JWT token
-	expH, _ := strconv.Atoi(os.Getenv("JWT_EXPIRY"))
-	if expH <= 0 {
-		expH = 24
+	// ตัดสินใจเลือก expiry ตามสถานะ PasswordIsTemp
+	var isTemp bool
+	if admin != nil {
+		isTemp = admin.PasswordIsTemp
+		fmt.Println("isTemp", isTemp)
+	} else if researcher != nil {
+		isTemp = researcher.PasswordIsTemp
+		fmt.Println("isTemp", isTemp)
+	}
+
+	var ttl time.Duration
+	if isTemp {
+		ttl = h.Cfg.GetJWTExpiryTemp()
+	} else {
+		ttl = h.Cfg.GetJWTExpiry()
 	}
 
 	token, err := utils.GenerateJWT(
@@ -92,7 +116,8 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		os.Getenv("JWT_ISSUER"),
 		os.Getenv("JWT_AUDIENCE"),
 		"v1", // key id
-		time.Duration(expH)*time.Hour,
+		isTemp,
+		ttl,
 		kp,
 	)
 	if err != nil {
@@ -104,7 +129,9 @@ func (h *LoginHandler) Login(c *gin.Context) {
 	// 6️⃣ ส่ง response กลับไป
 	c.JSON(http.StatusOK, gin.H{
 		"token":      token,
-		"expires_in": expH,
+		"expires_in": int(ttl.Minutes()),
+		"unit":       "minutes",
 		"role":       userRole,
+		"is_temp":    isTemp,
 	})
 }

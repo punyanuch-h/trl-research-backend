@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/utils"
@@ -67,14 +68,15 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 	}
 
 	// 5. Update password in the correct repo
+	expiresAt := time.Now().Add(10 * time.Minute)
 	if userRole == "admin" {
-		if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
+		if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(tempPass), true, &expiresAt); err != nil {
 			log.Printf("ForgotPassword Error (Admin): %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}
 	} else if userRole == "researcher" {
-		if err := h.ResearcherRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
+		if err := h.ResearcherRepo.UpdatePasswordByEmail(req.Email, string(tempPass), true, &expiresAt); err != nil {
 			log.Printf("ForgotPassword Error (Researcher): %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return

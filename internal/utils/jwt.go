@@ -13,11 +13,12 @@ type Claims struct {
 	Role       string `json:"role"`
 	ClientID   string `json:"client_id"`
 	ClientName string `json:"client_name"`
+	IsTemp     bool   `json:"is_temp"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT
-func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid string, ttl time.Duration, kp IKeyProvider) (string, error) {
+func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid string, isTemp bool, ttl time.Duration, kp IKeyProvider) (string, error) {
 	now := time.Now()
 
 	claims := Claims{
@@ -26,6 +27,7 @@ func GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience
 		Role:       role,
 		ClientID:   clientID,
 		ClientName: clientName,
+		IsTemp:     isTemp,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    issuer,
 			Audience:  []string{audience},

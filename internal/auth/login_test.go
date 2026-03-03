@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/utils"
 
@@ -26,7 +28,9 @@ func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error)            
 func (m *MockAdminRepository) GetAdminByID(id string) (*models.Admins, error)            { return nil, nil }
 func (m *MockAdminRepository) GetAdminByEmail(email string) (*models.Admins, error)      { return nil, nil }
 func (m *MockAdminRepository) CreateAdmin(admin *models.Admins) error                    { return nil }
-func (m *MockAdminRepository) UpdatePasswordByEmail(email string, password string) error { return nil }
+func (m *MockAdminRepository) UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error {
+	return nil
+}
 func (m *MockAdminRepository) UpdateAdminByID(adminID string, data *models.Admins) error { return nil }
 func (m *MockAdminRepository) DeleteAdmin(email string) error                            { return nil }
 
@@ -46,7 +50,7 @@ type MockResearcherRepository struct {
 func (m *MockResearcherRepository) GetResearcherByEmail(email string) (*models.Researchers, error) {
 	return nil, nil
 }
-func (m *MockResearcherRepository) UpdatePasswordByEmail(email string, password string) error {
+func (m *MockResearcherRepository) UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error {
 	return nil
 }
 func (m *MockResearcherRepository) GetResearcherAll() ([]models.Researchers, error) { return nil, nil }
@@ -148,6 +152,10 @@ func TestLogin(t *testing.T) {
 				AdminRepo:      adminRepo,
 				ResearcherRepo: researcherRepo,
 				KeyProvider:    mockKP,
+				Cfg: config.Config{
+					JWTExpiry:     "8",
+					JWTExpiryTemp: "10",
+				},
 			}
 
 			body, _ := json.Marshal(tt.requestBody)

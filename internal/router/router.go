@@ -65,6 +65,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	loginHandler := &auth.LoginHandler{
 		AdminRepo:      adminRepo,
 		ResearcherRepo: researcherRepo,
+		Cfg:            cfg,
 	}
 	forgotHandler := &auth.ForgotHandler{
 		AdminRepo:      adminRepo,

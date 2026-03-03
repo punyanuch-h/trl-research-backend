@@ -86,6 +86,11 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 		return
 	}
 	req.Password = string(hashedPassword)
+	
+	// Set temporary password status and expiration
+	req.PasswordIsTemp = true
+	expiresAt := time.Now().Add(10 * time.Minute)
+	req.TempPasswordExpiresAt = &expiresAt
 
 	if err := h.Repo.CreateAdmin(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -30,6 +30,16 @@ func (r *ResearcherRepo) Login(email string, password string) (*models.Researche
 		return nil, err
 	}
 
+	// 🚩 Check temporary password expiration
+	if researcher.PasswordIsTemp {
+		if researcher.TempPasswordExpiresAt == nil {
+			return nil, fmt.Errorf("invalid state: missing expiration")
+		}
+		if time.Now().After(*researcher.TempPasswordExpiresAt) {
+			return nil, fmt.Errorf("temporary password expired")
+		}
+	}
+
 	// Verify password
 	err = bcrypt.CompareHashAndPassword([]byte(researcher.Password), []byte(password))
 	if err != nil {
@@ -40,12 +50,16 @@ func (r *ResearcherRepo) Login(email string, password string) (*models.Researche
 }
 
 // 🟢 Update password
-func (r *ResearcherRepo) UpdatePasswordByEmail(email string, password string) error {
+func (r *ResearcherRepo) UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
-	result := r.DB.Model(&models.Researchers{}).Where("email = ?", email).Update("password", string(hashedPassword))
+	result := r.DB.Model(&models.Researchers{}).Where("email = ?", email).Updates(map[string]interface{}{
+		"password":                 string(hashedPassword),
+		"password_is_temp":         isTemp,
+		"temp_password_expires_at": expiresAt,
+	})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -53,7 +67,6 @@ func (r *ResearcherRepo) UpdatePasswordByEmail(email string, password string) er
 		return gorm.ErrRecordNotFound
 	}
 	return nil
-
 }
 
 // 🟢 GetResearcherAll - fetch all researchers
@@ -94,6 +107,7 @@ func (r *ResearcherRepo) CreateResearcher(researcher *models.Researchers) error 
 	now := time.Now()
 	researcher.CreatedAt = now
 	researcher.UpdatedAt = now
+	researcher.PasswordIsTemp = false
 
 	return r.DB.Create(researcher).Error
 }

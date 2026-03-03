@@ -15,6 +15,8 @@ type Admins struct {
 	PhoneNumber      string    `gorm:"column:phone_number;not null" json:"phone_number"`
 	Email            string    `gorm:"column:email;not null;unique" json:"email"`
 	Password         string    `gorm:"column:password;not null" json:"password"`
+	PasswordIsTemp   bool      `gorm:"column:password_is_temp;default:false" json:"password_is_temp"`
+	TempPasswordExpiresAt *time.Time `gorm:"column:temp_password_expires_at" json:"temp_password_expires_at"`
 	CreatedAt        time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt        time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
