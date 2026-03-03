@@ -8,7 +8,6 @@ import (
 
 var ErrTempPasswordExpired = errors.New("temporary password expired")
 
-
 type AdminRepository interface {
 	GetAdminAll() ([]models.Admins, error)
 	GetAdminByID(adminID string) (*models.Admins, error)
