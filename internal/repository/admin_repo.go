@@ -72,6 +72,16 @@ func (r *AdminRepo) Login(email string, password string) (*models.Admins, error)
 		return nil, err
 	}
 
+	// 🚩 Check temporary password expiration
+	if admin.PasswordIsTemp {
+		if admin.TempPasswordExpiresAt == nil {
+			return nil, fmt.Errorf("invalid state: missing expiration")
+		}
+		if time.Now().After(*admin.TempPasswordExpiresAt) {
+			return nil, ErrTempPasswordExpired
+		}
+	}
+
 	// Verify password
 	err = bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password))
 	if err != nil {
@@ -82,12 +92,23 @@ func (r *AdminRepo) Login(email string, password string) (*models.Admins, error)
 }
 
 // 🟢 Update password
-func (r *AdminRepo) UpdatePasswordByEmail(email string, password string) error {
+func (r *AdminRepo) UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
-	return r.DB.Model(&models.Admins{}).Where("email = ?", email).Update("password", string(hashedPassword)).Error
+	result := r.DB.Model(&models.Admins{}).Where("email = ?", email).Updates(map[string]interface{}{
+		"password":                 string(hashedPassword),
+		"password_is_temp":         isTemp,
+		"temp_password_expires_at": expiresAt,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 // 🟢 Update admin by ID

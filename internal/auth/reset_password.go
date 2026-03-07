@@ -48,7 +48,7 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
 			return
 		}
-		if err := h.AdminRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword); err != nil {
+		if err := h.AdminRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword, false, nil); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}
@@ -61,7 +61,7 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
 			return
 		}
-		if err := h.ResearcherRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword); err != nil {
+		if err := h.ResearcherRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword, false, nil); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}

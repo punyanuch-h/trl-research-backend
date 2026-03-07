@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/entity"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
@@ -16,6 +17,7 @@ import (
 
 type AdminHandler struct {
 	Repo repository.AdminRepository
+	Cfg  config.Config
 }
 
 // 🟢 GET /admins
@@ -86,6 +88,11 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 		return
 	}
 	req.Password = string(hashedPassword)
+
+	// Set temporary password status and expiration
+	req.PasswordIsTemp = true
+	expiresAt := time.Now().Add(h.Cfg.GetTempPasswordExpiry())
+	req.TempPasswordExpiresAt = &expiresAt
 
 	if err := h.Repo.CreateAdmin(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -28,7 +28,7 @@ func TestJWT(t *testing.T) {
 	ttl := time.Hour // 1 hour
 
 	t.Run("Generate and Validate JWT", func(t *testing.T) {
-		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, ttl, kp)
+		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, false, ttl, kp)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
 
@@ -44,7 +44,7 @@ func TestJWT(t *testing.T) {
 	})
 
 	t.Run("Validate JWT with wrong issuer", func(t *testing.T) {
-		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, ttl, kp)
+		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, false, ttl, kp)
 		assert.NoError(t, err)
 
 		_, err = ValidateJWT(token, "wrong-issuer", audience, kp)
@@ -52,7 +52,7 @@ func TestJWT(t *testing.T) {
 	})
 
 	t.Run("Validate JWT with wrong audience", func(t *testing.T) {
-		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, ttl, kp)
+		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, false, ttl, kp)
 		assert.NoError(t, err)
 
 		_, err = ValidateJWT(token, issuer, "wrong-audience", kp)
@@ -60,7 +60,7 @@ func TestJWT(t *testing.T) {
 	})
 
 	t.Run("Validate JWT with wrong kid", func(t *testing.T) {
-		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, ttl, kp)
+		token, err := GenerateJWT(userID, userEmail, role, clientID, clientName, issuer, audience, kid, false, ttl, kp)
 		assert.NoError(t, err)
 
 		kpWrong := &KeyProvider{

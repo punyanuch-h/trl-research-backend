@@ -1,9 +1,12 @@
 package repository
 
 import (
+	"errors"
 	"time"
 	"trl-research-backend/internal/models"
 )
+
+var ErrTempPasswordExpired = errors.New("temporary password expired")
 
 type AdminRepository interface {
 	GetAdminAll() ([]models.Admins, error)
@@ -11,7 +14,7 @@ type AdminRepository interface {
 	GetAdminByEmail(email string) (*models.Admins, error)
 	CreateAdmin(admin *models.Admins) error
 	Login(email string, password string) (*models.Admins, error)
-	UpdatePasswordByEmail(email string, password string) error
+	UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error
 	UpdateAdminByID(adminID string, data *models.Admins) error
 	DeleteAdmin(email string) error
 }
@@ -19,7 +22,7 @@ type AdminRepository interface {
 type ResearcherRepository interface {
 	Login(email string, password string) (*models.Researchers, error)
 	GetResearcherByEmail(email string) (*models.Researchers, error)
-	UpdatePasswordByEmail(email string, password string) error
+	UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error
 	GetResearcherAll() ([]models.Researchers, error)
 	GetResearcherByID(researcherID string) (*models.Researchers, error)
 	GetResearcherByCaseID(caseID string) (*models.Researchers, error)

@@ -98,6 +98,10 @@ func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 	}
 	req.Password = string(hashedPassword)
 
+	// Researchers create their own accounts, set PasswordIsTemp = false
+	req.PasswordIsTemp = false
+	req.TempPasswordExpiresAt = nil
+
 	if err := h.Repo.CreateResearcher(&req); err != nil {
 		log.Println("Create Researcher error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

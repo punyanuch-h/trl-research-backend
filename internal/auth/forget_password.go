@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/utils"
 	"trl-research-backend/internal/utils/send_email"
@@ -16,6 +18,7 @@ import (
 type ForgotHandler struct {
 	AdminRepo      repository.AdminRepository
 	ResearcherRepo repository.ResearcherRepository
+	Cfg            config.Config
 }
 
 type ForgotReq struct {
@@ -67,14 +70,15 @@ func (h *ForgotHandler) ForgetPassword(c *gin.Context) {
 	}
 
 	// 5. Update password in the correct repo
+	expiresAt := time.Now().Add(h.Cfg.GetTempPasswordExpiry())
 	if userRole == "admin" {
-		if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
+		if err := h.AdminRepo.UpdatePasswordByEmail(req.Email, string(tempPass), true, &expiresAt); err != nil {
 			log.Printf("ForgotPassword Error (Admin): %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}
 	} else if userRole == "researcher" {
-		if err := h.ResearcherRepo.UpdatePasswordByEmail(req.Email, string(tempPass)); err != nil {
+		if err := h.ResearcherRepo.UpdatePasswordByEmail(req.Email, string(tempPass), true, &expiresAt); err != nil {
 			log.Printf("ForgotPassword Error (Researcher): %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return

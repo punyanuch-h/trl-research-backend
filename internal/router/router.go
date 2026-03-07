@@ -43,7 +43,10 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	chatLogRepo := repository.NewChatLogRepo(database.DB)
 
 	// ✅ Handlers
-	adminHandler := &handlers.AdminHandler{Repo: adminRepo}
+	adminHandler := &handlers.AdminHandler{
+		Repo: adminRepo,
+		Cfg:  cfg,
+	}
 	researcherHandler := &handlers.ResearcherHandler{Repo: researcherRepo}
 	coordinatorHandler := &handlers.CoordinatorHandler{Repo: coordinatorRepo}
 	supportmentHandler := &handlers.SupportmentHandler{Repo: supportmentRepo}
@@ -65,10 +68,12 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	loginHandler := &auth.LoginHandler{
 		AdminRepo:      adminRepo,
 		ResearcherRepo: researcherRepo,
+		Cfg:            cfg,
 	}
 	forgotHandler := &auth.ForgotHandler{
 		AdminRepo:      adminRepo,
 		ResearcherRepo: researcherRepo,
+		Cfg:            cfg,
 	}
 	resetHandler := &auth.ResetHandler{
 		AdminRepo:      adminRepo,
