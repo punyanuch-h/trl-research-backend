@@ -4,24 +4,24 @@ import (
 	"log"
 	"os"
 	"strconv"
-
 	"time"
 
-	"trl-research-backend/internal/utils/send_email"
-
 	"github.com/joho/godotenv"
+
+	"trl-research-backend/internal/utils/send_email"
 )
 
 type Config struct {
-	DBUrl            string
-	Port             string
-	EmailHost        string
-	EmailPort        string
-	EmailSender      string
-	EmailPassword    string
-	AntiSpamCooldown string
-	JWTExpiry        string
-	JWTExpiryTemp    string
+	DBUrl              string
+	Port               string
+	EmailHost          string
+	EmailPort          string
+	EmailSender        string
+	EmailPassword      string
+	AntiSpamCooldown   string
+	JWTExpiry          string
+	JWTExpiryTemp      string
+	RefreshTokenExpiry string
 }
 
 func (c Config) GetSMTPConfig() send_email.SMTPConfig {
@@ -68,6 +68,19 @@ func (c Config) GetJWTExpiryTemp() time.Duration {
 	return 10 * time.Minute // Default 10 minutes
 }
 
+func (c Config) GetRefreshTokenExpiry() time.Duration {
+	d, err := time.ParseDuration(c.RefreshTokenExpiry)
+	if err == nil && d > 0 {
+		return d
+	}
+	// Fallback to integer (treating as hours if it's a raw number for refresh tokens)
+	val, err := strconv.Atoi(c.RefreshTokenExpiry)
+	if err == nil && val > 0 {
+		return time.Duration(val) * time.Hour
+	}
+	return 10 * time.Hour // Default 10 hours
+}
+
 func (c Config) GetTempPasswordExpiry() time.Duration {
 	// For now, we use the same duration as JWT temporary expiry
 	return c.GetJWTExpiryTemp()
@@ -89,15 +102,16 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		DBUrl:            dbURL,
-		Port:             os.Getenv("PORT"),
-		EmailHost:        os.Getenv("EMAIL_HOST"),
-		EmailPort:        os.Getenv("EMAIL_PORT"),
-		EmailSender:      os.Getenv("EMAIL_USER"),
-		EmailPassword:    os.Getenv("EMAIL_PASS"),
-		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
-		JWTExpiry:        getEnv("JWT_EXPIRY", "480"),
-		JWTExpiryTemp:    getEnv("JWT_EXPIRY_TEMP", "10"),
+		DBUrl:              dbURL,
+		Port:               os.Getenv("PORT"),
+		EmailHost:          os.Getenv("EMAIL_HOST"),
+		EmailPort:          os.Getenv("EMAIL_PORT"),
+		EmailSender:        os.Getenv("EMAIL_USER"),
+		EmailPassword:      os.Getenv("EMAIL_PASS"),
+		AntiSpamCooldown:   getEnv("ANTISPAM_COOLDOWN", "15m"),
+		JWTExpiry:          getEnv("JWT_EXPIRY", "480"),
+		JWTExpiryTemp:      getEnv("JWT_EXPIRY_TEMP", "10"),
+		RefreshTokenExpiry: getEnv("REFRESH_TOKEN_EXPIRY", "10h"),
 	}
 }
 

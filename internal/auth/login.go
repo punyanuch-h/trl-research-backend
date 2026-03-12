@@ -17,10 +17,11 @@ import (
 
 // LoginHandler รวม repository ของทั้ง admin และ researcher
 type LoginHandler struct {
-	AdminRepo      repository.AdminRepository
-	ResearcherRepo repository.ResearcherRepository
-	KeyProvider    utils.IKeyProvider
-	Cfg            config.Config
+	AdminRepo        repository.AdminRepository
+	ResearcherRepo   repository.ResearcherRepository
+	RefreshTokenRepo repository.RefreshTokenRepository
+	KeyProvider      utils.IKeyProvider
+	Cfg              config.Config
 }
 
 // LoginRequest รับข้อมูลจาก frontend
@@ -133,12 +134,35 @@ func (h *LoginHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// 5.1️⃣ Generate Refresh Token
+	refreshTokenStr, err := utils.GenerateRandomToken()
+	if err != nil {
+		fmt.Println("❌ failed to generate refresh token:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot generate refresh token"})
+		return
+	}
+
+	refreshExpiry := h.Cfg.GetRefreshTokenExpiry()
+	refreshTokenModel := &models.RefreshToken{
+		UserID:    userID,
+		TokenHash: utils.HashToken(refreshTokenStr),
+		ExpiryAt:  time.Now().Add(refreshExpiry),
+		UserType:  userRole,
+	}
+
+	if err := h.RefreshTokenRepo.Create(refreshTokenModel); err != nil {
+		fmt.Println("❌ failed to save refresh token:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal storage error"})
+		return
+	}
+
 	// 6️⃣ ส่ง response กลับไป
 	c.JSON(http.StatusOK, gin.H{
-		"token":      token,
-		"expires_in": int(ttl.Minutes()),
-		"unit":       "minutes",
-		"role":       userRole,
-		"is_temp":    isTemp,
+		"token":         token,
+		"refresh_token": refreshTokenStr,
+		"expires_in":    int(ttl.Minutes()),
+		"unit":          "minutes",
+		"role":          userRole,
+		"is_temp":       isTemp,
 	})
 }
