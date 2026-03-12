@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/models"
 	"trl-research-backend/internal/repository"
@@ -19,60 +18,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-// MockAdminRepository
-type MockAdminRepository struct {
-	mock.Mock
-}
-
-func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error)                { return nil, nil }
-func (m *MockAdminRepository) GetAdminByID(id string) (*models.Admins, error)       { return nil, nil }
-func (m *MockAdminRepository) GetAdminByEmail(email string) (*models.Admins, error) { return nil, nil }
-func (m *MockAdminRepository) CreateAdmin(admin *models.Admins) error               { return nil }
-func (m *MockAdminRepository) UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error {
-	return nil
-}
-func (m *MockAdminRepository) UpdateAdminByID(adminID string, data *models.Admins) error { return nil }
-func (m *MockAdminRepository) DeleteAdmin(email string) error                            { return nil }
-
-func (m *MockAdminRepository) Login(email, password string) (*models.Admins, error) {
-	args := m.Called(email, password)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.Admins), args.Error(1)
-}
-
-// MockResearcherRepository
-type MockResearcherRepository struct {
-	mock.Mock
-}
-
-func (m *MockResearcherRepository) GetResearcherByEmail(email string) (*models.Researchers, error) {
-	return nil, nil
-}
-func (m *MockResearcherRepository) UpdatePasswordByEmail(email string, password string, isTemp bool, expiresAt *time.Time) error {
-	return nil
-}
-func (m *MockResearcherRepository) GetResearcherAll() ([]models.Researchers, error) { return nil, nil }
-func (m *MockResearcherRepository) GetResearcherByID(id string) (*models.Researchers, error) {
-	return nil, nil
-}
-func (m *MockResearcherRepository) GetResearcherByCaseID(id string) (*models.Researchers, error) {
-	return nil, nil
-}
-func (m *MockResearcherRepository) CreateResearcher(r *models.Researchers) error { return nil }
-func (m *MockResearcherRepository) UpdateResearcherByID(id string, data *models.Researchers) error {
-	return nil
-}
-
-func (m *MockResearcherRepository) Login(email, password string) (*models.Researchers, error) {
-	args := m.Called(email, password)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.Researchers), args.Error(1)
-}
 
 func TestLogin(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -159,14 +104,18 @@ func TestLogin(t *testing.T) {
 			if tt.mockResearcher != nil {
 				tt.mockResearcher(researcherRepo)
 			}
+			refreshTokenRepo := new(MockRefreshTokenRepository)
+			refreshTokenRepo.On("Create", mock.Anything).Return(nil)
 
 			handler := &LoginHandler{
-				AdminRepo:      adminRepo,
-				ResearcherRepo: researcherRepo,
-				KeyProvider:    mockKP,
+				AdminRepo:        adminRepo,
+				ResearcherRepo:   researcherRepo,
+				RefreshTokenRepo: refreshTokenRepo,
+				KeyProvider:      mockKP,
 				Cfg: config.Config{
-					JWTExpiry:     "480",
-					JWTExpiryTemp: "10",
+					JWTExpiry:          "480",
+					JWTExpiryTemp:      "10",
+					RefreshTokenExpiry: "10h",
 				},
 			}
 
@@ -183,6 +132,7 @@ func TestLogin(t *testing.T) {
 				_ = json.Unmarshal(w.Body.Bytes(), &resp)
 				assert.Equal(t, tt.expectedRole, resp["role"])
 				assert.NotEmpty(t, resp["token"])
+				assert.NotEmpty(t, resp["refresh_token"])
 				assert.Contains(t, resp, "is_temp")
 				assert.Contains(t, resp, "expires_in")
 				assert.Equal(t, "minutes", resp["unit"])

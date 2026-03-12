@@ -41,6 +41,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	ipRepo := repository.NewIntellectualPropertyRepo(database.DB)
 	assessmentRepo := repository.NewAssessmentRepo(database.DB)
 	chatLogRepo := repository.NewChatLogRepo(database.DB)
+	refreshTokenRepo := repository.NewRefreshTokenRepo(database.DB)
 
 	// ✅ Handlers
 	adminHandler := &handlers.AdminHandler{
@@ -66,9 +67,19 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 
 	// ✅ Auth Handlers
 	loginHandler := &auth.LoginHandler{
-		AdminRepo:      adminRepo,
-		ResearcherRepo: researcherRepo,
-		Cfg:            cfg,
+		AdminRepo:        adminRepo,
+		ResearcherRepo:   researcherRepo,
+		RefreshTokenRepo: refreshTokenRepo,
+		Cfg:              cfg,
+	}
+	refreshHandler := &auth.RefreshHandler{
+		RefreshTokenRepo: refreshTokenRepo,
+		Cfg:              cfg,
+		AdminRepo:        adminRepo,
+		ResearcherRepo:   researcherRepo,
+	}
+	logoutHandler := &auth.LogoutHandler{
+		RefreshTokenRepo: refreshTokenRepo,
 	}
 	forgotHandler := &auth.ForgotHandler{
 		AdminRepo:      adminRepo,
@@ -87,6 +98,8 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 
 	// ✅ Public Auth
 	r.POST("/auth/login", loginHandler.Login)
+	r.POST("/auth/refresh", refreshHandler.Refresh)
+	r.POST("/auth/logout", logoutHandler.Logout)
 	r.POST("/auth/forget-password", forgotHandler.ForgetPassword)
 	r.POST("/researcher", researcherHandler.CreateResearcher)
 
@@ -161,6 +174,9 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	// ✅ Start Cron Jobs
 	reminderCron := cron.NewReminderCron(appointmentRepo, adminRepo, cfg)
 	reminderCron.Start()
+
+	cleanupCron := cron.NewTokenCleanupCron(refreshTokenRepo)
+	cleanupCron.Start()
 
 	return r
 }

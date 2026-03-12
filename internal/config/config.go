@@ -21,7 +21,8 @@ type Config struct {
 	EmailPassword    string
 	AntiSpamCooldown string
 	JWTExpiry        string
-	JWTExpiryTemp    string
+	JWTExpiryTemp      string
+	RefreshTokenExpiry string
 }
 
 func (c Config) GetSMTPConfig() send_email.SMTPConfig {
@@ -68,6 +69,19 @@ func (c Config) GetJWTExpiryTemp() time.Duration {
 	return 10 * time.Minute // Default 10 minutes
 }
 
+func (c Config) GetRefreshTokenExpiry() time.Duration {
+	d, err := time.ParseDuration(c.RefreshTokenExpiry)
+	if err == nil && d > 0 {
+		return d
+	}
+	// Fallback to integer (treating as hours if it's a raw number for refresh tokens)
+	val, err := strconv.Atoi(c.RefreshTokenExpiry)
+	if err == nil && val > 0 {
+		return time.Duration(val) * time.Hour
+	}
+	return 10 * time.Hour // Default 10 hours
+}
+
 func (c Config) GetTempPasswordExpiry() time.Duration {
 	// For now, we use the same duration as JWT temporary expiry
 	return c.GetJWTExpiryTemp()
@@ -98,6 +112,7 @@ func LoadConfig() Config {
 		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
 		JWTExpiry:        getEnv("JWT_EXPIRY", "480"),
 		JWTExpiryTemp:    getEnv("JWT_EXPIRY_TEMP", "10"),
+		RefreshTokenExpiry: getEnv("REFRESH_TOKEN_EXPIRY", "10h"),
 	}
 }
 

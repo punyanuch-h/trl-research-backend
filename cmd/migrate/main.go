@@ -29,6 +29,7 @@ func main() {
 		&models.IntellectualProperties{},
 		&models.Assessments{},
 		&models.ChatLogs{},
+		&models.RefreshToken{},
 	)
 
 	if err != nil {

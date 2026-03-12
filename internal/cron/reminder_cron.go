@@ -7,8 +7,6 @@ import (
 	"trl-research-backend/internal/config"
 	"trl-research-backend/internal/repository"
 	"trl-research-backend/internal/utils/send_email"
-
-	"github.com/robfig/cron/v3"
 )
 
 type ReminderCron struct {
@@ -27,18 +25,11 @@ func NewReminderCron(apRepo repository.AppointmentRepository, adRepo repository.
 }
 
 func (c *ReminderCron) Start() {
-	// Use Asia/Bangkok as the standard for this project
-	jakartaTime, err := time.LoadLocation("Asia/Bangkok")
-	if err != nil {
-		log.Printf("⚠️ Could not load Asia/Bangkok location, falling back to local: %v", err)
-		jakartaTime = time.Local
-	}
-	c.Location = jakartaTime
-
-	cr := cron.New(cron.WithLocation(jakartaTime))
+	cr := NewCronWithTimezone()
+	c.Location = cr.Location()
 
 	// Scheduling: Run every 5 minutes
-	_, err = cr.AddFunc("*/5 * * * *", func() {
+	_, err := cr.AddFunc("*/5 * * * *", func() {
 		log.Println("⏰ Running meeting reminder cron job...")
 		c.HandleReminders()
 	})

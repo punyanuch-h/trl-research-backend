@@ -87,3 +87,12 @@ type IntellectualPropertyRepository interface {
 	CreateIP(ip *models.IntellectualProperties) error
 	UpdateIPByID(ipID string, data map[string]interface{}) error
 }
+
+type RefreshTokenRepository interface {
+	Create(token *models.RefreshToken) error
+	GetByHash(tokenHash string) (*models.RefreshToken, error)
+	Revoke(id string) error
+	RevokeAllForUser(userID string) error
+	Update(token *models.RefreshToken) error
+	DeleteExpired() error
+}

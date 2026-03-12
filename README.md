@@ -12,10 +12,23 @@ gcloud run deploy trl-research-backend \
 Service URL: https://trl-research-backend-325350196988.asia-southeast1.run.app
 
 
+## Authentication (JWT & Refresh Tokens)
+This backend uses a dual-token system for security:
+- **Access Token**: Short-lived JWT (15-60 mins) for API authorization.
+- **Refresh Token**: Long-lived opaque token (10h+) stored in the database.
+- **Token Rotation**: Every time a session is refreshed, a new refresh token is issued and the old one is revoked.
+- **Theft Detection**: Reusing a revoked refresh token will trigger an account-wide session revocation for that user.
+
+## Background Jobs (Cron)
+The server runs scheduled tasks using `robfig/cron`:
+- **Daily Cleanup**: Every day at 03:00 Bangkok time, it deletes expired and revoked refresh tokens from the database.
+- **Reminders**: Sends periodic email notifications for pending tasks.
+
 ## Running Backend Locally
 1. Place `storageLocal.json` and create `.env` file from `.env.example`.
 2. Run the server: `go run cmd/api-server/main.go`
-3. Log in before calling any API.
+3. The server will start on `:8080` (default).
+4. Log in via `POST /auth/login` to get your initial tokens.
 
 ## Development & Quality Control
 To ensure code quality and prevent CI failures, please run linting and tests locally before creating a Pull Request.

@@ -71,3 +71,28 @@ func TestJWT(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestRandomTokenAndHash(t *testing.T) {
+	t.Run("Generate Random Token", func(t *testing.T) {
+		token1, err := GenerateRandomToken()
+		assert.NoError(t, err)
+		assert.Len(t, token1, 64) // 32 bytes hex encoded
+
+		token2, err := GenerateRandomToken()
+		assert.NoError(t, err)
+		assert.NotEqual(t, token1, token2)
+	})
+
+	t.Run("Hash Token", func(t *testing.T) {
+		token := "my-secret-token"
+		hash1 := HashToken(token)
+		assert.NotEmpty(t, hash1)
+
+		hash2 := HashToken(token)
+		assert.Equal(t, hash1, hash2)
+
+		differentToken := "another-token"
+		hash3 := HashToken(differentToken)
+		assert.NotEqual(t, hash1, hash3)
+	})
+}
