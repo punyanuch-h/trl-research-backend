@@ -60,7 +60,8 @@ func (h *RefreshHandler) Refresh(c *gin.Context) {
 	// 3️⃣ Identify the user to get current email and temp status
 	var userEmail string
 	var isTemp bool
-	if storedToken.UserType == "admin" {
+	switch storedToken.UserType {
+	case "admin":
 		user, err := h.AdminRepo.GetAdminByID(storedToken.UserID)
 		if err != nil || user == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
@@ -68,7 +69,7 @@ func (h *RefreshHandler) Refresh(c *gin.Context) {
 		}
 		userEmail = user.Email
 		isTemp = user.PasswordIsTemp
-	} else {
+	case "researcher":
 		user, err := h.ResearcherRepo.GetResearcherByID(storedToken.UserID)
 		if err != nil || user == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
@@ -76,6 +77,9 @@ func (h *RefreshHandler) Refresh(c *gin.Context) {
 		}
 		userEmail = user.Email
 		isTemp = user.PasswordIsTemp
+	default:
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
+		return
 	}
 
 	// 4️⃣ Generate New Access Token

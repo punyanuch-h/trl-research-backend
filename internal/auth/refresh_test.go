@@ -100,9 +100,9 @@ func TestRefresh(t *testing.T) {
 			repo := new(MockRefreshTokenRepository)
 			adminRepo := new(MockAdminRepository)
 			researcherRepo := new(MockResearcherRepository)
-			
+
 			tt.mockRepo(repo)
-			
+
 			// Default mocks for user lookup if needed
 			adminRepo.On("GetAdminByID", mock.Anything).Return(&models.Admins{Email: "admin@test.com"}, nil)
 			researcherRepo.On("GetResearcherByID", mock.Anything).Return(&models.Researchers{Email: "res@test.com"}, nil)

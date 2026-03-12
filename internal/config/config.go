@@ -4,23 +4,22 @@ import (
 	"log"
 	"os"
 	"strconv"
-
 	"time"
 
-	"trl-research-backend/internal/utils/send_email"
-
 	"github.com/joho/godotenv"
+
+	"trl-research-backend/internal/utils/send_email"
 )
 
 type Config struct {
-	DBUrl            string
-	Port             string
-	EmailHost        string
-	EmailPort        string
-	EmailSender      string
-	EmailPassword    string
-	AntiSpamCooldown string
-	JWTExpiry        string
+	DBUrl              string
+	Port               string
+	EmailHost          string
+	EmailPort          string
+	EmailSender        string
+	EmailPassword      string
+	AntiSpamCooldown   string
+	JWTExpiry          string
 	JWTExpiryTemp      string
 	RefreshTokenExpiry string
 }
@@ -103,15 +102,15 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		DBUrl:            dbURL,
-		Port:             os.Getenv("PORT"),
-		EmailHost:        os.Getenv("EMAIL_HOST"),
-		EmailPort:        os.Getenv("EMAIL_PORT"),
-		EmailSender:      os.Getenv("EMAIL_USER"),
-		EmailPassword:    os.Getenv("EMAIL_PASS"),
-		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
-		JWTExpiry:        getEnv("JWT_EXPIRY", "480"),
-		JWTExpiryTemp:    getEnv("JWT_EXPIRY_TEMP", "10"),
+		DBUrl:              dbURL,
+		Port:               os.Getenv("PORT"),
+		EmailHost:          os.Getenv("EMAIL_HOST"),
+		EmailPort:          os.Getenv("EMAIL_PORT"),
+		EmailSender:        os.Getenv("EMAIL_USER"),
+		EmailPassword:      os.Getenv("EMAIL_PASS"),
+		AntiSpamCooldown:   getEnv("ANTISPAM_COOLDOWN", "15m"),
+		JWTExpiry:          getEnv("JWT_EXPIRY", "480"),
+		JWTExpiryTemp:      getEnv("JWT_EXPIRY_TEMP", "10"),
 		RefreshTokenExpiry: getEnv("REFRESH_TOKEN_EXPIRY", "10h"),
 	}
 }

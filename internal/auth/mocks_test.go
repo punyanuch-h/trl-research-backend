@@ -50,7 +50,7 @@ type MockAdminRepository struct {
 	mock.Mock
 }
 
-func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error)                { return nil, nil }
+func (m *MockAdminRepository) GetAdminAll() ([]models.Admins, error) { return nil, nil }
 func (m *MockAdminRepository) GetAdminByID(id string) (*models.Admins, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {

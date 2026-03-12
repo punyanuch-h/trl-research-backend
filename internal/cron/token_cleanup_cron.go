@@ -19,9 +19,9 @@ func (c *TokenCleanupCron) Start() {
 	// We use the same central robfig/cron/v3 approach or a simple ticker
 	// For consistency with ReminderCron, let's assume we can add it to a shared cron.
 	// But since ReminderCron creates its own instance, we'll do the same here for modularity.
-	
+
 	cr := NewCronWithTimezone()
-	
+
 	// Scheduling: Run every day at midnight
 	// 0 0 * * *
 	_, err := cr.AddFunc("0 0 * * *", func() {

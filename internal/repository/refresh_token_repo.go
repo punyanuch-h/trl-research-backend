@@ -49,7 +49,7 @@ func (r *RefreshTokenRepo) Update(token *models.RefreshToken) error {
 
 func (r *RefreshTokenRepo) DeleteExpired() error {
 	now := time.Now()
-	// Also delete revoked tokens that are older than some threshold? 
+	// Also delete revoked tokens that are older than some threshold?
 	// For now, simple delete expired.
 	return r.DB.Where("expiry_at < ?", now).Delete(&models.RefreshToken{}).Error
 }
