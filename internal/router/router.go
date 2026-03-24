@@ -57,6 +57,7 @@ func SetupRouter(gcsClient *storage.GCSClient, cfg config.Config) *gin.Engine {
 	caseHandler := &handlers.CaseHandler{
 		Repo: caseRepo,
 		GCS:  gcsClient,
+		Cfg:  cfg,
 	}
 	ipHandler := &handlers.IntellectualPropertyHandler{Repo: ipRepo, GCS: gcsClient}
 	assessmentHandler := &handlers.AssessmentHandler{Repo: assessmentRepo, GCS: gcsClient}

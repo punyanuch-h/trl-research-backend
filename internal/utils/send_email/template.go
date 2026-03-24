@@ -260,3 +260,21 @@ func TemplateForgetPassword(tempPass string) string {
 
 	return getHTMLTemplate("Password Reset Request", body)
 }
+
+// TemplateCaseStatusChange handles notifications when a case status is updated
+func TemplateCaseStatusChange(recipient Recipient, caseTitle string, updatedAt string) string {
+	body := fmt.Sprintf("<p>Dear <strong>%s</strong>,</p>", html.EscapeString(recipient.Name))
+	body += "<p>We are pleased to inform you that your research project has been <strong>approved</strong>.</p>"
+
+	body += "<h3>Approval Details</h3>"
+	body += "<table class='info-table'>"
+	body += fmt.Sprintf("<tr><td class='label'>Project:</td><td class='value'>%s</td></tr>", html.EscapeString(caseTitle))
+	body += "<tr><td class='label'>Status:</td><td class='value'><span class='highlight' style='background-color: #dff0d8; color: #3c763d;'>Approved</span></td></tr>"
+	body += fmt.Sprintf("<tr><td class='label'>Updated At:</td><td class='value'>%s</td></tr>", html.EscapeString(updatedAt))
+	body += "</table>"
+
+	body += "<p>Please log in to the TRL Research Administration System for more details.</p>"
+	body += "<p>Sincerely,<br>TRL Research Administration System</p>"
+
+	return getHTMLTemplate("Research Project Approved", body)
+}

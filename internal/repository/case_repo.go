@@ -34,7 +34,7 @@ func (r *CaseRepo) GetCaseAllByResearcherID(researcherID string) ([]models.Cases
 // 🟢 GetCaseByID
 func (r *CaseRepo) GetCaseByID(caseID string) (*models.Cases, error) {
 	var cs models.Cases
-	err := r.DB.Where("id = ?", caseID).First(&cs).Error
+	err := r.DB.Preload("Researcher").Preload("Coordinator").Where("id = ?", caseID).First(&cs).Error
 	if err != nil {
 		return nil, err
 	}
