@@ -177,7 +177,7 @@ func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 	c.JSON(http.StatusOK, newAp)
 }
 
-// ProcessUpdateNotification handles meaningful change detection, anti-spam, and email sending
+// ProcessUpdateNotification handles meaningful change detection and update email sending
 func (h *AppointmentHandler) ProcessUpdateNotification(oldAp *models.Appointments, newAp *models.Appointments) {
 	// A. Detect meaningful changes
 	changedFields := make(map[string]bool)
@@ -207,17 +207,9 @@ func (h *AppointmentHandler) ProcessUpdateNotification(oldAp *models.Appointment
 
 	log.Printf("[Notification] Meaningful changes detected for %s: %+v", newAp.ID, changedFields)
 
-	// B. Anti-spam Protection
 	now := time.Now()
-	diff := now.Sub(oldAp.UpdatedAt)
-	cooldown := h.Cfg.GetAntiSpamCooldown()
-	if diff < cooldown {
-		log.Printf("[Notification] Anti-spam: Skipping email for %s. Last meaningful update was only %v ago (limit: %v)", newAp.ID, diff.Round(time.Second), cooldown)
-		return
-	}
-	log.Printf("[Notification] Anti-spam cleared for %s. Last update: %v (diff: %v, limit: %v)", newAp.ID, oldAp.UpdatedAt.Format("15:04:05"), diff.Round(time.Minute), cooldown)
 
-	// C. Prepare Email Data
+	// B. Prepare Email Data
 	details, _ := send_email.GatherAppointmentEmailData(newAp)
 	emailService := send_email.CreateSMTPEmailService(h.Cfg.GetSMTPConfig())
 
@@ -243,7 +235,7 @@ func (h *AppointmentHandler) ProcessUpdateNotification(oldAp *models.Appointment
 	subject := "[URGENT] Appointment Details Updated"
 	updatedAtStr := now.Format("02 Jan 2006 15:04:05")
 
-	// D. Send Emails
+	// C. Send Emails
 	anySuccess := false
 	for email, name := range recipients {
 		recipient := send_email.Recipient{Name: name, Email: email}
@@ -258,7 +250,7 @@ func (h *AppointmentHandler) ProcessUpdateNotification(oldAp *models.Appointment
 		}
 	}
 
-	// E. Log results
+	// D. Log results
 	if anySuccess {
 		log.Printf("[Notification] Successfully sent update emails for %s", newAp.ID)
 	}

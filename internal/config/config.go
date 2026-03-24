@@ -13,15 +13,14 @@ import (
 )
 
 type Config struct {
-	DBUrl            string
-	Port             string
-	EmailHost        string
-	EmailPort        string
-	EmailSender      string
-	EmailPassword    string
-	AntiSpamCooldown string
-	JWTExpiry        string
-	JWTExpiryTemp    string
+	DBUrl         string
+	Port          string
+	EmailHost     string
+	EmailPort     string
+	EmailSender   string
+	EmailPassword string
+	JWTExpiry     string
+	JWTExpiryTemp string
 }
 
 func (c Config) GetSMTPConfig() send_email.SMTPConfig {
@@ -32,14 +31,6 @@ func (c Config) GetSMTPConfig() send_email.SMTPConfig {
 		Password: c.EmailPassword,
 		From:     c.EmailSender,
 	}
-}
-
-func (c Config) GetAntiSpamCooldown() time.Duration {
-	d, err := time.ParseDuration(c.AntiSpamCooldown)
-	if err != nil {
-		return 15 * time.Minute // Default fall back
-	}
-	return d
 }
 
 func (c Config) GetJWTExpiry() time.Duration {
@@ -89,15 +80,14 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		DBUrl:            dbURL,
-		Port:             os.Getenv("PORT"),
-		EmailHost:        os.Getenv("EMAIL_HOST"),
-		EmailPort:        os.Getenv("EMAIL_PORT"),
-		EmailSender:      os.Getenv("EMAIL_USER"),
-		EmailPassword:    os.Getenv("EMAIL_PASS"),
-		AntiSpamCooldown: getEnv("ANTISPAM_COOLDOWN", "15m"),
-		JWTExpiry:        getEnv("JWT_EXPIRY", "480"),
-		JWTExpiryTemp:    getEnv("JWT_EXPIRY_TEMP", "10"),
+		DBUrl:         dbURL,
+		Port:          os.Getenv("PORT"),
+		EmailHost:     os.Getenv("EMAIL_HOST"),
+		EmailPort:     os.Getenv("EMAIL_PORT"),
+		EmailSender:   os.Getenv("EMAIL_USER"),
+		EmailPassword: os.Getenv("EMAIL_PASS"),
+		JWTExpiry:     getEnv("JWT_EXPIRY", "480"),
+		JWTExpiryTemp: getEnv("JWT_EXPIRY_TEMP", "10"),
 	}
 }
 
