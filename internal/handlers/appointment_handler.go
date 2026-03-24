@@ -177,7 +177,7 @@ func (h *AppointmentHandler) UpdateAppointmentByID(c *gin.Context) {
 	c.JSON(http.StatusOK, newAp)
 }
 
-// ProcessUpdateNotification handles meaningful change detection, anti-spam, and email sending
+// ProcessUpdateNotification handles meaningful change detection and update email sending
 func (h *AppointmentHandler) ProcessUpdateNotification(oldAp *models.Appointments, newAp *models.Appointments) {
 	// A. Detect meaningful changes
 	changedFields := make(map[string]bool)
