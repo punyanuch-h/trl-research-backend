@@ -90,6 +90,12 @@ func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 		return
 	}
 
+	// Check if email already exists
+	if existingResearcher, _ := h.Repo.GetResearcherByEmail(req.Email); existingResearcher != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "email already exists"})
+		return
+	}
+
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {

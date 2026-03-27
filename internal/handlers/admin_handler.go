@@ -81,6 +81,12 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 		return
 	}
 
+	// Check if email already exists
+	if existingAdmin, _ := h.Repo.GetAdminByEmail(req.Email); existingAdmin != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "email already exists"})
+		return
+	}
+
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
