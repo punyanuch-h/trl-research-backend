@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type AdminHandler struct {
@@ -82,7 +83,13 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 	}
 
 	// Check if email already exists
-	if existingAdmin, _ := h.Repo.GetAdminByEmail(req.Email); existingAdmin != nil {
+	existingAdmin, err := h.Repo.GetAdminByEmail(req.Email)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		log.Printf("CreateAdmin: failed to check email uniqueness: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to validate email uniqueness"})
+		return
+	}
+	if existingAdmin != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "email already exists"})
 		return
 	}
