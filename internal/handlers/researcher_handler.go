@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"gorm.io/gorm"
+
 	"golang.org/x/crypto/bcrypt"
 
 	"trl-research-backend/internal/entity"
@@ -87,6 +89,18 @@ func (h *ResearcherHandler) CreateResearcher(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Println("Can not bind JSON:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if email already exists
+	existingResearcher, err := h.Repo.GetResearcherByEmail(req.Email)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		log.Printf("CreateResearcher: failed to check email uniqueness: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to validate email uniqueness"})
+		return
+	}
+	if existingResearcher != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "email already exists"})
 		return
 	}
 
