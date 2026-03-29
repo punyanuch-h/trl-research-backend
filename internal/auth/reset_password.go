@@ -15,13 +15,19 @@ type ResetHandler struct {
 
 type ResetReq struct {
 	OldPassword string `json:"old_password"`
-	NewPassword string `json:"new_password"`
+	NewPassword string `json:"new_password" binding:"required"`
 }
 
 func (h *ResetHandler) ResetPassword(c *gin.Context) {
-	// Get authenticated user info from context
-	userEmail := c.GetString("userEmail")
-	userRole := c.GetString("role")
+	// 1. Get authenticated user info from context claims
+	claims, err := GetMiddleware(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: invalid claims"})
+		return
+	}
+	userEmail := claims.UserEmail
+	userRole := claims.Role
+	isTemp := claims.IsTemp
 
 	if userEmail == "" || userRole == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
@@ -34,21 +40,36 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// Use authenticated email for consistency
-	emailToUse := userEmail
-
-	if req.OldPassword == "" || len(req.NewPassword) < 7 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body or password too short"})
+	// 2. Validate new password length (matching frontend)
+	if len(req.NewPassword) < 8 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password must be at least 8 characters"})
 		return
 	}
 
-	// Reset password based on role
-	if userRole == "admin" {
-		if _, err := h.AdminRepo.Login(emailToUse, req.OldPassword); err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
+	// 3. If user is NOT temporary, the old password must be provided and correct.
+	// For temporary users, the valid JWT is sufficient authorization.
+	if !isTemp {
+		if req.OldPassword == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "old password is required"})
 			return
 		}
-		if err := h.AdminRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword, false, nil); err != nil {
+		// Verify old password for the correct role
+		if userRole == "admin" {
+			if _, err := h.AdminRepo.Login(userEmail, req.OldPassword); err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
+				return
+			}
+		} else if userRole == "researcher" {
+			if _, err := h.ResearcherRepo.Login(userEmail, req.OldPassword); err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
+				return
+			}
+		}
+	}
+
+	// 4. Update the password and set PasswordIsTemp to false
+	if userRole == "admin" {
+		if err := h.AdminRepo.UpdatePasswordByEmail(userEmail, req.NewPassword, false, nil); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}
@@ -57,11 +78,7 @@ func (h *ResetHandler) ResetPassword(c *gin.Context) {
 	}
 
 	if userRole == "researcher" {
-		if _, err := h.ResearcherRepo.Login(emailToUse, req.OldPassword); err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid old password"})
-			return
-		}
-		if err := h.ResearcherRepo.UpdatePasswordByEmail(emailToUse, req.NewPassword, false, nil); err != nil {
+		if err := h.ResearcherRepo.UpdatePasswordByEmail(userEmail, req.NewPassword, false, nil); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 			return
 		}
