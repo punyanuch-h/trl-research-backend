@@ -121,18 +121,21 @@ func (r *AppointmentRepo) GetNotificationsByRole(role string, userID string) ([]
 	var appointments []models.Appointments
 	query := r.DB.Preload("Case").Where("is_notify = ?", true)
 
+	var orderField string
 	if role == "admin" {
 		// Admin sees all
+		orderField = "is_read_admin ASC"
 	} else if role == "researcher" {
 		query = query.Joins("JOIN cases ON cases.id = appointments.case_id").
 			Where("cases.researcher_id = ?", userID)
+		orderField = "is_read_researcher ASC"
 	} else {
 		// Other roles see no notifications by default
 		return []models.Appointments{}, nil
 	}
 
 	err := query.Select("appointments.*").
-		Order("is_read ASC").     // unread first
+		Order(orderField).        // unread first
 		Order("created_at DESC"). // newest first
 		Find(&appointments).Error
 	return appointments, err
@@ -142,13 +145,14 @@ func (r *AppointmentRepo) GetNotificationsByRole(role string, userID string) ([]
 func (r *AppointmentRepo) GetUnreadNotificationCountByRole(role string, userID string) (int64, error) {
 	var count int64
 	query := r.DB.Model(&models.Appointments{}).
-		Where("is_notify = ? AND is_read = ?", true, false)
+		Where("is_notify = ?", true)
 
 	if role == "admin" {
-		// Admin sees all
+		query = query.Where("is_read_admin = ?", false)
 	} else if role == "researcher" {
 		query = query.Joins("JOIN cases ON cases.id = appointments.case_id").
-			Where("cases.researcher_id = ?", userID)
+			Where("cases.researcher_id = ?", userID).
+			Where("is_read_researcher = ?", false)
 	} else {
 		return 0, nil
 	}
@@ -162,11 +166,14 @@ func (r *AppointmentRepo) MarkNotificationAsRead(id string, role string, userID 
 	var ap models.Appointments
 	query := r.DB.Where("appointments.id = ? AND is_notify = ?", id, true)
 
+	var updateColumn string
 	if role == "admin" {
 		// Admin can mark any as read
+		updateColumn = "is_read_admin"
 	} else if role == "researcher" {
 		query = query.Joins("JOIN cases ON cases.id = appointments.case_id").
 			Where("cases.researcher_id = ?", userID)
+		updateColumn = "is_read_researcher"
 	} else {
 		return nil, gorm.ErrRecordNotFound
 	}
@@ -176,12 +183,16 @@ func (r *AppointmentRepo) MarkNotificationAsRead(id string, role string, userID 
 		return nil, err
 	}
 
-	err = r.DB.Model(&ap).UpdateColumns(map[string]interface{}{"is_read": true}).Error
+	err = r.DB.Model(&ap).Update(updateColumn, true).Error
 	if err != nil {
 		return nil, err
 	}
 
-	ap.IsRead = true
+	if role == "admin" {
+		ap.IsReadAdmin = true
+	} else if role == "researcher" {
+		ap.IsReadResearcher = true
+	}
 	return &ap, nil
 }
 
@@ -190,7 +201,7 @@ func (r *AppointmentRepo) MarkAllNotificationsAsRead(role string, userID string)
 	if role == "admin" {
 		return r.DB.Model(&models.Appointments{}).
 			Where("is_notify = ?", true).
-			Update("is_read", true).Error
+			Update("is_read_admin", true).Error
 	} else if role == "researcher" {
 		// Mark all notifications as read for appointments owned by this researcher
 		subQuery := r.DB.Table("appointments").
@@ -201,7 +212,7 @@ func (r *AppointmentRepo) MarkAllNotificationsAsRead(role string, userID string)
 
 		return r.DB.Model(&models.Appointments{}).
 			Where("id IN (?)", subQuery).
-			UpdateColumns(map[string]interface{}{"is_read": true}).Error
+			Update("is_read_researcher", true).Error
 	}
 
 	return nil
